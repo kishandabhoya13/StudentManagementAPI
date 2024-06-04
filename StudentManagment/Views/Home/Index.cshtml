@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model StudentManagment.Models.StudentViewModel
+<div class="container main-container">
+    <table class="table table-dark table-borderless">
+        <thead>
+            <tr>
+                <th scope="col">StudentId</th>
+                <th scope="col">FirstName</th>
+                <th scope="col">LastName</th>
+                <th scope="col">BirthDate</th>
+                <th scope="col">Course</th>
+                <th scope="col">UserName</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.StudentId</td>
+                <td>@Model.FirstName</td>
+                <td>@Model.LastName</td>
+                <td>@Model.BirthDate</td>
+                <td>@Model.CourseName</td>
+                <td>@Model.UserName</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
