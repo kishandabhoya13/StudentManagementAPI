@@ -35,8 +35,15 @@
 
         public string MethodName { get; set; }
 
-        public object DataObject { get; set; }
+        public string DataObject { get; set; }
 
+    }
+
+    public class UpdateJwtDTo
+    {
+        public string token { get; set; }
+
+        public int StudentId { get; set; }
     }
 
 }

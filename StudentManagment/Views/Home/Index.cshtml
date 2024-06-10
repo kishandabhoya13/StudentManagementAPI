@@ -12,6 +12,7 @@
                 <th scope="col">BirthDate</th>
                 <th scope="col">Course</th>
                 <th scope="col">UserName</th>
+                <th scope="col">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -22,6 +23,11 @@
                 <td>@Model.BirthDate</td>
                 <td>@Model.CourseName</td>
                 <td>@Model.UserName</td>
+                <td style="vertical-align: middle; text-align: center">
+                    <button class="downloads-btn table-download-btn" onclick="location.href='@Url.Action("CreateUpdateStudent","Home", new {StudentId = Model.StudentId})'">
+                        Edit
+                    </button>
+                </td>
             </tr>
         </tbody>
     </table>

@@ -14,4 +14,11 @@ namespace StudentManagement_API.Models
 
         public object result { get; set; }
     }
+
+    public class RoleBaseResponse
+    {
+        public List<Student> Students { get; set; }
+
+        public string? Role { get; set;}
+    }
 }

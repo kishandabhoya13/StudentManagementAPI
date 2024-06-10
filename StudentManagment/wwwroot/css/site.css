@@ -37,7 +37,15 @@ input[type=text], input[type=password] {
     border: 1px solid #ccc;
     box-sizing: border-box;
 }
-
+.admin-submit-btn {
+    background-color: darkgoldenrod !important;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
 button {
     background-color: #04AA6D;
     color: white;
@@ -82,6 +90,38 @@ span.psw {
     display:flex;
     flex-direction:column;
     justify-content:center;
+}
+
+.submit-btn, .ok-btn {
+    border: 1px solid #01bae7;
+    background-color: #01bae7;
+    font-size: 15px;
+    color: white;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.cancel-btn {
+    border: 1px solid #01bae7;
+    background-color: white;
+    font-size: 15px;
+    padding: 8px;
+    color: #01bae7;
+    border-radius: 8px;
+}
+.downloads-btn {
+    border: 1px solid #02bae6;
+    border-radius: 5px;
+    padding: 5px 10px 5px 10px;
+    color: #02bae6;
+    background-color: transparent;
+    font-size: 20px;
+}
+ .downloads-btn:hover{
+    border: 1px solid #2596be;
+    border-radius: 8px;
+    background-color: rgba(1, 188, 233, 255);
+    color: white;
 }
 /* Change styles for span and cancel button on extra small screens */
 @media screen and (max-width: 300px) {

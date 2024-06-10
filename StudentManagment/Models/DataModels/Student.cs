@@ -19,6 +19,11 @@ namespace StudentManagment.Models.DataModels
         [Required(ErrorMessage = "CourseId is Required")]
         public int CourseId { get; set; }
 
+        public string? Dob { get; set; } = null;
+
+
+        public string? CourseName { get; set; } = null;
+
         [Required(ErrorMessage = "UserName is Required")]
         public string UserName { get; set; } = null!;
 

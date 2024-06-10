@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using AutoMapper;
+using Microsoft.Data.SqlClient;
+using Newtonsoft.Json.Linq;
 using StudentManagement_API.Models;
 using StudentManagement_API.Models.DTO;
 using StudentManagement_API.Services.Interface;
@@ -13,11 +15,13 @@ namespace StudentManagement_API.Services
         private readonly IConfiguration _configuration;
         private readonly string connectionString;
         private readonly IJwtService _jwtService;
-        public StudentServices(IConfiguration configuration,IJwtService jwtService)
+        private readonly IMapper _mapper;
+        public StudentServices(IConfiguration configuration,IJwtService jwtService,IMapper mapper)
         {
             _configuration = configuration;
             connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
             _jwtService = jwtService;
+            _mapper = mapper;
         }
 
         public DataTable GetData(string query)
@@ -46,7 +50,6 @@ namespace StudentManagement_API.Services
                         command.Parameters.AddWithValue("@CourseId", studentUpdateDto.CourseId);
                         command.Parameters.AddWithValue("@UserName", studentUpdateDto.UserName);
                         command.Parameters.AddWithValue("@Password", studentUpdateDto.Password);
-
 
                     }
                     else
@@ -113,7 +116,9 @@ namespace StudentManagement_API.Services
                         student.StudentId = (int)ds.Tables[0].Rows[i]["StudentId"];
                     }
                 }
-                student.JwtToken = _jwtService.GenerateToken(student);
+                JwtClaims jwtClaims = _mapper.Map<JwtClaims>(student);
+                jwtClaims.Id = student.StudentId;
+                student.JwtToken = _jwtService.GenerateToken(jwtClaims);
                 if(student.StudentId != 0)
                 {
                     UpdateJwtToken(student.JwtToken, student.StudentId);
@@ -138,6 +143,51 @@ namespace StudentManagement_API.Services
                     command.Parameters.AddWithValue("@JwtToken", jwtToken);
                     command.ExecuteNonQuery();
                 }
+            }
+        }
+        public static T GetDataModel<T>(object dataObj)
+        {
+            return ((JObject)dataObj).ToObject<T>();
+        }
+
+        public dynamic GetDynamicData(string controllerName, string methodName,object dataObj)
+        {
+            if(controllerName == "Student" && methodName == "GetStudent")
+            {
+                return Convert.ToInt32(dataObj);
+            }
+            else if((controllerName == "Student" && methodName == "LoginStudentDetails") || 
+                    (controllerName == "ProfessorHod" && methodName == "LoginDetails"))
+            {
+                return GetDataModel<StudentLoginDto>(dataObj);
+            }
+            else if(controllerName == "Student" && methodName == "CreateStudent")
+            {
+                return GetDataModel<StudentCreateDto>(dataObj);
+            }
+            else if (controllerName == "Student" && methodName == "UpdateStudent")
+            {
+                return GetDataModel<StudentUpdateDto>(dataObj);
+            }
+            else if(controllerName == "Student" && methodName == "UpdateStudentJwtToken")
+            {
+                return GetDataModel<UpdateJwtDTo>(dataObj);
+            }
+            else if (controllerName == "Student" && methodName == "DeleteStudent")
+            {
+                return Convert.ToInt32(dataObj);
+            }
+            else if (controllerName == "Course" && methodName == "GetCourse")
+            {
+                return Convert.ToInt32(dataObj);
+            }
+            else if(controllerName == "Student" && methodName == "GetAllStudents")
+            {
+                return Convert.ToString(dataObj);
+            }
+            else
+            {
+                return null;
             }
         }
     }

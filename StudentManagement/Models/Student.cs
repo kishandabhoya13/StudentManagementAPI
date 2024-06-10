@@ -18,6 +18,10 @@ namespace StudentManagement_API.Models
         
         public int CourseId { get; set; }
 
+        public string? Dob { get; set; } = null;
+
+        public string? CourseName { get; set; } = null;
+
         public string UserName { get; set; } = null!;
 
         public string Password { get; set; } = null!;

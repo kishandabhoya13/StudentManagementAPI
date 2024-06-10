@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using StudentManagement.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace StudentManagment.Models
 {
@@ -28,5 +29,7 @@ namespace StudentManagment.Models
         public string Password { get; set; } = null!;
 
         public string? JwtToken { get; set; } = null;
+
+        public List<Course>? Courses { get; set; } = null;
     }
 }

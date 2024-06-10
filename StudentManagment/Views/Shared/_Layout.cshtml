@@ -28,11 +28,24 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                        @if (HttpContextAccessor.HttpContext.Session.GetInt32("StudentId") != null)
+                        @if (HttpContextAccessor.HttpContext.Session.GetInt32("UserId") != null)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="LogOut">Log Out</a>
                             </li>
+                            if (HttpContextAccessor.HttpContext.Session.GetString("Role") == "Professor" || HttpContextAccessor.HttpContext.Session.GetString("Role") == "Hod")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="CreateUpdateStudent">Create Student</a>
+                                </li>
+                            }
+                            if (HttpContextAccessor.HttpContext.Session.GetString("Role") == "Hod")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="CreateUpdateStudent">Create Course</a>
+                                </li>
+                            }
+
                         }
                     </ul>
                 </div>

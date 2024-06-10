@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using StudentManagement_API.Models;
+using StudentManagement_API.Models.DTO;
 using StudentManagment_API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,7 +18,7 @@ namespace StudentManagment_API.Services
             _configuration = configuration;
         }
 
-        public string GenerateToken(Student studentViewModel)
+        public string GenerateToken(JwtClaims jwtClaims)
         {
             try
             {
@@ -25,10 +26,46 @@ namespace StudentManagment_API.Services
                 long unixTimestamp = ((DateTimeOffset)expirationTime).ToUnixTimeSeconds();
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.NameIdentifier,studentViewModel.FirstName + " "+ studentViewModel.LastName),
-                    new Claim(ClaimTypes.Name,studentViewModel.FirstName + " "+ studentViewModel.LastName),
-                    new Claim("StudentId", studentViewModel.StudentId.ToString()),
-                    new Claim(ClaimTypes.Email,studentViewModel.UserName),
+                    new Claim(ClaimTypes.NameIdentifier,jwtClaims.FirstName + " "+ jwtClaims.LastName),
+                    new Claim(ClaimTypes.Name,jwtClaims.FirstName + " "+ jwtClaims.LastName),
+                    new Claim("UserId", jwtClaims.Id.ToString()),
+                    new Claim(ClaimTypes.Email,jwtClaims.UserName),
+                    new Claim(ClaimTypes.Role,jwtClaims.RoleId.ToString()),
+                    new Claim(ClaimTypes.Expiration, unixTimestamp.ToString())
+                };
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+                var credential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var expires = DateTime.UtcNow.AddHours(2);
+
+                var token = new JwtSecurityToken(
+                        _configuration["Jwt:Issuer"],
+                        _configuration["Jwt:Audience"],
+                        claims,
+                        expires: expires,
+                        signingCredentials: credential
+                  );
+
+                return new JwtSecurityTokenHandler().WriteToken(token);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public string GenerateAdminToken(ProfessorHod professorHod)
+        {
+            try
+            {
+                DateTime expirationTime = DateTime.UtcNow.AddHours(2);
+                long unixTimestamp = ((DateTimeOffset)expirationTime).ToUnixTimeSeconds();
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier,professorHod.FirstName + " "+ professorHod.LastName),
+                    new Claim(ClaimTypes.Name,professorHod.FirstName + " "+ professorHod.LastName),
+                    new Claim("Id", professorHod.Id.ToString()),
+                    new Claim(ClaimTypes.Email,professorHod.UserName),
                     new Claim(ClaimTypes.Expiration, unixTimestamp.ToString())
                 };
 

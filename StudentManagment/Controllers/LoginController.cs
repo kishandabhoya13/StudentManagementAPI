@@ -7,6 +7,8 @@ using StudentManagment.Models;
 using StudentManagment.Models.DataModels;
 using StudentManagment.Services.Interface;
 using System.Runtime.CompilerServices;
+using StudentManagement.Models;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace StudentManagment.Controllers
 {
@@ -34,8 +36,9 @@ namespace StudentManagment.Controllers
                 Student student = _baseServices.CheckLoginDetails(studentViewModel);
                 if (!string.IsNullOrEmpty(student.UserName))
                 {
-                    HttpContext.Session.SetInt32("StudentId", student.StudentId);
+                    HttpContext.Session.SetInt32("UserId", student.StudentId);
                     HttpContext.Session.SetString("Jwt", student.JwtToken);
+
                     return RedirectToAction("Index", "Home");
                 }
                 else
@@ -53,9 +56,45 @@ namespace StudentManagment.Controllers
 
         public IActionResult Logout()
         {
-            bool isUpdate = _baseServices.UpdateJwtToken("", HttpContext.Session.GetInt32("StudentId") ?? 0);
-            HttpContext.Session.Clear();
+
+            if (HttpContext.Session.GetString("Role") != null)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("ProfessorHodLogin", "Login");
+            }
+            bool isUpdate = _baseServices.UpdateJwtToken("", HttpContext.Session.GetInt32("UserId") ?? 0, HttpContext.Session.GetString("Jwt"));
             return RedirectToAction("Login");
+        }
+
+        public IActionResult ProfessorHodLogin()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CheckAdminLogin(AdminViewModel adminViewModel)
+        {
+            try
+            {
+                ProfessorHod professorHod = _baseServices.CheckAdminLoginDetails(adminViewModel);
+                if (!string.IsNullOrEmpty(professorHod.UserName))
+                {
+                    HttpContext.Session.SetInt32("UserId", professorHod.Id);
+                    HttpContext.Session.SetString("Jwt", professorHod.JwtToken);
+
+                    return RedirectToAction("AdminIndex", "Home");
+                }
+                else
+                {
+                    TempData["error"] = "Invalid Username or Password";
+                    return View("Login");
+                }
+            }
+            catch (Exception ex)
+            {
+                var message = ex.Message;
+                throw;
+            }
         }
     }
 }

@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model StudentManagement.Models.RoleBaseResponse
+<div class="container-fluid main-container">
+    <table class="table table-borderless">
+        <thead>
+            <tr>
+                <th scope="col">StudentId</th>
+                <th scope="col">FirstName</th>
+                <th scope="col">LastName</th>
+                <th scope="col">BirthDate</th>
+                <th scope="col">Course</th>
+                <th scope="col">UserName</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Students.Any())
+            {
+                foreach (var data in Model.Students)
+                {
+                    <tr>
+                        <td>@data.StudentId</td>
+                        <td>@data.FirstName</td>
+                        <td>@data.LastName</td>
+                        <td>@data.Dob</td>
+                        <td>@data.CourseName</td>
+                        <td>@data.UserName</td>
+                        <td style="vertical-align: middle; text-align: center">
+                            <button class="downloads-btn table-download-btn" onclick="location.href='@Url.Action("CreateUpdateStudent","Home", new {StudentId = data.StudentId})'">
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>

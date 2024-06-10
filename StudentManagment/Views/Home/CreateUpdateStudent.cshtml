@@ -1,0 +1,94 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Create Page";
+}
+@model StudentManagment.Models.StudentViewModel
+<div class="container main-container">
+    <form method="post" asp-action="UpsertStudent" asp-controller="Home">
+        <input type="hidden" asp-for="StudentId" />
+        <div class="row">
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="text"
+                           class="form-control input-lg"
+                           id="floatingFirstname"
+                           asp-for="FirstName"
+                           placeholder="First Name" />
+                    <label for="floatingFirstname">First Name</label>
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="text"
+                           class="form-control input-lg"
+                           id="floatingLastName"
+                           asp-for="LastName"
+                           placeholder="First Name" />
+                    <label for="floatingFirstname">Last Name</label>
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="date"
+                           class="form-control input-lg"
+                           id="floatingFirstname"
+                           asp-for="BirthDate"
+                           placeholder="First Name" />
+                    <label for="floatingFirstname">Birth Date</label>
+                    <span asp-validation-for="BirthDate" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-12 col-sm-12 mb-4">
+                <div class="my-profile-input_box">
+                    <select id="send-order-region-dropdown"
+                            asp-for="CourseId"
+                            class="form-control">
+                        <option value="">Select Course</option>
+                        @foreach (var course in Model.Courses)
+                        {
+                            <option value="@course.Id">@course.Name</option>
+
+                        }
+                    </select>
+                    <i class="fa fa-angle-down"
+                       id="send-order-dropdownarrow"></i>
+                </div>
+                <span class="text-danger" asp-validation-for="CourseId"></span>
+            </div>
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="text"
+                           class="form-control input-lg"
+                           id="floatingUserName"
+                           asp-for="UserName"
+                           placeholder="UserName" />
+                    <label for="floatingUserName">User Name</label>
+                    <span asp-validation-for="UserName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="text"
+                           class="form-control input-lg"
+                           id="floatingPassword"
+                           asp-for="Password"
+                           placeholder="Password" />
+                    <label for="floatingFirstname">Password</label>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
+            <button class="btn btn-primary me-md-2 submit-btn" type="submit">
+                Submit
+            </button>
+            <button class="btn btn-primary cancel-btn" type="reset">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>

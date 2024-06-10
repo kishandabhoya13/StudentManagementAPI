@@ -19,7 +19,14 @@ namespace StudentManagment.Models
 
         public string MethodName { get; set; }
 
-        public object DataObject { get; set; }
+        public string DataObject { get; set; }
 
+    }
+
+    public class UpdateJwtViewModel
+    {
+        public string token { get; set; }
+
+        public int StudentId { get; set; }
     }
 }

@@ -8,12 +8,20 @@ namespace StudentManagment.Services.Interface
     {
         Student CheckLoginDetails(StudentViewModel studentViewModel);
 
-        bool UpdateJwtToken(string token, int StudentId);
+        ProfessorHod CheckAdminLoginDetails(AdminViewModel adminViewModel);
 
-        Student GetStudentDetailById(int id,string token);
+        bool UpdateJwtToken(string token, int StudentId, string currentToken);
+
+        //Student GetStudentDetailById(int id,string token);
 
         Course GetCourseDetailById(int id);
 
         Student GetStudentByMaster(int id, string token);
+
+        List<Course> GetAllCourses(string token);
+
+        bool UpsertStudent(StudentViewModel studentViewModel);
+
+        RoleBaseResponse GetAllStudents(string token);
     }
 }

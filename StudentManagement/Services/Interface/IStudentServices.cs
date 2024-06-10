@@ -17,5 +17,7 @@ namespace StudentManagement_API.Services.Interface
         Student GetLoginStudentDetails(StudentLoginDto studentLoginDto);
 
         void UpdateJwtToken(string jwtToken, int StudentId);
+
+        dynamic GetDynamicData(string controllerName, string methodName, object dataObj);
     }
 }
