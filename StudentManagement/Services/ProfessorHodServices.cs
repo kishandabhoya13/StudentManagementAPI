@@ -83,5 +83,43 @@ namespace StudentManagement_API.Services
                 }
             }
         }
+
+        public bool IsAuthorized(ApiRequest apiRequest)
+        {
+            string query = "";
+            int roleId = 0;
+            if(apiRequest.MethodType == "IsInsert")
+            {
+                query = "SELECT RoleId FROM [dbo].[RoleAccess] WHERE RoleId = @RoleId AND PageName = @PageName AND IsInsert = 1";
+            }
+            else if(apiRequest.MethodType == "IsManaged")
+            {
+                query = "SELECT RoleId FROM [dbo].[RoleAccess] WHERE RoleId = @RoleId AND PageName = @PageName AND IsManaged = 1";
+            }
+            else
+            {
+                query = "SELECT RoleId FROM [dbo].[RoleAccess] WHERE RoleId = @RoleId AND PageName = @PageName AND IsViewed = 1";
+            }
+            using var con = new SqlConnection(connectionString);
+            con.Open(); 
+            using (SqlCommand command = new SqlCommand(query, con))
+            {
+                command.Parameters.AddWithValue("@RoleId", apiRequest.RoleId);
+                command.Parameters.AddWithValue("@PageName", apiRequest.PageName);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        roleId = reader.GetInt32(0);
+                    }
+                }
+            }
+            if(roleId != 0)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

@@ -1,0 +1,88 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    int startIndex = (Model.CurrentPage) * Model.PageSize + 1;
+    int endIndex = Math.Min((Model.CurrentPage + 1) * Model.PageSize, Model.TotalItems);
+}
+@model StudentManagement.Models.RoleBaseResponse
+
+<table id="StudentTable" class="table table-borderless">
+    <thead>
+        <tr>
+            <th scope="col">StudentId</th>
+            <th scope="col">FirstName</th>
+            <th scope="col">LastName</th>
+            <th scope="col">BirthDate</th>
+            <th scope="col">Course</th>
+            <th scope="col">UserName</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Students.Any())
+        {
+            foreach (var data in Model.Students)
+            {
+                <tr>
+                    <td>@data.StudentId</td>
+                    <td>@data.FirstName</td>
+                    <td>@data.LastName</td>
+                    <td>@data.Dob</td>
+                    <td>@data.CourseName</td>
+                    <td>@data.UserName</td>
+                    <td style="vertical-align: middle; text-align: center">
+                        <button class="downloads-btn table-download-btn" onclick="location.href='@Url.Action("CreateUpdateStudent","Home", new {StudentId = data.StudentId})'">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+
+    </tbody>
+</table>
+
+@*<nav aria-label="Page navigation example" class="pb-1 page-navigation  ms-3">
+    <ul class="pagination">
+ 
+        <li class="page-item @(Model.CurrentPage == 0 ? "disabled" : "")">
+            <button class="page-link" id="prevPageLink" onclick="fetchRequests(@Model.StartIndex - @Model.PageSize)"><i class="fa fa-angle-left"></i></button>
+        </li>
+
+        <li class="page-item active">
+            @{
+                int currentPage = Model.CurrentPage + 1;
+            }
+            <button class="page-link" id="pageLink" onclick="fetchRequests(@Model.StartIndex)">@currentPage</button>
+        </li>
+        <li class="page-item @(Model.CurrentPage+1 == Model.TotalPages ? "disabled" : "")">
+            <button class="page-link" id="nextPageLink" onclick="fetchRequests(@Model.StartIndex + @Model.PageSize)"><i class="fa fa-angle-right"></i></button>
+
+        </li>
+        @if (Model.TotalItems == 0)
+        {
+            <li class="page-item">
+                <span class="page-link">
+                    Showing 0 - 0 of 0
+                </span>
+            </li>
+        }
+        else
+        {
+            <li class="page-item">
+                <span class="page-link">
+                    Showing @startIndex - @endIndex of @Model.TotalItems
+                </span>
+            </li>
+        }
+    </ul>
+    <Select id="PageSizeDropdown" onchange="fetchRequests(0)"
+            asp-for="PageSize"
+            class="form-control page-size-dropdown">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+    </Select>
+</nav>
+*@

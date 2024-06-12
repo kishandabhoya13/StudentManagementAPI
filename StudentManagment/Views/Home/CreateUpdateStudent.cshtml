@@ -5,6 +5,7 @@
     ViewData["Title"] = "Create Page";
 }
 @model StudentManagment.Models.StudentViewModel
+<h2 class="text-danger">@TempData["ErrorMsg"]</h2>
 <div class="container main-container">
     <form method="post" asp-action="UpsertStudent" asp-controller="Home">
         <input type="hidden" asp-for="StudentId" />

@@ -10,5 +10,7 @@ namespace StudentManagement.Models
 
         [Column(TypeName = "character varying")]
         public string Name { get; set; } = null!;
+
+        public string? JwtToken { get; set; } = null;
     }
 }

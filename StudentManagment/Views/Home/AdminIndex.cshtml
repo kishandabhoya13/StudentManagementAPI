@@ -3,7 +3,47 @@
 }
 @model StudentManagement.Models.RoleBaseResponse
 <div class="container-fluid main-container">
-    <table class="table table-borderless">
+    <div class="search-div row">
+        <div class="col-md-5 col-lg-5 col-12 col-sm-12">
+            <div class="form-group pb-4">
+                <div class="input_box">
+                    <input id="inputsearch"
+                           class="form-control"
+                           type="search"
+                           placeholder="Search Student" />
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 col-lg-5 col-12 col-sm-12">
+            <div class="form-group pb-4">
+                <div class="input_box">
+                    <Select id="searchOrderdropdown"
+                            class="form-control dropdown-color">
+                        @if (Model.OrderBys != null)
+                        {
+                            @foreach (var orderBy in Model.OrderBys)
+                            {
+                                <option value="@orderBy.OrderByValues">@orderBy.OrderByName</option>
+                            }
+                        }
+
+                    </Select>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-lg-2 col-12 col-sm-12">
+            <div class="form-group pb-4">
+                <div class="input_box">
+                    <Select id="searchOrderTypedropdown"
+                            class="form-control dropdown-color">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending </option>
+                    </Select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="StudentTable" class="table table-borderless">
         <thead>
             <tr>
                 <th scope="col">StudentId</th>
@@ -39,3 +79,104 @@
         </tbody>
     </table>
 </div>
+<script>
+    function CreateCourse() {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("CreateCourseModal","Home")',
+            data: {},
+            success: function (response) {
+                $('#popup').html(response)
+                $('#CreateCourseModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    };
+
+    //$('#inputsearch').on('input', function () {
+    //    fetchRequests(0);
+    //});
+
+    //$('#searchOrderdropdown').on('change', function () {
+    //    fetchRequests(0);
+    //});
+
+    //$('#searchOrderTypedropdown').on('change', function () {
+    //    fetchRequests(0);
+    //});
+
+    //$(document).ready(function () {
+    //    var startIndex = sessionStorage.getItem("StartIndex");
+    //    if (startIndex == null) {
+    //        fetchRequests(0);
+    //    }
+    //    else {
+
+    //        fetchRequests(startIndex);
+    //    }
+    //});
+
+
+    //function fetchRequests(startIndex) {
+    //    var searchQuery = $("#inputsearch").val();
+    //    //var regionId = $("#searchdropdown").val();
+    //    var pageSize = $("#PageSizeDropdown").val();
+    //    var OrderBy = $("#searchOrderdropdown").val();
+    //    var OrderDirection = $("#searchOrderTypedropdown").val();
+    //    var secondApiRequest = {
+    //        searchQuery: searchQuery,
+    //        StartIndex: startIndex,
+    //        PageSize: pageSize,
+    //        OrderBy: OrderBy,
+    //        OrderDirection: OrderDirection,
+    //    }
+    //    //$('#loading').show();
+    //    $.ajax({
+    //        method: "GET",
+    //        url: "/Home/AdminIndexTableView",
+    //        data: secondApiRequest,
+    //        success: function (response) {
+    //            //$('#loading').hide();
+    //            $('#PartialDiv').html(response)
+    //            sessionStorage.setItem("StartIndex", startIndex);
+
+    //        },
+    //        error: function () {
+    //            $('#loading').hide();
+    //            console.log("Function Fail")
+    //        }
+    //    })
+    //}
+
+    $(document).ready(function () {
+        $('#StudentTable').DataTable({
+            "initComplete": function (settings, json) {
+
+                $('#inputsearch').val(settings.oPreviousSearch.sSearch);
+
+                $('#inputsearch').on('keyup', function () {
+                    var searchValue = $(this).val();
+                    settings.oPreviousSearch.sSearch = searchValue;
+                    settings.oApi._fnReDraw(settings);
+                });
+            },
+            "lengthMenu": [[5, 10, -1], [5, 10, "All"]],
+            "pageLength": 5,
+            "language": {
+                oPaginate: {
+                    sNext: '<i class="bi bi-caret-right-fill text-info"></i>',
+                    sPrevious: '<i class="bi bi-caret-left-fill text-info"></i>'
+
+                }
+            },
+            "stateSave": true,
+            "pagingType": "simple",
+
+
+        });
+        // $('.dataTables_length').hide();
+        $('.dataTables_filter').hide();
+    });
+</script>

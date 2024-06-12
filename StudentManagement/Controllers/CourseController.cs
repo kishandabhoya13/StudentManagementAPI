@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StudentManagement_API.Models;
+using StudentManagement_API.Models.DTO;
 using StudentManagement_API.Services.Interface;
 using StudentManagment_API.Services.Interface;
 using System.Data;
@@ -105,5 +106,30 @@ namespace StudentManagement_API.Controllers
             }
 
         }
+
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> CreateCourse([FromBody] CourseCreateDto courseCreateDto)
+        {
+            try
+            {
+                string sql = "Insert into Courses(CourseName) values (@CourseName)";
+
+                _studentServices.InsertCourse(courseCreateDto, sql);
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
     }
 }

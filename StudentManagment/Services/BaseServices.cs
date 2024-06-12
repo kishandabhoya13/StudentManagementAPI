@@ -60,7 +60,7 @@ namespace StudentManagment.Services
         public ProfessorHod CheckAdminLoginDetails(AdminViewModel adminViewModel)
         {
             string url = _httpClient.BaseAddress + "/ProfessorHod/LoginDetails/Login";
-            ProfessorHod professorHod= new();
+            ProfessorHod professorHod = new();
             StudentLoginViewModel studentLoginViewModel = new()
             {
                 UserName = adminViewModel.UserName,
@@ -88,7 +88,7 @@ namespace StudentManagment.Services
             return professorHod;
         }
 
-        public RoleBaseResponse GetAllStudents(string token)
+        public RoleBaseResponse GetAllStudents(string token,int RoleId)
         {
             string url = _httpClient.BaseAddress + "/Student/GetAllStudents/";
             SecondApiRequest secondApiRequest = new()
@@ -96,6 +96,9 @@ namespace StudentManagment.Services
                 ControllerName = "Student",
                 MethodName = "GetAllStudents",
                 DataObject = JsonConvert.SerializeObject(null),
+                MethodType = "IsViewed",
+                PageName = "AdminIndex",
+                RoleId = RoleId,
             };
             _httpClient.DefaultRequestHeaders.Add("token", token);
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
@@ -114,7 +117,45 @@ namespace StudentManagment.Services
             return roleBaseResponse;
         }
 
-        public Student GetStudentByMaster(int id, string token)
+        public RoleBaseResponse GetAllStudentsWithPagination(SecondApiRequest secondApi)
+        {
+            string url = _httpClient.BaseAddress + "/Student/GetAllStudents/";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApi.PageSize,
+                StartIndex = secondApi.StartIndex,
+                OrderBy = secondApi.OrderBy,
+                OrderDirection = secondApi.OrderDirection,
+                searchQuery = secondApi.searchQuery,
+                JwtToken = secondApi.token
+            };
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetAllStudents",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "AdminIndex",
+                RoleId = secondApi.RoleId,
+            };
+            _httpClient.DefaultRequestHeaders.Add("token", secondApi.token);
+            var serializedData = JsonConvert.SerializeObject(secondApiRequest);
+            var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
+            RoleBaseResponse roleBaseResponse = new();
+            if (response.IsSuccessStatusCode)
+            {
+                string data = response.Content?.ReadAsStringAsync().Result;
+                APIResponse<RoleBaseResponse> aPIResponse = JsonConvert.DeserializeObject<APIResponse<RoleBaseResponse>>(data);
+                if (aPIResponse.IsSuccess && aPIResponse.result != null)
+                {
+                    roleBaseResponse = aPIResponse.result;
+                }
+            }
+            return roleBaseResponse;
+        }
+
+        public Student GetStudentByMaster(int id, string token,SecondApiRequest apiRequest)
         {
             string url = _httpClient.BaseAddress + "/Student/GetStudent/";
             Student student = new();
@@ -123,6 +164,9 @@ namespace StudentManagment.Services
                 ControllerName = "Student",
                 MethodName = "GetStudent",
                 DataObject = JsonConvert.SerializeObject(id.ToString()),
+                MethodType = apiRequest.MethodType,
+                PageName = apiRequest.PageName,
+                RoleId = apiRequest.RoleId,
             };
             _httpClient.DefaultRequestHeaders.Add("token", token);
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
@@ -140,25 +184,7 @@ namespace StudentManagment.Services
             return student;
         }
 
-        //public Student GetStudentDetailById(int id,string token)
-        //{
-        //    string url = _httpClient.BaseAddress + "/Student/" + id;
-        //    Student student = new();
-        //    _httpClient.DefaultRequestHeaders.Add("token", token);
-        //    HttpResponseMessage response = _httpClient.GetAsync(url).Result;
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        string data = response.Content?.ReadAsStringAsync().Result;
-        //        APIResponse<Student> aPIResponse = JsonConvert.DeserializeObject<APIResponse<Student>>(data);
-        //        if(aPIResponse.IsSuccess && aPIResponse.result != null)
-        //        {
-        //            student = aPIResponse.result;
-        //        }
-        //    }
-        //    return student;
-        //}
-
-        public List<Course> GetAllCourses(string token)
+        public List<Course> GetAllCourses(string token,int RoleId)
         {
             string url = _httpClient.BaseAddress + "/Course/GetAllCourses/";
             List<Course> courses = new();
@@ -167,8 +193,11 @@ namespace StudentManagment.Services
                 ControllerName = "Course",
                 MethodName = "GetAllCourses",
                 DataObject = JsonConvert.SerializeObject(null),
+                MethodType = "IsViewed",
+                PageName = "GetAllCourses",
+                RoleId = RoleId,
             };
-            if(!(_httpClient.DefaultRequestHeaders.Contains("token")))
+            if (!(_httpClient.DefaultRequestHeaders.Contains("token")))
             {
                 _httpClient.DefaultRequestHeaders.Add("token", token);
 
@@ -188,7 +217,7 @@ namespace StudentManagment.Services
             return courses;
         }
 
-        public Course GetCourseDetailById(int id)
+        public Course GetCourseDetailById(int id,int RoleId)
         {
             string url = _httpClient.BaseAddress + "/Course/GetCourse/";
             Course course = new();
@@ -197,6 +226,9 @@ namespace StudentManagment.Services
                 ControllerName = "Course",
                 MethodName = "GetCourse",
                 DataObject = JsonConvert.SerializeObject(id.ToString()),
+                MethodType= "IsViewed",
+                PageName = "GetCourse",
+                RoleId = RoleId,
             };
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
             var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
@@ -205,7 +237,7 @@ namespace StudentManagment.Services
             {
                 string data = response.Content?.ReadAsStringAsync().Result;
                 APIResponse<Course> aPIResponse = JsonConvert.DeserializeObject<APIResponse<Course>>(data);
-                if (aPIResponse.IsSuccess && aPIResponse.result != null )
+                if (aPIResponse.IsSuccess && aPIResponse.result != null)
                 {
                     course = aPIResponse.result;
                 }
@@ -217,7 +249,7 @@ namespace StudentManagment.Services
         {
             UpdateJwtViewModel updateJwtViewModel = new()
             {
-                StudentId = StudentId,
+                Id = StudentId,
                 token = token,
             };
             _httpClient.DefaultRequestHeaders.Add("token", currentToken);
@@ -226,6 +258,31 @@ namespace StudentManagment.Services
             {
                 ControllerName = "Student",
                 MethodName = "UpdateStudentJwtToken",
+                DataObject = JsonConvert.SerializeObject(updateJwtViewModel),
+            };
+            var serializedData = JsonConvert.SerializeObject(secondApiRequest);
+            var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool UpdateProfessorHodJwtToken(string token, int Id, string currentToken)
+        {
+            UpdateJwtViewModel updateJwtViewModel = new()
+            {
+                Id = Id,
+                token = token,
+            };
+            _httpClient.DefaultRequestHeaders.Add("token", currentToken);
+            string url = _httpClient.BaseAddress + "/ProfessorHod/UpdateProfessorHodJwtToken";
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "UpdateProfessorHodJwtToken",
                 DataObject = JsonConvert.SerializeObject(updateJwtViewModel),
             };
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
@@ -249,6 +306,9 @@ namespace StudentManagment.Services
                 secondApiRequest.ControllerName = "Student";
                 secondApiRequest.MethodName = "UpdateStudent";
                 secondApiRequest.DataObject = JsonConvert.SerializeObject(studentViewModel);
+                secondApiRequest.PageName = "EditStudent";
+                secondApiRequest.MethodType = "IsManaged";
+                secondApiRequest.RoleId = studentViewModel.RoleId;
             }
             else
             {
@@ -256,13 +316,47 @@ namespace StudentManagment.Services
                 secondApiRequest.ControllerName = "Student";
                 secondApiRequest.MethodName = "CreateStudent";
                 secondApiRequest.DataObject = JsonConvert.SerializeObject(studentViewModel);
+                secondApiRequest.PageName = "CreateStudent";
+                secondApiRequest.MethodType = "IsInsert";
+                secondApiRequest.RoleId = studentViewModel.RoleId;
             }
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
             var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
             HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
             if (response.IsSuccessStatusCode)
             {
-                return true;
+                string data = response.Content?.ReadAsStringAsync().Result;
+                APIResponse<Course> aPIResponse = JsonConvert.DeserializeObject<APIResponse<Course>>(data);
+                if (aPIResponse.IsSuccess)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool InsertCouse(Course course,int RoleId)
+        {
+            _httpClient.DefaultRequestHeaders.Add("token", course.JwtToken);
+            SecondApiRequest secondApiRequest = new();
+            string url = _httpClient.BaseAddress + "/Course/CreateCourse";
+            secondApiRequest.ControllerName = "Course";
+            secondApiRequest.MethodName = "CreateCourse";
+            secondApiRequest.DataObject = JsonConvert.SerializeObject(course);
+            secondApiRequest.PageName = "CreateCourse";
+            secondApiRequest.MethodType = "IsInsert";
+            secondApiRequest.RoleId = RoleId;
+            var serializedData = JsonConvert.SerializeObject(secondApiRequest);
+            var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                string data = response.Content?.ReadAsStringAsync().Result;
+                APIResponse<Course> aPIResponse = JsonConvert.DeserializeObject<APIResponse<Course>>(data);
+                if (aPIResponse.IsSuccess)
+                {
+                    return true;
+                }
             }
             return false;
         }

@@ -14,6 +14,7 @@ namespace StudentManagment.Models
         [StringLength(50), Required(ErrorMessage = "LastName is Required")]
         public string LastName { get; set; }
 
+        [Required]
         public DateTime? BirthDate { get; set; }
 
         [Required(ErrorMessage = "CourseId is Required")]
@@ -31,5 +32,17 @@ namespace StudentManagment.Models
         public string? JwtToken { get; set; } = null;
 
         public List<Course>? Courses { get; set; } = null;
+
+        public int? RoleId { get; set; } = 0;
+
+        public int CurrentPageNumber { get; set; }
+
+        public int PageSize { get; set; } = 10;
+
+        public string? searchQuery { get; set; } = null;
+
+        public string? OrderBy { get; set; } = null;
+
+        public string? OrderDirection { get; set; } = null;
     }
 }

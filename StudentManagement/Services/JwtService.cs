@@ -54,41 +54,6 @@ namespace StudentManagment_API.Services
             }
         }
 
-        public string GenerateAdminToken(ProfessorHod professorHod)
-        {
-            try
-            {
-                DateTime expirationTime = DateTime.UtcNow.AddHours(2);
-                long unixTimestamp = ((DateTimeOffset)expirationTime).ToUnixTimeSeconds();
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier,professorHod.FirstName + " "+ professorHod.LastName),
-                    new Claim(ClaimTypes.Name,professorHod.FirstName + " "+ professorHod.LastName),
-                    new Claim("Id", professorHod.Id.ToString()),
-                    new Claim(ClaimTypes.Email,professorHod.UserName),
-                    new Claim(ClaimTypes.Expiration, unixTimestamp.ToString())
-                };
-
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-                var credential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                var expires = DateTime.UtcNow.AddHours(2);
-
-                var token = new JwtSecurityToken(
-                        _configuration["Jwt:Issuer"],
-                        _configuration["Jwt:Audience"],
-                        claims,
-                        expires: expires,
-                        signingCredentials: credential
-                  );
-
-                return new JwtSecurityTokenHandler().WriteToken(token);
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
         public bool ValidateToken(string? token,out JwtSecurityToken jwtSecurityToken)
         {
             jwtSecurityToken = null;

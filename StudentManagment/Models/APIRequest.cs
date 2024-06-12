@@ -21,12 +21,33 @@ namespace StudentManagment.Models
 
         public string DataObject { get; set; }
 
+        public string? PageName { get; set; }
+
+        public int? RoleId { get; set; } = null;
+
+        public string? MethodType { get; set; } = null;
+
+        //public int CurrentPageNumber { get; set; } = 0;
+        public int StartIndex { get; set; } = 0;
+
+
+        public int PageSize { get; set; } = 10;
+
+        public string? searchQuery { get; set; } = null;
+
+        public string? OrderBy { get; set; } = null;
+
+        public string? OrderDirection { get; set; } = null;
+
+        public string token { get; set; }
+
+
     }
 
     public class UpdateJwtViewModel
     {
         public string token { get; set; }
 
-        public int StudentId { get; set; }
+        public int Id { get; set; }
     }
 }

@@ -19,6 +19,26 @@ namespace StudentManagement.Models
     {
         public List<Student> Students { get; set; }
 
+        public List<OrderByViewModel> OrderBys { get; set; }
+
         public string Role { get; set; }
+
+        public int CurrentPage { get; set; } = 1;
+
+        public int StartIndex { get; set; } = 0;
+
+
+        public int PageSize { get; set; } = 10;
+
+        public int TotalItems { get; set; } = 0;
+
+        public int TotalPages { get; set; }
+    }
+
+    public class OrderByViewModel
+    {
+        public string OrderByValues{ get; set; }
+
+        public string OrderByName { get; set; }
     }
 }

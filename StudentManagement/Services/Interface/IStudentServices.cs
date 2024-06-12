@@ -10,6 +10,10 @@ namespace StudentManagement_API.Services.Interface
     {
         DataTable GetData(string query);
 
+        List<Student> GetDataWithPegination(PaginationDto paginationDto);
+
+        int GetDataCount(string searchQuery);
+
         void UpsertStudent(StudentUpdateDto? studentUpdateDto, StudentCreateDto? studentCreateDto, string query);
 
         void DeleteStudent(int StudentId);
@@ -19,5 +23,7 @@ namespace StudentManagement_API.Services.Interface
         void UpdateJwtToken(string jwtToken, int StudentId);
 
         dynamic GetDynamicData(string controllerName, string methodName, object dataObj);
+
+        void InsertCourse(CourseCreateDto? courseCreateDto, string query);
     }
 }

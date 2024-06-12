@@ -14,14 +14,20 @@ namespace StudentManagment.Services.Interface
 
         //Student GetStudentDetailById(int id,string token);
 
-        Course GetCourseDetailById(int id);
+        Course GetCourseDetailById(int id,int RoleId);
 
-        Student GetStudentByMaster(int id, string token);
+        Student GetStudentByMaster(int id, string token,SecondApiRequest secondApiRequest);
 
-        List<Course> GetAllCourses(string token);
+        List<Course> GetAllCourses(string token,int RoleId);
 
         bool UpsertStudent(StudentViewModel studentViewModel);
 
-        RoleBaseResponse GetAllStudents(string token);
+        RoleBaseResponse GetAllStudents(string token,int RoleId);
+
+        RoleBaseResponse GetAllStudentsWithPagination(SecondApiRequest secondApi);
+
+        bool InsertCouse(Course course,int RoleId);
+
+        bool UpdateProfessorHodJwtToken(string token, int Id, string currentToken);
     }
 }

@@ -38,6 +38,7 @@ namespace StudentManagment.Controllers
                 {
                     HttpContext.Session.SetInt32("UserId", student.StudentId);
                     HttpContext.Session.SetString("Jwt", student.JwtToken);
+                    HttpContext.Session.SetInt32("RoleId", 3);
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -56,13 +57,16 @@ namespace StudentManagment.Controllers
 
         public IActionResult Logout()
         {
-
+            string JwtToken = HttpContext.Session.GetString("Jwt") ?? "";
+            int Id = HttpContext.Session.GetInt32("UserId") ?? 0;
             if (HttpContext.Session.GetString("Role") != null)
             {
+                _baseServices.UpdateProfessorHodJwtToken("", Id, JwtToken);
                 HttpContext.Session.Clear();
                 return RedirectToAction("ProfessorHodLogin", "Login");
             }
-            bool isUpdate = _baseServices.UpdateJwtToken("", HttpContext.Session.GetInt32("UserId") ?? 0, HttpContext.Session.GetString("Jwt"));
+            bool isUpdate = _baseServices.UpdateJwtToken("", Id,JwtToken);
+            HttpContext.Session.Clear();
             return RedirectToAction("Login");
         }
 
@@ -80,6 +84,7 @@ namespace StudentManagment.Controllers
                 if (!string.IsNullOrEmpty(professorHod.UserName))
                 {
                     HttpContext.Session.SetInt32("UserId", professorHod.Id);
+                    HttpContext.Session.SetInt32("RoleId", professorHod.RoleId);
                     HttpContext.Session.SetString("Jwt", professorHod.JwtToken);
 
                     return RedirectToAction("AdminIndex", "Home");
@@ -87,7 +92,7 @@ namespace StudentManagment.Controllers
                 else
                 {
                     TempData["error"] = "Invalid Username or Password";
-                    return View("Login");
+                    return View("ProfessorHodLogin");
                 }
             }
             catch (Exception ex)

@@ -47,6 +47,7 @@ namespace StudentManagement_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status203NonAuthoritative)]
         [HttpPost("{controllerName}/{methodName}")]
         public ActionResult<APIResponse> CallExternalGetMethod(ApiRequest apiRequest)
         {
@@ -63,48 +64,69 @@ namespace StudentManagement_API.Controllers
                 }
                 else
                 {
-                    object controller = null;
-                    if (controllers.TryGetValue(apiRequest.ControllerName, out Type controllerType))
+                    bool isAuthorized = false;
+                    if (apiRequest.MethodName == "UpdateStudentJwtToken" || apiRequest.MethodName == "UpdateProfessorHodJwtToken")
                     {
-                        controller = Activator.CreateInstance(controllerType, _studentServices, _jwtService, _professorHodServices);
+                        isAuthorized = true;
                     }
-                    MethodInfo methodInfo = controller.GetType().GetMethod(apiRequest.MethodName);
-                    if (methodInfo != null)
+                    else
                     {
-                        if (apiRequest.DataObject != "null")
-                        {
-                            object dtoObject = JsonConvert.DeserializeObject<dynamic>(apiRequest.DataObject);
+                        isAuthorized = _professorHodServices.IsAuthorized(apiRequest);
 
-                            var value = _studentServices.GetDynamicData(apiRequest.ControllerName, apiRequest.MethodName, dtoObject);
-                            var result = methodInfo.Invoke(controller, new object[] { value });
-                            var actionResult = (ActionResult<APIResponse>)result;
-                            _response = actionResult.Value;
-                            return _response;
-                        }
-                        else
+                    }
+                    if (isAuthorized)
+                    {
+                        object controller = null;
+                        if (controllers.TryGetValue(apiRequest.ControllerName, out Type controllerType))
                         {
-                            if (apiRequest.MethodName == "GetAllStudents")
+                            controller = Activator.CreateInstance(controllerType, _studentServices, _jwtService, _professorHodServices);
+                        }
+                        MethodInfo methodInfo = controller.GetType().GetMethod(apiRequest.MethodName);
+                        if (methodInfo != null)
+                        {
+                            if (apiRequest.DataObject != "null")
                             {
-                                var result = methodInfo.Invoke(controller, header["token"]);
+                                object dtoObject = JsonConvert.DeserializeObject<dynamic>(apiRequest.DataObject);
+
+                                var value = _studentServices.GetDynamicData(apiRequest.ControllerName, apiRequest.MethodName, dtoObject);
+                                var result = methodInfo.Invoke(controller, new object[] { value });
                                 var actionResult = (ActionResult<APIResponse>)result;
                                 _response = actionResult.Value;
+                                return _response;
                             }
                             else
                             {
-                                var result = methodInfo.Invoke(controller, null);
-                                var actionResult = (ActionResult<APIResponse>)result;
-                                _response = actionResult.Value;
+                                if (apiRequest.MethodName == "GetAllStudents")
+                                {
+                                    var result = methodInfo.Invoke(controller, header["token"]);
+                                    var actionResult = (ActionResult<APIResponse>)result;
+                                    _response = actionResult.Value;
+                                }
+                                else
+                                {
+                                    var result = methodInfo.Invoke(controller, null);
+                                    var actionResult = (ActionResult<APIResponse>)result;
+                                    _response = actionResult.Value;
+                                }
+                                return _response;
                             }
+                        }
+                        else
+                        {
+                            _response.ErroMessages = new List<string> { "Method Or Controller Invalid" };
+                            _response.IsSuccess = false;
+                            _response.StatusCode = HttpStatusCode.NotFound;
                             return _response;
                         }
                     }
                     else
                     {
-                        _response.ErroMessages = new List<string> { "Method Or Controller Invalid" };
+                        _response.ErroMessages = new List<string> { "Not Authoried " };
                         _response.IsSuccess = false;
-                        _response.StatusCode = HttpStatusCode.NotFound;
+                        _response.StatusCode = HttpStatusCode.NonAuthoritativeInformation;
                         return _response;
                     }
+
                 }
             }
             catch (Exception ex)

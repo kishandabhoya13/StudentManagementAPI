@@ -20,5 +20,16 @@ namespace StudentManagement_API.Models
         public List<Student> Students { get; set; }
 
         public string? Role { get; set;}
+
+        public int CurrentPage { get; set; } = 0;
+
+        public int StartIndex { get; set; } = 0;
+
+
+        public int PageSize { get; set; } = 10;
+
+        public int TotalItems { get; set; } = 0;
+
+        public int TotalPages { get; set; }
     }
 }

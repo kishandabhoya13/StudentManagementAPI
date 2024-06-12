@@ -16,7 +16,7 @@ namespace StudentManagement_API.Services
         private readonly string connectionString;
         private readonly IJwtService _jwtService;
         private readonly IMapper _mapper;
-        public StudentServices(IConfiguration configuration,IJwtService jwtService,IMapper mapper)
+        public StudentServices(IConfiguration configuration, IJwtService jwtService, IMapper mapper)
         {
             _configuration = configuration;
             connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
@@ -34,6 +34,81 @@ namespace StudentManagement_API.Services
             DataTable dt = ds.Tables[0];
             return dt;
         }
+
+        public List<Student> GetDataWithPegination(PaginationDto paginationDto)
+        {
+            try
+            {
+                using var con = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("[dbo].[Get_Students_List]", con);
+
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Search_Query", paginationDto.searchQuery ?? "");
+                cmd.Parameters.AddWithValue("@Sort_Column_Name", paginationDto.OrderBy ?? "");
+                cmd.Parameters.AddWithValue("@Sort_Column_Direction", paginationDto.OrderDirection ?? "");
+                cmd.Parameters.AddWithValue("@Start_index", paginationDto.StartIndex);
+                cmd.Parameters.AddWithValue("@Page_Size", paginationDto.PageSize);
+                con.Open();
+
+                using var da = new SqlDataAdapter();
+                da.SelectCommand = cmd;
+
+                using var ds = new DataSet();
+                da.Fill(ds);
+                List<Student> students = new();
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                    {
+                        Student student = new()
+                        {
+                            UserName = ds.Tables[0].Rows[i]["UserName"].ToString() ?? "",
+                            Password = ds.Tables[0].Rows[i]["PassWord"].ToString() ?? "",
+                            FirstName = ds.Tables[0].Rows[i]["FirstName"].ToString() ?? "",
+                            LastName = ds.Tables[0].Rows[i]["LastName"].ToString() ?? "",
+                            BirthDate = (DateTime)ds.Tables[0].Rows[i]["BirthDate"],
+                            Dob = ((DateTime)ds.Tables[0].Rows[i]["BirthDate"]).ToString("dd-MMM-yyyy"),
+                            CourseId = (int)ds.Tables[0].Rows[i]["CourseId"],
+                            CourseName = ds.Tables[0].Rows[i]["CourseName"].ToString() ?? "",
+                            StudentId = (int)ds.Tables[0].Rows[i]["StudentId"],
+                        };
+                        students.Add(student);
+                    }
+                }
+                return students;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
+        public int GetDataCount(string searchQuery)
+        {
+            try
+            {
+                using var con = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("[dbo].[Get_Total_Record_Count]", con);
+
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Search_Query", searchQuery ?? "");
+                con.Open();
+                int Count = 0;
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Count = reader.GetInt32(0);
+                    }
+                }
+                return Count;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
         public void UpsertStudent(StudentUpdateDto? studentUpdateDto, StudentCreateDto? studentCreateDto, string query)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -43,27 +118,67 @@ namespace StudentManagement_API.Services
                 {
                     if (studentUpdateDto != null)
                     {
-                        command.Parameters.AddWithValue("@Id", studentUpdateDto.StudentId);
-                        command.Parameters.AddWithValue("@FirstName", studentUpdateDto.FirstName);
-                        command.Parameters.AddWithValue("@LastName", studentUpdateDto.LastName);
-                        command.Parameters.AddWithValue("@BirthDate", studentUpdateDto.BirthDate);
-                        command.Parameters.AddWithValue("@CourseId", studentUpdateDto.CourseId);
-                        command.Parameters.AddWithValue("@UserName", studentUpdateDto.UserName);
-                        command.Parameters.AddWithValue("@Password", studentUpdateDto.Password);
+                        var table = new DataTable();
+                        table.Columns.Add("FirstName");
+                        table.Columns.Add("LastName");
+                        table.Columns.Add("BirthDate");
+                        table.Columns.Add("CourseId");
+                        table.Columns.Add("UserName");
+                        table.Columns.Add("Password");
+
+                        var row = table.NewRow();
+                        row["FirstName"] = studentUpdateDto.FirstName;
+                        row["LastName"] = studentUpdateDto.LastName;
+                        row["BirthDate"] = ((DateTime)studentUpdateDto.BirthDate).ToString("MM-dd-yyyy");
+                        row["CourseId"] = studentUpdateDto.CourseId;
+                        row["UserName"] = studentUpdateDto.UserName;
+                        row["Password"] = studentUpdateDto.Password;
+                        table.Rows.Add(row);
+
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        var parameter = command.CreateParameter();
+                        parameter.TypeName = "dbo.Student_Details";
+                        parameter.Value = table;
+                        parameter.ParameterName = "@Student_Details";
+                        command.Parameters.Add(parameter);
+                        command.Parameters.AddWithValue("@StudentId", studentUpdateDto.StudentId);
+                        //command.Parameters.AddWithValue("@FirstName", studentUpdateDto.FirstName);
+                        //command.Parameters.AddWithValue("@LastName", studentUpdateDto.LastName);
+                        //command.Parameters.AddWithValue("@BirthDate", studentUpdateDto.BirthDate);
+                        //command.Parameters.AddWithValue("@CourseId", studentUpdateDto.CourseId);
+                        //command.Parameters.AddWithValue("@UserName", studentUpdateDto.UserName);
+                        //command.Parameters.AddWithValue("@Password", studentUpdateDto.Password);
 
                     }
                     else
                     {
-                        command.Parameters.AddWithValue("@FirstName", studentCreateDto.FirstName);
-                        command.Parameters.AddWithValue("@LastName", studentCreateDto.LastName);
-                        command.Parameters.AddWithValue("@BirthDate", studentCreateDto.BirthDate);
-                        command.Parameters.AddWithValue("@CourseId", studentCreateDto.CourseId);
-                        command.Parameters.AddWithValue("@UserName", studentCreateDto.UserName);
-                        command.Parameters.AddWithValue("@Password", studentCreateDto.Password);
+                        var table = new DataTable();
+                        table.Columns.Add("FirstName");
+                        table.Columns.Add("LastName");
+                        table.Columns.Add("BirthDate");
+                        table.Columns.Add("CourseId");
+                        table.Columns.Add("UserName");
+                        table.Columns.Add("Password");
+                        var row = table.NewRow();
+                        row["FirstName"] = studentCreateDto.FirstName;
+                        row["LastName"] = studentCreateDto.LastName;
+                        row["BirthDate"] = ((DateTime)studentUpdateDto.BirthDate).ToString("MM-dd-yyyy");
+                        row["CourseId"] = studentCreateDto.CourseId;
+                        row["UserName"] = studentCreateDto.UserName;
+                        row["Password"] = studentCreateDto.Password;
+                        table.Rows.Add(row);
+
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        var parameter = command.CreateParameter();
+                        parameter.TypeName = "dbo.Student_Details";
+                        parameter.Value = table;
+                        parameter.ParameterName = "@Student_Details";
+                        command.Parameters.Add(parameter);
 
 
                     }
-
                     command.ExecuteNonQuery();
                 }
             }
@@ -119,7 +234,7 @@ namespace StudentManagement_API.Services
                 JwtClaims jwtClaims = _mapper.Map<JwtClaims>(student);
                 jwtClaims.Id = student.StudentId;
                 student.JwtToken = _jwtService.GenerateToken(jwtClaims);
-                if(student.StudentId != 0)
+                if (student.StudentId != 0)
                 {
                     UpdateJwtToken(student.JwtToken, student.StudentId);
                 }
@@ -150,18 +265,18 @@ namespace StudentManagement_API.Services
             return ((JObject)dataObj).ToObject<T>();
         }
 
-        public dynamic GetDynamicData(string controllerName, string methodName,object dataObj)
+        public dynamic GetDynamicData(string controllerName, string methodName, object dataObj)
         {
-            if(controllerName == "Student" && methodName == "GetStudent")
+            if (controllerName == "Student" && methodName == "GetStudent")
             {
                 return Convert.ToInt32(dataObj);
             }
-            else if((controllerName == "Student" && methodName == "LoginStudentDetails") || 
+            else if ((controllerName == "Student" && methodName == "LoginStudentDetails") ||
                     (controllerName == "ProfessorHod" && methodName == "LoginDetails"))
             {
                 return GetDataModel<StudentLoginDto>(dataObj);
             }
-            else if(controllerName == "Student" && methodName == "CreateStudent")
+            else if (controllerName == "Student" && methodName == "CreateStudent")
             {
                 return GetDataModel<StudentCreateDto>(dataObj);
             }
@@ -169,7 +284,11 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<StudentUpdateDto>(dataObj);
             }
-            else if(controllerName == "Student" && methodName == "UpdateStudentJwtToken")
+            else if (controllerName == "Student" && methodName == "UpdateStudentJwtToken")
+            {
+                return GetDataModel<UpdateJwtDTo>(dataObj);
+            }
+            else if (controllerName == "ProfessorHod" && methodName == "UpdateProfessorHodJwtToken")
             {
                 return GetDataModel<UpdateJwtDTo>(dataObj);
             }
@@ -181,13 +300,31 @@ namespace StudentManagement_API.Services
             {
                 return Convert.ToInt32(dataObj);
             }
-            else if(controllerName == "Student" && methodName == "GetAllStudents")
+            else if (controllerName == "Student" && methodName == "GetAllStudents")
             {
                 return Convert.ToString(dataObj);
+            }
+            else if (controllerName == "Course" && methodName == "CreateCourse")
+            {
+                return GetDataModel<CourseCreateDto>(dataObj);
             }
             else
             {
                 return null;
+            }
+        }
+
+        public void InsertCourse(CourseCreateDto? courseCreateDto, string query)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@CourseName", courseCreateDto.Name);
+
+                    command.ExecuteNonQuery();
+                }
             }
         }
     }

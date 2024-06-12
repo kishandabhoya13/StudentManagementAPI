@@ -37,13 +37,19 @@
 
         public string DataObject { get; set; }
 
+        public string? PageName { get; set; }
+
+        public int? RoleId { get; set; } = null;
+
+        public string? MethodType { get; set; } = null;
+
     }
 
     public class UpdateJwtDTo
     {
         public string token { get; set; }
 
-        public int StudentId { get; set; }
+        public int Id { get; set; }
     }
 
 }
