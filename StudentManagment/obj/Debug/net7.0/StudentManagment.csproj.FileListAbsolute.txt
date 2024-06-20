@@ -78,3 +78,14 @@ D:\StudentManagement\StudentManagment\obj\Debug\net7.0\StudentManagment.pdb
 D:\StudentManagement\StudentManagment\obj\Debug\net7.0\StudentManagment.genruntimeconfig.cache
 D:\StudentManagement\StudentManagment\obj\Debug\net7.0\ref\StudentManagment.dll
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\AutoMapper.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Web.Mvc.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Web.Razor.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Web.Helpers.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Web.WebPages.Deployment.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Web.WebPages.Razor.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Web.WebPages.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.Web.Infrastructure.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.JsonPatch.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Newtonsoft.Json.Bson.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\NetCore.AutoRegisterDi.dll

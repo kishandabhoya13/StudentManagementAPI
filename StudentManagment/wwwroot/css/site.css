@@ -33,6 +33,7 @@ input[type=text], input[type=password] {
     border: 1px solid #ccc;
     box-sizing: border-box;
 }
+
 .admin-submit-btn {
     background-color: darkgoldenrod !important;
     color: white;
@@ -42,6 +43,13 @@ input[type=text], input[type=password] {
     cursor: pointer;
     width: 100%;
 }
+
+a {
+    text-decoration: none !important;
+    color: green !important;
+    /*text-decoration-color:green;*/
+}
+
 button {
     background-color: #04AA6D;
     color: white;
@@ -82,10 +90,10 @@ span.psw {
 }
 
 
-.main-container{
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
+.main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .submit-btn, .ok-btn {
@@ -105,6 +113,7 @@ span.psw {
     color: #01bae7;
     border-radius: 8px;
 }
+
 .downloads-btn {
     border: 1px solid #02bae6;
     border-radius: 5px;
@@ -113,11 +122,156 @@ span.psw {
     background-color: transparent;
     font-size: 20px;
 }
- .downloads-btn:hover{
-    border: 1px solid #2596be;
+
+    .downloads-btn:hover {
+        border: 1px solid #2596be;
+        border-radius: 8px;
+        background-color: rgba(1, 188, 233, 255);
+        color: white;
+    }
+
+.form-group input {
+    height: 50px !important;
+}
+
+.my-profile-input_box {
+    position: relative;
+    height: 55px;
+}
+
+#send-order-region-dropdown {
+    height: 100%;
+}
+
+#send-order-dropdownarrow {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
+.right-wrong-div {
+    width: 20px;
+    display: flex;
+    text-align: center;
+    height: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.inline-flex {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.right-div {
+    border: 2px solid green;
+}
+
+.wrong-div {
+    border: 2px solid red;
+}
+
+.paging_full_numbers {
+    display: flex;
+}
+
+.table-inputs {
+    height: 40px;
+}
+
+table tr {
+    vertical-align: middle;
+}
+
+    table thead tr th {
+        text-align: center !important;
+    }
+
+.hidden {
+    display: none !important;
+}
+
+.dt-paging-button {
+    pointer-events: auto !important;
+}
+.main-content {
+    width: 80%;
+    background-color: #f5f5f5;
     border-radius: 8px;
-    background-color: rgba(1, 188, 233, 255);
+    box-shadow: 0 0px 0px gray, 0 0 5px white;
+}
+
+.upload-div {
+    background-color: var(--bkg-color);
+    border-radius: 0px 15px 15px 0px;
+    height: 48px;
+}
+
+.upload-btn {
+    border: 1px solid green;
     color: white;
+    display:flex !important;
+    text-align:center;
+    justify-content:center;
+    align-items:center;
+    background-color: green;
+    padding: 8px;
+    border-radius: 0 10px 10px 0;
+    font-size: 18px;
+    position: absolute;
+    right: 12%;
+    width:102px !important;
+}
+
+.submit-btn {
+    background-color: green !important;
+    color: white !important;
+}
+
+.cancel-btn{
+    background-color:brown !important;
+    color:white !important;
+}
+::file-selector-button {
+    font-size: 20px;
+    /* visibility: hidden; */
+}
+
+.input-group {
+    height: 50px;
+    background-color: #7f7f7e;
+}
+
+input[type="file"] {
+    -webkit-appearance: none;
+    text-align: left;
+    padding-top: 10px;
+    color: gray;
+    width:100% !important;
+    padding-left: 20px;
+}
+#searchOrderdropdown{
+    height:50px;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    -webkit-appearance: none;
+    float: right;
+    position: absolute;
+    margin: -10px 0 0 0;
+    right: 12%;
+    padding-top: 12px;
+    border: 1px solid #aaaaaa;
+    border-radius: 4px;
+    opacity: 0;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 /* Change styles for span and cancel button on extra small screens */
 @media screen and (max-width: 300px) {

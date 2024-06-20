@@ -6,10 +6,10 @@ namespace StudentManagement.Models
     public class Course
     {
         [Key]
-        public int Id { get; set; }
+        public int CourseId { get; set; }
 
         [Column(TypeName = "character varying")]
-        public string Name { get; set; } = null!;
+        public string CourseName { get; set; } = null!;
 
         public string? JwtToken { get; set; } = null;
     }

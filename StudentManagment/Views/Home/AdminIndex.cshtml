@@ -1,8 +1,9 @@
-﻿@{
+﻿@using StudentManagment.Models.DataModels;
+@{
     ViewData["Title"] = "Home Page";
 }
-@model StudentManagement.Models.RoleBaseResponse
-<div class="container-fluid main-container">
+@model StudentManagement.Models.RoleBaseResponse<Student>
+<div class="container-fluid">
     <div class="search-div row">
         <div class="col-md-5 col-lg-5 col-12 col-sm-12">
             <div class="form-group pb-4">
@@ -31,53 +32,22 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-lg-2 col-12 col-sm-12">
-            <div class="form-group pb-4">
-                <div class="input_box">
-                    <Select id="searchOrderTypedropdown"
-                            class="form-control dropdown-color">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending </option>
-                    </Select>
-                </div>
-            </div>
+        @* <div class="col-md-2 col-lg-2 col-12 col-sm-12">
+        <div class="form-group pb-4">
+        <div class="input_box">
+        <Select id="searchOrderTypedropdown"
+        class="form-control dropdown-color">
+        <option value="ASC">Ascending</option>
+        <option value="DESC">Descending </option>
+        </Select>
         </div>
+        </div>
+        </div>*@
     </div>
-    <table id="StudentTable" class="table table-borderless">
-        <thead>
-            <tr>
-                <th scope="col">StudentId</th>
-                <th scope="col">FirstName</th>
-                <th scope="col">LastName</th>
-                <th scope="col">BirthDate</th>
-                <th scope="col">Course</th>
-                <th scope="col">UserName</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.Students.Any())
-            {
-                foreach (var data in Model.Students)
-                {
-                    <tr>
-                        <td>@data.StudentId</td>
-                        <td>@data.FirstName</td>
-                        <td>@data.LastName</td>
-                        <td>@data.Dob</td>
-                        <td>@data.CourseName</td>
-                        <td>@data.UserName</td>
-                        <td style="vertical-align: middle; text-align: center">
-                            <button class="downloads-btn table-download-btn" onclick="location.href='@Url.Action("CreateUpdateStudent","Home", new {StudentId = data.StudentId})'">
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                }
-            }
-
-        </tbody>
-    </table>
+    <div class="container-fluid">
+        <table id="StudentTable" class="table table-borderless">
+        </table>
+    </div>
 </div>
 <script>
     function CreateCourse() {
@@ -121,16 +91,13 @@
 
     //function fetchRequests(startIndex) {
     //    var searchQuery = $("#inputsearch").val();
-    //    //var regionId = $("#searchdropdown").val();
     //    var pageSize = $("#PageSizeDropdown").val();
     //    var OrderBy = $("#searchOrderdropdown").val();
-    //    var OrderDirection = $("#searchOrderTypedropdown").val();
     //    var secondApiRequest = {
     //        searchQuery: searchQuery,
     //        StartIndex: startIndex,
     //        PageSize: pageSize,
     //        OrderBy: OrderBy,
-    //        OrderDirection: OrderDirection,
     //    }
     //    //$('#loading').show();
     //    $.ajax({
@@ -150,8 +117,55 @@
     //    })
     //}
 
-    $(document).ready(function () {
-        $('#StudentTable').DataTable({
+    function loadDataTable(startIndex) {
+        var TOTAL_ITEMS = 0;
+        var searchQuery = $("#inputsearch").val();
+        var pageSize = $("#dt-length-0").val();
+        var OrderBy = $("#searchOrderdropdown").val();
+        var secondApiRequest = {
+            searchQuery: searchQuery,
+            StartIndex: startIndex,
+            PageSize: pageSize,
+            OrderBy: OrderBy,
+        }
+        sessionStorage.setItem("currentPageIndex", startIndex);
+        var table = new DataTable('#StudentTable', {
+            "infoCallback": function (settings, start, end, max, total, pre) {
+
+                var pageInfo = this.api().page.info(); // Get the current page info
+                var pageSize1 = pageInfo.length;
+
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
+                // Calculate the start and end indices for the current page
+                console.log("currentPageIndex ::: ", currentPageIndex);
+                console.log("pageSize ::: ", pageSize1);
+                var startIndex = (currentPageIndex * pageSize1) + 1;
+                console.log("startIndex ::: ", startIndex)
+
+                var endIndex = Math.min(startIndex + pageSize1 - 1, TOTAL_ITEMS);
+                console.log("endIndex ::: ", endIndex)
+                if (endIndex == TOTAL_ITEMS) {
+                    console.log($(".dt-paging-button"));
+                    $(".page-link.next").addClass("disabled");
+                }
+                else{
+                    $(".page-link.next").removeClass("disabled");
+                }
+
+                if(startIndex == 1)
+                {
+                    $(".page-link.previous").addClass("disabled");
+                }
+                else{
+                    $(".page-link.previous").removeClass("disabled");
+
+                }
+                return "Showing " + startIndex + " to " + endIndex + " of " + TOTAL_ITEMS + " entries";
+            },
+            drawCallback: function () {
+
+                $(".dt-paging-button").removeClass("disabled");
+            },
             "initComplete": function (settings, json) {
 
                 $('#inputsearch').val(settings.oPreviousSearch.sSearch);
@@ -159,11 +173,14 @@
                 $('#inputsearch').on('keyup', function () {
                     var searchValue = $(this).val();
                     settings.oPreviousSearch.sSearch = searchValue;
-                    settings.oApi._fnReDraw(settings);
+                    settings.oApi._fnDraw(settings);
                 });
+                console.log("JSON ::: ", TOTAL_ITEMS);
+                $('#totalCell').text(TOTAL_ITEMS);
+                $(".dt-paging-button").removeClass("disabled");
             },
-            "lengthMenu": [[5, 10, -1], [5, 10, "All"]],
-            "pageLength": 5,
+            "lengthMenu": [[5, 10, 15], [5, 10, 15]],
+            "pageLength": pageSize,
             "language": {
                 oPaginate: {
                     sNext: '<i class="bi bi-caret-right-fill text-info"></i>',
@@ -174,9 +191,308 @@
             "stateSave": true,
             "pagingType": "simple",
 
+            ajax: {
+                method: "POST",
+                url: "/Home/AdminIndexTableView",
+                data: secondApiRequest,
+                dataType: "JSON",
+                dataSrc: function (response) {
+                    TOTAL_ITEMS = response.totalItems;
+                    console.log(TOTAL_ITEMS);
+                    return response.data;
+                },
+                error: function () {
+                    console.log("Function Fail")
+                }
+            },
+            columns: [
+                {
+                    "title": "StudentId",
+                    "data": "studentId",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return data1;
+                    }
+                },
+                {
+                    "title": "FirstName",
+                    "data": "firstName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<input id='firstname-input-" + row.studentId + "' class='table-inputs form-control-disables-" + row.studentId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <a class='input-values-" + row.studentId + "' href='/Home/CreateUpdateStudent?StudentId=" + row.studentId + "'>" + data1 + "</a>";
+                    }
+                },
+                {
+                    "title": "LastName",
+                    "data": "lastName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<input id='lastname-input-" + row.studentId + "' class='table-inputs form-control-disables-" + row.studentId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.studentId + "'>" + data1 + "</span>";
+                    }
+                },
+                {
+                    "title": "BirthDate",
+                    "data": "birthDate",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        var date = new Date(data1);
+                        var localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+                        var formattedDate = localDate.toISOString().split('T')[0];
+                        return "<input id='birthdate-input-" + row.studentId + "' class='table-inputs form-control-disables-" + row.studentId + "' style='display:none;' type='date' asp-for='" + data1 + "' value='" + formattedDate + "'/> <span class='input-values-" + row.studentId + "'>" + formattedDate + "</span>";
 
+                    }
+                },
+                {
+                    "title": "CourseName",
+                    "data": "courseName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<select id='courseDropdown-" + row.studentId + "' style='display:none;'></select> <span class='input-values-" + row.studentId + "'>" + data1 + "</span>";
+
+                    }
+                },
+                {
+                    "title": "UserName",
+                    "data": "userName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<input id='username-input-" + row.studentId + "' class='table-inputs form-control-disables-" + row.studentId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.studentId + "'>" + data1 + "</span>";
+
+                    }
+                },
+                {
+                    "title": "Action",
+                    "data": "-",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<div class='inline-flex'> <i onclick='displayInput(" + row.studentId + "," + row.courseId + ")' id='edit-btn-" + row.studentId + "' style='color:green;' class='fas fa-edit'></i>"
+                            + "<div id='right-div-" + row.studentId + "' class='right-wrong-div right-div' style='display:none'>"
+                            + "<i style='color:green;' onclick='updateStudent(" + row.studentId + ")' class='fa fa-check' aria-hidden='true'></i></div>"
+                            + "<div id='wrong-div-" + row.studentId + "' onclick='hideInput(" + row.studentId + ")' class='right-wrong-div wrong-div' style='display:none'>"
+                            + "<i style='color:red;' class='fa fa-times' aria-hidden='true'></i>"
+                            + "</div></div>";
+                    }
+                },
+            ]
         });
-        // $('.dataTables_length').hide();
-        $('.dataTables_filter').hide();
+        return table;
+
+    }
+
+
+
+
+    $(document).ready(function () {
+        sessionStorage.setItem("currentPageIndex", 0);
+        var table = loadDataTable(0);
+        $("#dt-length-0").val(5);
+        $(".dt-paging-button").removeClass("disabled");
+        $(document).on('change', '.form-select', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            event.preventDefault();
+            console.log(secondApiRequest);
+            $.ajax({
+                method: "POST",
+                url: "/Home/AdminIndexTableView",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('keyup', '#inputsearch', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                searchQuery: this.value,
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            console.log(secondApiRequest);
+            $.ajax({
+                method: "POST",
+                url: "/Home/AdminIndexTableView",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        let currentPageIndex = 0;
+        let totalPages = table.page.info().pages;
+        $(document).on('click', '.page-link.next', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) + 1;
+            }
+            let startIndex = currentPageIndex * pageSize;
+            event.preventDefault();
+            var secondApiRequest = {
+                StartIndex: startIndex,
+                PageSize: pageSize,
+            };
+            console.log(secondApiRequest);
+            $.ajax({
+                method: "POST",
+                url: "/Home/AdminIndexTableView",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('click', '.page-link.previous', function (event) {
+            event.preventDefault();
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
+            }
+            let startIndex1 = currentPageIndex * pageSize;
+            var secondApiRequest = {
+                StartIndex: startIndex1,
+                PageSize: pageSize,
+            };
+            console.log(secondApiRequest);
+            $.ajax({
+                method: "POST",
+                url: "/Home/AdminIndexTableView",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    console.log(response);
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
     });
+
+</script>
+<script>
+    function displayInput(StudentId, CourseId) {
+        let editbtn = document.getElementById(`edit-btn-${StudentId}`);
+        let submitdiv = document.getElementById(`right-div-${StudentId}`);
+        let canceldiv = document.getElementById(`wrong-div-${StudentId}`);
+        let inputFields = document.getElementsByClassName(`form-control-disables-${StudentId}`);
+        let inputFieldValues = document.getElementsByClassName(`input-values-${StudentId}`);
+        let CourseDropdown = $(`#courseDropdown-${StudentId}`);
+        //console.log(courseDropdown);
+        var items = @Html.Raw(Json.Serialize(Model.Courses));
+        if (CourseDropdown.children().length === 0) {
+            $.each(items, function (index, value) {
+                let isSelected = value.courseId === CourseId ? "selected" : "";
+                CourseDropdown.append(`<option value='${value.courseId}' ${isSelected}>${value.courseName}</option>`);
+            });
+        }
+        $(`#courseDropdown-${StudentId}`).picker();
+        editbtn.style.display = 'none';
+        submitdiv.style.display = 'flex';
+        canceldiv.style.display = 'flex';
+
+        for (let i = 0; i < inputFields.length; i++) {
+            inputFields[i].style.display = 'inline-block';
+        }
+
+        for (let i = 0; i < inputFieldValues.length; i++) {
+            //courseDropdown.style.display = 'inline-block';
+            inputFieldValues[i].style.display = 'none';
+        }
+    }
+
+
+    function hideInput(StudentId) {
+        let editbtn = document.getElementById(`edit-btn-${StudentId}`);
+        let submitdiv = document.getElementById(`right-div-${StudentId}`);
+        let canceldiv = document.getElementById(`wrong-div-${StudentId}`);
+
+        let inputFields = document.getElementsByClassName(`form-control-disables-${StudentId}`);
+        let inputFieldValues = document.getElementsByClassName(`input-values-${StudentId}`);
+        let courseDropdown = document.getElementById(`courseDropdown-${StudentId}`);
+
+        editbtn.style.display = 'block';
+        submitdiv.style.display = 'none';
+        canceldiv.style.display = 'none';
+        $(`#courseDropdown-${StudentId}`).picker('destroy');
+        courseDropdown.style.display = 'none';
+        for (let i = 0; i < inputFields.length; i++) {
+            inputFields[i].style.display = 'none';
+        }
+
+        for (let i = 0; i < inputFieldValues.length; i++) {
+            inputFieldValues[i].style.display = 'inline-block';
+        }
+
+    }
+
+    function updateStudent(StudentId) {
+        var firstname = $(`#firstname-input-${StudentId}`).val();
+
+        var lastname = $(`#lastname-input-${StudentId}`).val();
+
+        var birthdate = $(`#birthdate-input-${StudentId}`).val();
+
+        var username = $(`#username-input-${StudentId}`).val();
+
+        var courseDropdown = $(`#courseDropdown-${StudentId}`).val();
+
+        var studentViewModel =
+        {
+            StudentId: StudentId,
+            FirstName: firstname,
+            LastName: lastname,
+            BirthDate: birthdate,
+            CourseId: courseDropdown,
+            UserName: username
+        };
+        console.log(studentViewModel);
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("UpsertStudent","Home")',
+            data: studentViewModel,
+            success: function (response) {
+                window.location.reload();
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
+        });
+        console.log(studentViewModel);
+    }
 </script>

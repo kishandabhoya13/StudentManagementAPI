@@ -16,8 +16,16 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = D:\StudentManagement\StudentManagment
 build_property._RazorSourceGeneratorDebug = 
 
+[D:/StudentManagement/StudentManagment/Views/Home/AddBook.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRCb29rLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/StudentManagement/StudentManagment/Views/Home/AdminIndex.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZG1pbkluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/StudentManagement/StudentManagment/Views/Home/AllBooks.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBbGxCb29rcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/StudentManagement/StudentManagment/Views/Home/CreateCourseModal.cshtml]

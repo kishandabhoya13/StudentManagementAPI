@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StudentManagement_API.Models;
-using StudentManagement_API.Models.DTO;
-using StudentManagement_API.Services.Interface;
-using StudentManagment_API.Services.Interface;
+using StudentManagement_API.Models.Models;
+using StudentManagement_API.Models.Models.DTO;
+using StudentManagement_API.Services;
 using System.Data;
 using System.Net;
 
@@ -15,9 +15,9 @@ namespace StudentManagement_API.Controllers
     {
         private APIResponse _response;
         private readonly IStudentServices _studentServices;
-        private readonly IJwtService _jwtService;
+        private readonly IJwtServices _jwtService;
         private readonly IProfessorHodServices _professorHodServices;
-        public ProfessorHodController(IStudentServices studentServices, IJwtService jwtService,IProfessorHodServices? professorHodServices)
+        public ProfessorHodController(IStudentServices studentServices, IJwtServices jwtService,IProfessorHodServices? professorHodServices)
         {
             this._response = new();
             _studentServices = studentServices;
@@ -56,8 +56,8 @@ namespace StudentManagement_API.Controllers
         {
             try
             {
-                DataTable dt = _studentServices.GetData("Select Id from ProfessorHod where Id=" + updateJwtDTo.Id);
-                if (dt.Rows.Count <= 0)
+                ProfessorHod professorHod = _studentServices.GetData<ProfessorHod>("Select Id from ProfessorHod where Id=" + updateJwtDTo.Id);
+                if (professorHod.Id <= 0)
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.NotFound;

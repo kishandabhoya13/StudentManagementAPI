@@ -5,11 +5,12 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @model StudentManagment.Models.AdminViewModel
-<h2>Login Form</h2>
-<h4 class="text-danger">@TempData["error"]</h4>
 
 <form asp-action="CheckAdminLogin" asp-controller="Login" method="post">
     <div class="container">
+        <h2>Professor/Hod Login</h2>
+        <h4 class="text-danger">@TempData["error"]</h4>
+
         <label for="uname"><b>Username</b></label>
         <input type="text" asp-for="UserName" placeholder="Enter Username">
         <span class="text-danger" asp-validation-for="UserName"></span><br />

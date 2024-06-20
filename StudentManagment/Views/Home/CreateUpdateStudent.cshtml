@@ -43,15 +43,15 @@
                     <span asp-validation-for="BirthDate" class="text-danger"></span>
                 </div>
             </div>
-            <div class="col-md-6 col-12 col-sm-12 mb-4">
-                <div class="my-profile-input_box">
+            <div class="col-md-6 col-12 col-sm-12">
+                <div class="my-profile-input_box mb-3">
                     <select id="send-order-region-dropdown"
                             asp-for="CourseId"
                             class="form-control">
                         <option value="">Select Course</option>
                         @foreach (var course in Model.Courses)
                         {
-                            <option value="@course.Id">@course.Name</option>
+                            <option value="@course.CourseId">@course.CourseName</option>
 
                         }
                     </select>

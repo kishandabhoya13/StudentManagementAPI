@@ -18,15 +18,19 @@ namespace StudentManagment.Services.Interface
 
         Student GetStudentByMaster(int id, string token,SecondApiRequest secondApiRequest);
 
-        List<Course> GetAllCourses(string token,int RoleId);
+        IList<Course> GetAllCourses(string token,int RoleId);
 
         bool UpsertStudent(StudentViewModel studentViewModel);
 
-        RoleBaseResponse GetAllStudents(string token,int RoleId);
+        RoleBaseResponse<Student> GetAllStudents(string token,int RoleId);
 
-        RoleBaseResponse GetAllStudentsWithPagination(SecondApiRequest secondApi);
+        RoleBaseResponse<Student> GetAllStudentsWithPagination(SecondApiRequest secondApi);
+
+        RoleBaseResponse<Book> GetAllBooksWithPagination(SecondApiRequest secondApi);
 
         bool InsertCouse(Course course,int RoleId);
+
+        Task<bool> UpsertBook(BookViewModel bookViewModel);
 
         bool UpdateProfessorHodJwtToken(string token, int Id, string currentToken);
     }

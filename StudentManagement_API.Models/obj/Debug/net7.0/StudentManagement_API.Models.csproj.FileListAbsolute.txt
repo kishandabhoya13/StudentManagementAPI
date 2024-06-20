@@ -1,0 +1,12 @@
+D:\StudentManagement\StudentManagement_API.Models\bin\Debug\net7.0\StudentManagement_API.Models.deps.json
+D:\StudentManagement\StudentManagement_API.Models\bin\Debug\net7.0\StudentManagement_API.Models.dll
+D:\StudentManagement\StudentManagement_API.Models\bin\Debug\net7.0\StudentManagement_API.Models.pdb
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\StudentManagement_API.Models.csproj.AssemblyReference.cache
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\StudentManagement_API.Models.GeneratedMSBuildEditorConfig.editorconfig
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\StudentManagement_API.Models.AssemblyInfoInputs.cache
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\StudentManagement_API.Models.AssemblyInfo.cs
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\StudentManagement_API.Models.csproj.CoreCompileInputs.cache
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\StudentManagement_API.Models.dll
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\refint\StudentManagement_API.Models.dll
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\StudentManagement_API.Models.pdb
+D:\StudentManagement\StudentManagement_API.Models\obj\Debug\net7.0\ref\StudentManagement_API.Models.dll

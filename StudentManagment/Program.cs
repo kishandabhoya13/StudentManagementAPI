@@ -6,6 +6,8 @@ using StudentManagment.Middleware;
 using StudentManagment.Services;
 using StudentManagment.Services.Interface;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,13 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<CustomExceptionFilter>();
-});
-builder.Services.AddScoped<IBaseServices,BaseServices>();
+}).AddNewtonsoftJson(option =>
+{
+    option.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+    option.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+}).AddXmlDataContractSerializerFormatters();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<CustomExceptionFilter>();
 builder.Services.AddSingleton<IHttpContextAccessor,HttpContextAccessor>();
 builder.Services.AddSingleton<IExceptionFilter, CustomExceptionFilter>();
-
+builder.Services.AddDataLayerServices();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
 builder.Services.AddSession(options =>
 {

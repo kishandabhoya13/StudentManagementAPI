@@ -11,7 +11,14 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+    <PackageReference Include="NetCore.AutoRegisterDi" Version="2.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StudentManagement_API.DataContext\StudentManagement_API.DataContext.csproj" />
+    <ProjectReference Include="..\StudentManagement_API.Models\StudentManagement_API.Models.csproj" />
+    <ProjectReference Include="..\StudentManagement_API.Services\StudentManagement_API.Services.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StudentManagement_API.Models;
-using StudentManagement_API.Models.DTO;
-using StudentManagement_API.Services.Interface;
-using StudentManagment_API.Services.Interface;
+using StudentManagement_API.Models.Models;
+using StudentManagement_API.Models.Models.DTO;
+using StudentManagement_API.Services;
 using System.Data;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -15,11 +15,11 @@ namespace StudentManagement_API.Controllers
     public class CourseController : ControllerBase
     {
         private APIResponse _response;
-        private readonly IJwtService _jwtService;
+        private readonly IJwtServices _jwtService;
         public IStudentServices _studentServices;
         private readonly IProfessorHodServices _professorHodServices;
 
-        public CourseController(IStudentServices studentServices, IJwtService jwtService, IProfessorHodServices professorHodServices)
+        public CourseController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices)
         {
             this._response = new();
             _studentServices = studentServices;
@@ -33,31 +33,21 @@ namespace StudentManagement_API.Controllers
         [HttpGet()]
         public ActionResult<APIResponse> GetAllCourses()
         {
-                DataTable dt = _studentServices.GetData("Select * from Courses");
-                List<Course> courses = new();
-                if(dt.Rows.Count > 0)
-                {
-                    foreach(DataRow dr in dt.Rows)
-                    {
-                        Course course = new()
-                        {
-                            Name = dr["CourseName"].ToString() ?? "",
-                            Id = (int)dr["CourseId"],
-                        };
-                        courses.Add(course);
-                    }
-                    _response.result = courses;
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = true;
-                }
-                else
-                {
-                    _response.ErroMessages = new List<string> { "Courses Not Found" };
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    return _response;
-                }
+            IList<Course> courses = _studentServices.GetRecordsWithoutPagination<Course>("[dbo].[Get_All_Courses]");
+            if (courses.Count > 0)
+            {
+                _response.result = courses;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            else
+            {
+                _response.ErroMessages = new List<string> { "Courses Not Found" };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.NotFound;
                 return _response;
+            }
+            return _response;
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -75,15 +65,9 @@ namespace StudentManagement_API.Controllers
                     _response.IsSuccess = false;
                     return _response;
                 }
-                DataTable dt = _studentServices.GetData("Select * From Courses where CourseId = " + courseId);
-                Course course = new();
-                if (dt.Rows.Count > 0)
+                Course course = _studentServices.GetData<Course>("Select * From Courses where CourseId = " + courseId);
+                if (course.CourseId > 0)
                 {
-                    foreach (DataRow dr in dt.Rows)
-                    {
-                        course.Name = dr["CourseName"].ToString() ?? "";
-                        course.Id = (int)dr["CourseId"];
-                    }
                     _response.result = course;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;

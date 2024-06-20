@@ -6,9 +6,9 @@ using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StudentManagement_API.Models;
-using StudentManagement_API.Models.DTO;
-using StudentManagement_API.Services.Interface;
-using StudentManagment_API.Services.Interface;
+using StudentManagement_API.Models.Models;
+using StudentManagement_API.Models.Models.DTO;
+using StudentManagement_API.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Reflection;
@@ -24,17 +24,18 @@ namespace StudentManagement_API.Controllers
     public class MasterApiController : ControllerBase
     {
         private readonly IStudentServices _studentServices;
-        private readonly IJwtService _jwtService;
+        private readonly IJwtServices _jwtService;
         private readonly IProfessorHodServices _professorHodServices;
         private APIResponse _response;
         public Dictionary<string, Type> controllers = new()
         {
             { "Student", typeof(StudentController) },
             { "Course", typeof(CourseController) },
-            { "ProfessorHod", typeof(ProfessorHodController) }
+            { "ProfessorHod", typeof(ProfessorHodController) },
+            { "Book", typeof(BookController) },
         };
 
-        public MasterApiController(IStudentServices studentServices, IJwtService jwtService, IProfessorHodServices professorHodServices)
+        public MasterApiController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices)
         {
             _studentServices = studentServices;
             _jwtService = jwtService;

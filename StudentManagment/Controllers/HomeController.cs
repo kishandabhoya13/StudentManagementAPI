@@ -1,17 +1,19 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StudentManagement.Models;
 using StudentManagment.Models;
 using StudentManagment.Models.DataModels;
 using StudentManagment.Services;
 using StudentManagment.Services.Interface;
+using System.Data;
 using System.Diagnostics;
 
 namespace StudentManagment.Controllers
 {
 
-    [ServiceFilter(typeof(CustomExceptionFilter))]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -47,8 +49,6 @@ namespace StudentManagment.Controllers
                 return RedirectToAction("Login", "Login");
             }
             StudentViewModel studentViewModel = _mapper.Map<StudentViewModel>(student);
-            Course course = _baseServices.GetCourseDetailById(student.CourseId, RoleId);
-            studentViewModel.CourseName = course.Name;
             return View(studentViewModel);
         }
 
@@ -68,7 +68,7 @@ namespace StudentManagment.Controllers
             {
                 return View("NotAuthorized");
             }
-            RoleBaseResponse roleBaseResponse = new()
+            RoleBaseResponse<Student> roleBaseResponse = new()
             {
                 OrderBys = new List<OrderByViewModel>()
                 {
@@ -80,16 +80,27 @@ namespace StudentManagment.Controllers
 
                 }
             };
-            roleBaseResponse = _baseServices.GetAllStudents(token,RoleId);
+            roleBaseResponse.Courses = _baseServices.GetAllCourses(token, RoleId);
+
+            SecondApiRequest secondApiRequest = new()
+            {
+                token = token,
+                RoleId = RoleId,
+            };
+            //roleBaseResponse = _baseServices.GetAllStudentsWithPagination(secondApiRequest);
             return View(roleBaseResponse);
         }
 
+        [HttpPost]
         public IActionResult AdminIndexTableView(SecondApiRequest secondApiRequest)
         {
             secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
             secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
-            RoleBaseResponse roleBaseResponse = _baseServices.GetAllStudentsWithPagination(secondApiRequest);
-
+            RoleBaseResponse<Student> roleBaseResponse = _baseServices.GetAllStudentsWithPagination(secondApiRequest);
+            if (HttpContext.Session.GetInt32("UserId") == null)
+            {
+                return RedirectToAction("ProfessorHodLogin", "Login");
+            }
             if (roleBaseResponse.Role == "2")
             {
                 HttpContext.Session.SetString("Role", "Professor");
@@ -102,7 +113,7 @@ namespace StudentManagment.Controllers
             {
                 return View("NotAuthorized");
             }
-            return PartialView("AdminIndexTableView", roleBaseResponse);
+            return Json(roleBaseResponse);
         }
         public IActionResult Privacy()
         {
@@ -178,6 +189,67 @@ namespace StudentManagment.Controllers
             else
             {
                 return View("CreateCourseModal");
+            }
+        }
+
+        public IActionResult AllBooks()
+        {
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            if (RoleId == 2)
+            {
+                HttpContext.Session.SetString("Role", "Professor");
+            }
+            else if (RoleId == 1)
+            {
+                HttpContext.Session.SetString("Role", "Hod");
+            }
+            else if (RoleId == 0)
+            {
+                return View("NotAuthorized");
+            }
+            RoleBaseResponse<Book> roleBaseResponse = new()
+            {
+                Courses = _baseServices.GetAllCourses(token, RoleId),
+            };
+            //roleBaseResponse = _baseServices.GetAllStudentsWithPagination(secondApiRequest);
+            return View(roleBaseResponse);
+        }
+
+        [HttpPost]
+        public IActionResult GetFilteredBooks(SecondApiRequest secondApiRequest)
+        {
+            secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
+            RoleBaseResponse<Book> roleBaseResponse = _baseServices.GetAllBooksWithPagination(secondApiRequest);
+            return Json(roleBaseResponse);
+
+        }
+
+        public IActionResult AddBook()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            BookViewModel bookViewModel = new()
+            {
+                Courses = _baseServices.GetAllCourses(HttpContext.Session.GetString("Jwt") ?? "", RoleId)
+            };
+            return View(bookViewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpsertBook(BookViewModel bookViewModel)
+        {
+            bookViewModel.JwtToken = HttpContext.Session.GetString("Jwt") ?? "";
+            bookViewModel.RoleId = HttpContext.Session.GetInt32("RoleId");
+            bool isSuccess = await _baseServices.UpsertBook(bookViewModel);
+            if (isSuccess)
+            {
+                return RedirectToAction("AllBooks", "Home");
+            }
+            else
+            {
+                TempData["ErrorMsg"] = "Something wents Wrong try again after Sometimes";
+                return RedirectToAction("CreateUpdateStudent");
             }
         }
     }

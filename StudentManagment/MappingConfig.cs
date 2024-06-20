@@ -9,6 +9,7 @@ namespace StudentManagment
         public MappingConfig() 
         {
             CreateMap<StudentViewModel, Student>().ReverseMap();
+            CreateMap<BookViewModel, Book>().ReverseMap();
         }
     }
 }

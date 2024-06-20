@@ -15,9 +15,11 @@ namespace StudentManagement.Models
         public T result { get; set; }
     }
 
-    public class RoleBaseResponse
+    public class RoleBaseResponse<T>
     {
-        public List<Student> Students { get; set; }
+        public IEnumerable<T> data { get; set; }
+
+        public IList<Course> Courses { get; set; }
 
         public List<OrderByViewModel> OrderBys { get; set; }
 
@@ -34,6 +36,7 @@ namespace StudentManagement.Models
 
         public int TotalPages { get; set; }
     }
+
 
     public class OrderByViewModel
     {

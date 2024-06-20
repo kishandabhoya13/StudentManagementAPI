@@ -31,7 +31,7 @@ namespace StudentManagment.Models
         public int StartIndex { get; set; } = 0;
 
 
-        public int PageSize { get; set; } = 10;
+        public int PageSize { get; set; } = 5;
 
         public string? searchQuery { get; set; } = null;
 

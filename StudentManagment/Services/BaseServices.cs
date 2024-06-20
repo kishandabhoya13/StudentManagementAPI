@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StudentManagement.Models;
@@ -88,7 +89,7 @@ namespace StudentManagment.Services
             return professorHod;
         }
 
-        public RoleBaseResponse GetAllStudents(string token,int RoleId)
+        public RoleBaseResponse<Student> GetAllStudents(string token, int RoleId)
         {
             string url = _httpClient.BaseAddress + "/Student/GetAllStudents/";
             SecondApiRequest secondApiRequest = new()
@@ -104,11 +105,11 @@ namespace StudentManagment.Services
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
             var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
             HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
-            RoleBaseResponse roleBaseResponse = new();
+            RoleBaseResponse<Student> roleBaseResponse = new();
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content?.ReadAsStringAsync().Result;
-                APIResponse<RoleBaseResponse> aPIResponse = JsonConvert.DeserializeObject<APIResponse<RoleBaseResponse>>(data);
+                APIResponse<RoleBaseResponse<Student>> aPIResponse = JsonConvert.DeserializeObject<APIResponse<RoleBaseResponse<Student>>>(data);
                 if (aPIResponse.IsSuccess && aPIResponse.result != null)
                 {
                     roleBaseResponse = aPIResponse.result;
@@ -117,7 +118,7 @@ namespace StudentManagment.Services
             return roleBaseResponse;
         }
 
-        public RoleBaseResponse GetAllStudentsWithPagination(SecondApiRequest secondApi)
+        public RoleBaseResponse<Student> GetAllStudentsWithPagination(SecondApiRequest secondApi)
         {
             string url = _httpClient.BaseAddress + "/Student/GetAllStudents/";
             PaginationViewModel paginationViewModel = new()
@@ -142,11 +143,11 @@ namespace StudentManagment.Services
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
             var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
             HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
-            RoleBaseResponse roleBaseResponse = new();
+            RoleBaseResponse<Student> roleBaseResponse = new();
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content?.ReadAsStringAsync().Result;
-                APIResponse<RoleBaseResponse> aPIResponse = JsonConvert.DeserializeObject<APIResponse<RoleBaseResponse>>(data);
+                APIResponse<RoleBaseResponse<Student>> aPIResponse = JsonConvert.DeserializeObject<APIResponse<RoleBaseResponse<Student>>>(data);
                 if (aPIResponse.IsSuccess && aPIResponse.result != null)
                 {
                     roleBaseResponse = aPIResponse.result;
@@ -155,7 +156,46 @@ namespace StudentManagment.Services
             return roleBaseResponse;
         }
 
-        public Student GetStudentByMaster(int id, string token,SecondApiRequest apiRequest)
+
+        public RoleBaseResponse<Book> GetAllBooksWithPagination(SecondApiRequest secondApi)
+        {
+            string url = _httpClient.BaseAddress + "/Book/GetAllBooks/";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApi.PageSize,
+                StartIndex = secondApi.StartIndex,
+                OrderBy = secondApi.OrderBy,
+                OrderDirection = secondApi.OrderDirection,
+                searchQuery = secondApi.searchQuery,
+                JwtToken = secondApi.token
+            };
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Book",
+                MethodName = "GetAllBooks",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllBooks",
+                RoleId = secondApi.RoleId,
+            };
+            _httpClient.DefaultRequestHeaders.Add("token", secondApi.token);
+            var serializedData = JsonConvert.SerializeObject(secondApiRequest);
+            var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
+            RoleBaseResponse<Book> roleBaseResponse = new();
+            if (response.IsSuccessStatusCode)
+            {
+                string data = response.Content?.ReadAsStringAsync().Result;
+                APIResponse<RoleBaseResponse<Book>> aPIResponse = JsonConvert.DeserializeObject<APIResponse<RoleBaseResponse<Book>>>(data);
+                if (aPIResponse.IsSuccess && aPIResponse.result != null)
+                {
+                    roleBaseResponse = aPIResponse.result;
+                }
+            }
+            return roleBaseResponse;
+        }
+
+        public Student GetStudentByMaster(int id, string token, SecondApiRequest apiRequest)
         {
             string url = _httpClient.BaseAddress + "/Student/GetStudent/";
             Student student = new();
@@ -184,10 +224,9 @@ namespace StudentManagment.Services
             return student;
         }
 
-        public List<Course> GetAllCourses(string token,int RoleId)
+        public IList<Course> GetAllCourses(string token, int RoleId)
         {
             string url = _httpClient.BaseAddress + "/Course/GetAllCourses/";
-            List<Course> courses = new();
             SecondApiRequest secondApiRequest = new()
             {
                 ControllerName = "Course",
@@ -208,16 +247,17 @@ namespace StudentManagment.Services
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content?.ReadAsStringAsync().Result;
-                APIResponse<List<Course>> aPIResponse = JsonConvert.DeserializeObject<APIResponse<List<Course>>>(data);
+                APIResponse<IList<Course>> aPIResponse = JsonConvert.DeserializeObject<APIResponse<IList<Course>>>(data);
                 if (aPIResponse.IsSuccess && aPIResponse.result != null)
                 {
-                    courses = aPIResponse.result;
+                    IList<Course> courses = aPIResponse.result;
+                    return courses;
                 }
             }
-            return courses;
+            return null;
         }
 
-        public Course GetCourseDetailById(int id,int RoleId)
+        public Course GetCourseDetailById(int id, int RoleId)
         {
             string url = _httpClient.BaseAddress + "/Course/GetCourse/";
             Course course = new();
@@ -226,7 +266,7 @@ namespace StudentManagment.Services
                 ControllerName = "Course",
                 MethodName = "GetCourse",
                 DataObject = JsonConvert.SerializeObject(id.ToString()),
-                MethodType= "IsViewed",
+                MethodType = "IsViewed",
                 PageName = "GetCourse",
                 RoleId = RoleId,
             };
@@ -335,7 +375,7 @@ namespace StudentManagment.Services
             return false;
         }
 
-        public bool InsertCouse(Course course,int RoleId)
+        public bool InsertCouse(Course course, int RoleId)
         {
             _httpClient.DefaultRequestHeaders.Add("token", course.JwtToken);
             SecondApiRequest secondApiRequest = new();
@@ -360,5 +400,58 @@ namespace StudentManagment.Services
             }
             return false;
         }
+
+        public async Task<bool> UpsertBook(BookViewModel bookViewModel)
+        {
+            if (bookViewModel.PhotoFile != null)
+            {
+                IFormFile SingleFile = bookViewModel.PhotoFile;
+                string fileName = Guid.NewGuid().ToString() + Path.GetFileName(SingleFile.FileName);
+                var filePath = Path.Combine("wwwroot", "BookPhotos", fileName);
+                using (FileStream stream = System.IO.File.Create(filePath))
+                {
+                    // The file is saved in a buffer before being processed
+                    await SingleFile.CopyToAsync(stream);
+                }
+                bookViewModel.PhotoName = fileName;
+            }
+            _httpClient.DefaultRequestHeaders.Add("token", bookViewModel.JwtToken);
+            string url = "";
+            SecondApiRequest secondApiRequest = new();
+            if (bookViewModel.BookId != 0)
+            {
+                url = _httpClient.BaseAddress + "/Book/UpdateBook";
+                secondApiRequest.ControllerName = "Book";
+                secondApiRequest.MethodName = "UpdateBook";
+                secondApiRequest.DataObject = JsonConvert.SerializeObject(bookViewModel);
+                secondApiRequest.PageName = "UpsertBook";
+                secondApiRequest.MethodType = "IsManaged";
+                secondApiRequest.RoleId = bookViewModel.RoleId;
+            }
+            else
+            {
+                url = _httpClient.BaseAddress + "/Book/CreateBook";
+                secondApiRequest.ControllerName = "Book";
+                secondApiRequest.MethodName = "CreateBook";
+                secondApiRequest.DataObject = JsonConvert.SerializeObject(bookViewModel);
+                secondApiRequest.PageName = "UpsertBook";
+                secondApiRequest.MethodType = "IsInsert";
+                secondApiRequest.RoleId = bookViewModel.RoleId;
+            }
+            var serializedData = JsonConvert.SerializeObject(secondApiRequest);
+            var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                string data = response.Content?.ReadAsStringAsync().Result;
+                APIResponse<Book> aPIResponse = JsonConvert.DeserializeObject<APIResponse<Book>>(data);
+                if (aPIResponse.IsSuccess)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 }

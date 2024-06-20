@@ -5,12 +5,44 @@
       "PackagePath": "staticwebassets\\StudentManagment.bundle.scp.css"
     },
     {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\20ad0d50-4671-46f8-a77f-9fb0ab02db35View Notes_mobile.png",
+      "PackagePath": "staticwebassets\\BookPhotos\\20ad0d50-4671-46f8-a77f-9fb0ab02db35View Notes_mobile.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\99a66f15-f36a-4e79-a2fb-6e3aa237ef8fSpinner-5.gif",
+      "PackagePath": "staticwebassets\\BookPhotos\\99a66f15-f36a-4e79-a2fb-6e3aa237ef8fSpinner-5.gif"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\9a9a3ada-f38e-46de-b87d-462415491492Fig13. Assign case.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\9a9a3ada-f38e-46de-b87d-462415491492Fig13. Assign case.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\9e53e6d9-159b-4364-91df-3960ff414e45Fig10. View case.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\9e53e6d9-159b-4364-91df-3960ff414e45Fig10. View case.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\fe5b3568-2726-4f4f-bdd3-0b50164e9af7spinner.gif",
+      "PackagePath": "staticwebassets\\BookPhotos\\fe5b3568-2726-4f4f-bdd3-0b50164e9af7spinner.gif"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\css\\picker.css",
+      "PackagePath": "staticwebassets\\css\\picker.css"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\css\\picker.min.css",
+      "PackagePath": "staticwebassets\\css\\picker.min.css"
+    },
+    {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\favicon.ico",
       "PackagePath": "staticwebassets\\favicon.ico"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\js\\picker.min.js",
+      "PackagePath": "staticwebassets\\js\\picker.min.js"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\js\\site.js",

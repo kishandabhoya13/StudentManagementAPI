@@ -31,7 +31,7 @@ namespace StudentManagment.Models
 
         public string? JwtToken { get; set; } = null;
 
-        public List<Course>? Courses { get; set; } = null;
+        public IList<Course> Courses { get; set; } = null;
 
         public int? RoleId { get; set; } = 0;
 

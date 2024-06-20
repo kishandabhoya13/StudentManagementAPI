@@ -1,5 +1,4 @@
 ﻿using Microsoft.Identity.Client;
-using StudentManagment_API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 
