@@ -46,7 +46,7 @@
         </div>
         <div class="col-md-6 col-lg-6 col-12 col-sm-12 canvas-div">
             <div class="icon-div">
-                <div id="left-left-icon" class="left-icon">
+                <div id="right-left-icon" class="left-icon">
                     <i class="fa fa-angle-left" style="font-size:24px"></i>
                 </div>
                 <div id="right-right-icon" class="right-icon">
@@ -72,58 +72,6 @@
             }
         });
     };
-
-    //$('#inputsearch').on('input', function () {
-    //    fetchRequests(0);
-    //});
-
-    //$('#searchOrderdropdown').on('change', function () {
-    //    fetchRequests(0);
-    //});
-
-    //$('#searchOrderTypedropdown').on('change', function () {
-    //    fetchRequests(0);
-    //});
-
-    //$(document).ready(function () {
-    //    var startIndex = sessionStorage.getItem("StartIndex");
-    //    if (startIndex == null) {
-    //        fetchRequests(0);
-    //    }
-    //    else {
-
-    //        fetchRequests(startIndex);
-    //    }
-    //});
-
-
-    //function fetchRequests(startIndex) {
-    //    var searchQuery = $("#inputsearch").val();
-    //    var pageSize = $("#PageSizeDropdown").val();
-    //    var OrderBy = $("#searchOrderdropdown").val();
-    //    var secondApiRequest = {
-    //        searchQuery: searchQuery,
-    //        StartIndex: startIndex,
-    //        PageSize: pageSize,
-    //        OrderBy: OrderBy,
-    //    }
-    //    //$('#loading').show();
-    //    $.ajax({
-    //        method: "GET",
-    //        url: "/Home/AdminIndexTableView",
-    //        data: secondApiRequest,
-    //        success: function (response) {
-    //            //$('#loading').hide();
-    //            $('#PartialDiv').html(response)
-    //            sessionStorage.setItem("StartIndex", startIndex);
-
-    //        },
-    //        error: function () {
-    //            $('#loading').hide();
-    //            console.log("Function Fail")
-    //        }
-    //    })
-    //}
 
     function loadDataTable(startIndex) {
         var TOTAL_ITEMS = 0;
@@ -510,81 +458,17 @@
     }
 </script>
 
-@*<script>
-
-    $(document).ready(function () {
-        // Initialize the chart without data
-        var currentMonth = new Date().getMonth() + 1;
-        var currentYear = new Date().getFullYear();
-        var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                //labels: [],
-                datasets: [{
-                    label: '',
-                    data: [],
-                    borderWidth: 1,
-                    borderColor: '#FF6384',
-                    backgroundColor: '#FFB1C1',
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    },
-                    x: {
-                        type: 'time',
-                        position: 'bottom',
-                        time: {
-                            unit: 'day',
-                        }
-                    },
-                }
-            },
-
-        });
-
-        GetChart(currentMonth, currentYear, myChart);
-
-        $("#left-icon").on('click', function () {
-            if (currentMonth == 1) {
-                currentMonth = 12;
-                currentYear = currentYear - 1;
-                GetChart(currentMonth, currentYear, myChart);
-
-            }
-            else {
-
-                GetChart(currentMonth - 1, currentYear, myChart);
-                currentMonth = currentMonth - 1;
-            }
-
-        });
-
-        $("#right-icon").on('click', function () {
-            if (currentMonth == 12) {
-                currentMonth = 1;
-                currentYear = currentYear + 1;
-                GetChart(currentMonth, currentYear, myChart);
-            }
-            else {
-                GetChart(currentMonth + 1, currentYear, myChart);
-                currentMonth = currentMonth + 1;
-            }
-
-        })
-    });
-
-
-</script>*@
-
 <script>
     $(document).ready(function () {
         var currentMonth = new Date().getMonth() + 1;
         var currentYear = new Date().getFullYear();
+
+        var currentMonth2 = new Date().getMonth() + 1;
+        var currentYear2 = new Date().getFullYear();
+
         var ctx = document.getElementById('myChart').getContext('2d');
+        var ctx2 = document.getElementById('myChart2').getContext('2d');
+
         var mychart1 = new Chart(document.getElementById('myChart'), {
             type: 'bar',
             data: {
@@ -606,12 +490,47 @@
                 responsive: true,
                 scales: {
                     x: {
+                        stacked: true,
+                        //type: 'time',
+                        //position: 'bottom',
+                        //time: {
+                        //    unit: 'day',
+                        //}
+                    },
+                    y: {
+                        stacked: true,
+                    }
+                },
+            }
+        });
+
+        var mychart2 = new Chart(document.getElementById('myChart2'), {
+            type: 'bar',
+            data: {
+                labels: ['Created Students.', 'Created Professors.'],
+                datasets: [
+                    {
+                        label: '',
+                        data: [],
+                        backgroundColor: 'rgb(119, 185, 229)',
+                    },
+                    {
+                        label: '',
+                        data: [],
+                        backgroundColor: 'rgb(231,200,28)'
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
                         stacked: false,
-                        type: 'time',
-                        position: 'bottom',
-                        time: {
-                            unit: 'day',
-                        }
+                        //type: 'time',
+                        //position: 'bottom',
+                        //time: {
+                        //    unit: 'day',
+                        //}
                     },
                     y: {
                         stacked: false,
@@ -621,18 +540,18 @@
         });
 
 
-        GetChart(currentMonth, currentYear, mychart1);
+        GetChart(currentMonth, currentYear, mychart1, mychart2);
 
         $("#left-left-icon").on('click', function () {
             if (currentMonth == 1) {
                 currentMonth = 12;
                 currentYear = currentYear - 1;
-                GetChart(currentMonth, currentYear, mychart1);
+                GetChart(currentMonth, currentYear, mychart1, null);
 
             }
             else {
 
-                GetChart(currentMonth - 1, currentYear, mychart1);
+                GetChart(currentMonth - 1, currentYear, mychart1, null);
                 currentMonth = currentMonth - 1;
             }
 
@@ -642,10 +561,38 @@
             if (currentMonth == 12) {
                 currentMonth = 1;
                 currentYear = currentYear + 1;
-                GetChart(currentMonth, currentYear, myChart);
+                GetChart(currentMonth, currentYear, mychart1, null);
             }
             else {
-                GetChart(currentMonth + 1, currentYear, myChart);
+                GetChart(currentMonth + 1, currentYear, mychart1, null);
+                currentMonth = currentMonth + 1;
+            }
+
+        })
+
+        $("#right-left-icon").on('click', function () {
+            if (currentMonth == 1) {
+                currentMonth = 12;
+                currentYear = currentYear - 1;
+                GetChart(currentMonth, currentYear, null, mychart2);
+
+            }
+            else {
+
+                GetChart(currentMonth - 1, currentYear, null, mychart2);
+                currentMonth = currentMonth - 1;
+            }
+
+        });
+
+        $("#right-right-icon").on('click', function () {
+            if (currentMonth == 12) {
+                currentMonth = 1;
+                currentYear = currentYear + 1;
+                GetChart(currentMonth, currentYear, null, mychart2);
+            }
+            else {
+                GetChart(currentMonth + 1, currentYear, null, mychart2);
                 currentMonth = currentMonth + 1;
             }
 
@@ -653,54 +600,8 @@
 
     });
 
-    new Chart(document.getElementById('myChart2'), {
-        type: 'bar',
-        data: {
-            labels: ['Created Students.', 'Created Professors.'],
-            datasets: [
-                {
-                    label: '',
-                    data: [],
-                    backgroundColor: 'rgb(119, 185, 229)'
-                },
-                {
-                    label: 'Created Professors',
-                    data: [0.45, 0.7],
-                    backgroundColor: 'rgb(231,200,28)'
-                },
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    stacked: false,
-                    type: 'time',
-                    position: 'bottom',
-                    time: {
-                        unit: 'day',
-                    }
-                },
-                y: {
-                    stacked: false,
-                    gridlines: {
-                        display: true
-                    },
-                }
-            },
-            legend: {
-                display: [false, true, true, true]
-            },
-            title: {
-                display: true,
-                text: 'Where Are We Going to Land?'
-            }
-        },
-    });
 
-
-
-    function GetChart(month, year, myChart) {
+    function GetChart(month, year, myChart, myChart2) {
         $.ajax({
             url: 'GetStudentProfessorChartDetails',
             type: 'GET',
@@ -718,7 +619,15 @@
                 var dataPoints2 = [];
 
                 response.data.forEach(function (item) {
-                    labels.push(item.createdDate1);
+                    let date = new Date(item.createdDate1); // Convert to Date object if it's a string
+
+                    // Format date as "dd/MMM"
+                    let formattedDate = date.toLocaleDateString("en-US", {
+                        day: '2-digit',
+                        month: 'short'
+                    });
+
+                    labels.push(formattedDate);
                     dataPoints.push(item.studentDayWiseCount);
                 });
 
@@ -729,17 +638,33 @@
                 console.log(dataPoints2);
                 console.log("labels ::::: ", labels);
 
-                myChart.data.labels = labels;
-                myChart.data.datasets[0].data = dataPoints;
-                myChart.data.datasets[0].label = response.monthName + " / " + response.year + " CreatedStudents";
-                myChart.data.datasets[0].backgroundColor = 'rgb(119, 215, 229)';
+                if (myChart != null) {
+                    myChart.data.labels = labels;
+                    myChart.data.datasets[0].data = dataPoints;
+                    myChart.data.datasets[0].label = response.monthName + " / " + response.year + " CreatedStudents";
+                    myChart.data.datasets[0].backgroundColor = 'rgb(119, 215, 229)';
 
-                //myChart.data.labels = labels2;
-                myChart.data.datasets[1].data = dataPoints2;
-                myChart.data.datasets[1].label = response.monthName + " / " + response.year + " CreatedProfessors";
-                myChart.data.datasets[1].backgroundColor = 'rgb(231,200,28)';
+                    myChart.data.datasets[1].data = dataPoints2;
+                    myChart.data.datasets[1].label = response.monthName + " / " + response.year + " CreatedProfessors";
+                    myChart.data.datasets[1].backgroundColor = 'rgb(231,200,28)';
+                    myChart.update();
 
-                myChart.update();
+                }
+
+                if (myChart2 != null) {
+                    myChart2.data.labels = labels;
+                    myChart2.data.datasets[0].data = dataPoints;
+                    myChart2.data.datasets[0].label = response.monthName + " / " + response.year + " CreatedStudents";
+                    myChart2.data.datasets[0].backgroundColor = 'rgb(119, 215, 229)';
+
+                    myChart2.data.datasets[1].data = dataPoints2;
+                    myChart2.data.datasets[1].label = response.monthName + " / " + response.year + " CreatedProfessors";
+                    myChart2.data.datasets[1].backgroundColor = 'rgb(231,200,28)';
+                    myChart2.update();
+
+                }
+
+
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.error("Error fetching data:", textStatus, errorThrown);
