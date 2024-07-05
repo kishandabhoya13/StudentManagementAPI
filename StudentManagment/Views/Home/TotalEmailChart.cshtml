@@ -1,0 +1,46 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    var currentDate = DateTime.Now;
+    var currentMonth = currentDate.Month;
+}
+<div>
+    <div class="icon-div">
+        <div id="left-icon" class="left-icon">
+            <i class="fa fa-angle-left" style="font-size:24px"></i>
+        </div>
+        <div id="right-icon" class="right-icon">
+            <i class="fa fa-angle-right" style="font-size:24px"></i>
+        </div>
+    </div>
+    <canvas width="400" height="100" id="myChart"></canvas>
+</div>
+
+@*<script>
+  const ctx = document.getElementById('myChart');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+      datasets: [{
+        label: '# of Votes',
+        data: [12, 19, 3, 5, 2, 3],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>*@
+
+<script>
+    
+</script>
+

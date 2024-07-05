@@ -197,10 +197,10 @@ namespace StudentManagement_API.DataContext
 
         private static T GetValueFromReader<T>(SqlDataReader dataReader)
         {
-            if (!dataReader.Read()) // Check if there are any records to read
-                throw new InvalidOperationException("No data available.");
-
+            
             T obj = Activator.CreateInstance<T>();
+            if (!dataReader.Read()) // Check if there are any records to read
+                return obj;
 
             for (int i = 0; i < dataReader.FieldCount; i++)
             {

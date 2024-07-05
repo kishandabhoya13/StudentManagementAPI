@@ -15,23 +15,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-5 col-lg-5 col-12 col-sm-12">
-            <div class="form-group pb-4">
-                <div class="input_box">
-                    <Select id="searchOrderdropdown"
-                            class="form-control dropdown-color">
-                        @if (Model.OrderBys != null)
-                        {
-                            @foreach (var orderBy in Model.OrderBys)
-                            {
-                                <option value="@orderBy.OrderByValues">@orderBy.OrderByName</option>
-                            }
-                        }
-
-                    </Select>
-                </div>
-            </div>
-        </div>
         @* <div class="col-md-2 col-lg-2 col-12 col-sm-12">
         <div class="form-group pb-4">
         <div class="input_box">
@@ -44,9 +27,34 @@
         </div>
         </div>*@
     </div>
-    <div class="container-fluid">
+    <div class="container-fluid table-responsive">
         <table id="StudentTable" class="table table-borderless">
         </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-lg-6 col-12 col-sm-12 canvas-div">
+            <div class="icon-div">
+                <div id="left-left-icon" class="left-icon">
+                    <i class="fa fa-angle-left" style="font-size:24px"></i>
+                </div>
+                <div id="left-right-icon" class="right-icon">
+                    <i class="fa fa-angle-right" style="font-size:24px"></i>
+                </div>
+            </div>
+            <canvas width="400" height="100" id="myChart"></canvas>
+        </div>
+        <div class="col-md-6 col-lg-6 col-12 col-sm-12 canvas-div">
+            <div class="icon-div">
+                <div id="left-left-icon" class="left-icon">
+                    <i class="fa fa-angle-left" style="font-size:24px"></i>
+                </div>
+                <div id="right-right-icon" class="right-icon">
+                    <i class="fa fa-angle-right" style="font-size:24px"></i>
+                </div>
+            </div>
+            <canvas width="400" height="100" id="myChart2"></canvas>
+        </div>
     </div>
 </div>
 <script>
@@ -121,42 +129,35 @@
         var TOTAL_ITEMS = 0;
         var searchQuery = $("#inputsearch").val();
         var pageSize = $("#dt-length-0").val();
-        var OrderBy = $("#searchOrderdropdown").val();
         var secondApiRequest = {
             searchQuery: searchQuery,
             StartIndex: startIndex,
             PageSize: pageSize,
-            OrderBy: OrderBy,
         }
         sessionStorage.setItem("currentPageIndex", startIndex);
         var table = new DataTable('#StudentTable', {
+            searching: false,
             "infoCallback": function (settings, start, end, max, total, pre) {
 
                 var pageInfo = this.api().page.info(); // Get the current page info
-                var pageSize1 = pageInfo.length;
+                var pageSize1 = $("#dt-length-0").val();;
 
                 currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
-                // Calculate the start and end indices for the current page
-                console.log("currentPageIndex ::: ", currentPageIndex);
-                console.log("pageSize ::: ", pageSize1);
-                var startIndex = (currentPageIndex * pageSize1) + 1;
-                console.log("startIndex ::: ", startIndex)
 
-                var endIndex = Math.min(startIndex + pageSize1 - 1, TOTAL_ITEMS);
-                console.log("endIndex ::: ", endIndex)
-                if (endIndex == TOTAL_ITEMS) {
-                    console.log($(".dt-paging-button"));
+                var startIndex = (currentPageIndex * pageSize1) + 1;
+
+                var endIndex = Math.min(parseInt(startIndex, 10) + parseInt(pageSize1, 10) - 1, parseInt(TOTAL_ITEMS, 10));
+                if (parseInt(endIndex, 10) === parseInt(TOTAL_ITEMS, 10)) {
                     $(".page-link.next").addClass("disabled");
                 }
-                else{
+                else {
                     $(".page-link.next").removeClass("disabled");
                 }
 
-                if(startIndex == 1)
-                {
+                if (startIndex == 1) {
                     $(".page-link.previous").addClass("disabled");
                 }
-                else{
+                else {
                     $(".page-link.previous").removeClass("disabled");
 
                 }
@@ -175,8 +176,6 @@
                     settings.oPreviousSearch.sSearch = searchValue;
                     settings.oApi._fnDraw(settings);
                 });
-                console.log("JSON ::: ", TOTAL_ITEMS);
-                $('#totalCell').text(TOTAL_ITEMS);
                 $(".dt-paging-button").removeClass("disabled");
             },
             "lengthMenu": [[5, 10, 15], [5, 10, 15]],
@@ -198,7 +197,6 @@
                 dataType: "JSON",
                 dataSrc: function (response) {
                     TOTAL_ITEMS = response.totalItems;
-                    console.log(TOTAL_ITEMS);
                     return response.data;
                 },
                 error: function () {
@@ -228,6 +226,17 @@
                     "class": "text-center",
                     "render": function (data1, type, row) {
                         return "<input id='lastname-input-" + row.studentId + "' class='table-inputs form-control-disables-" + row.studentId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.studentId + "'>" + data1 + "</span>";
+                    }
+                },
+                {
+                    "title": "Email",
+                    "data": "email",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        if (data1 == null) {
+                            data1 = "-";
+                        }
+                        return "<input id='email-input-" + row.studentId + "' class='table-inputs form-control-disables-" + row.studentId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.studentId + "'>" + data1 + "</span>";
                     }
                 },
                 {
@@ -294,7 +303,6 @@
                 PageSize: pageSize,
             };
             event.preventDefault();
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/AdminIndexTableView",
@@ -320,7 +328,6 @@
                 StartIndex: 0,
                 PageSize: pageSize,
             };
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/AdminIndexTableView",
@@ -352,7 +359,6 @@
                 StartIndex: startIndex,
                 PageSize: pageSize,
             };
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/AdminIndexTableView",
@@ -382,7 +388,6 @@
                 StartIndex: startIndex1,
                 PageSize: pageSize,
             };
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/AdminIndexTableView",
@@ -470,29 +475,277 @@
 
         var username = $(`#username-input-${StudentId}`).val();
 
+        var email = $(`#email-input-${StudentId}`).val();
+
         var courseDropdown = $(`#courseDropdown-${StudentId}`).val();
 
-        var studentViewModel =
-        {
-            StudentId: StudentId,
-            FirstName: firstname,
-            LastName: lastname,
-            BirthDate: birthdate,
-            CourseId: courseDropdown,
-            UserName: username
-        };
-        console.log(studentViewModel);
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("UpsertStudent","Home")',
-            data: studentViewModel,
-            success: function (response) {
-                window.location.reload();
+        var filter = @Html.Raw(@"/^[^@\s]+@[^@\.\s]+(\.[^@\.\s]+)+$/");
+        console.log(filter);
+        if (!filter.test(email)) {
+            alert("Email is Invalid");
+        } else {
+            var studentViewModel =
+            {
+                StudentId: StudentId,
+                FirstName: firstname,
+                LastName: lastname,
+                BirthDate: birthdate,
+                CourseId: courseDropdown,
+                UserName: username,
+                Email: email,
+            };
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UpsertStudent","Home")',
+                data: studentViewModel,
+                success: function (response) {
+                    window.location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+            console.log(studentViewModel);
+        }
+    }
+</script>
+
+@*<script>
+
+    $(document).ready(function () {
+        // Initialize the chart without data
+        var currentMonth = new Date().getMonth() + 1;
+        var currentYear = new Date().getFullYear();
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                //labels: [],
+                datasets: [{
+                    label: '',
+                    data: [],
+                    borderWidth: 1,
+                    borderColor: '#FF6384',
+                    backgroundColor: '#FFB1C1',
+                }]
             },
-            error: function (xhr, status, error) {
-                console.error(error);
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    },
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        time: {
+                            unit: 'day',
+                        }
+                    },
+                }
+            },
+
+        });
+
+        GetChart(currentMonth, currentYear, myChart);
+
+        $("#left-icon").on('click', function () {
+            if (currentMonth == 1) {
+                currentMonth = 12;
+                currentYear = currentYear - 1;
+                GetChart(currentMonth, currentYear, myChart);
+
+            }
+            else {
+
+                GetChart(currentMonth - 1, currentYear, myChart);
+                currentMonth = currentMonth - 1;
+            }
+
+        });
+
+        $("#right-icon").on('click', function () {
+            if (currentMonth == 12) {
+                currentMonth = 1;
+                currentYear = currentYear + 1;
+                GetChart(currentMonth, currentYear, myChart);
+            }
+            else {
+                GetChart(currentMonth + 1, currentYear, myChart);
+                currentMonth = currentMonth + 1;
+            }
+
+        })
+    });
+
+
+</script>*@
+
+<script>
+    $(document).ready(function () {
+        var currentMonth = new Date().getMonth() + 1;
+        var currentYear = new Date().getFullYear();
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var mychart1 = new Chart(document.getElementById('myChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Created Students.', 'Created Professors.'],
+                datasets: [
+                    {
+                        label: '',
+                        data: [],
+                        backgroundColor: 'rgb(119, 185, 229)',
+                    },
+                    {
+                        label: '',
+                        data: [],
+                        backgroundColor: 'rgb(231,200,28)'
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        stacked: false,
+                        type: 'time',
+                        position: 'bottom',
+                        time: {
+                            unit: 'day',
+                        }
+                    },
+                    y: {
+                        stacked: false,
+                    }
+                },
             }
         });
-        console.log(studentViewModel);
+
+
+        GetChart(currentMonth, currentYear, mychart1);
+
+        $("#left-left-icon").on('click', function () {
+            if (currentMonth == 1) {
+                currentMonth = 12;
+                currentYear = currentYear - 1;
+                GetChart(currentMonth, currentYear, mychart1);
+
+            }
+            else {
+
+                GetChart(currentMonth - 1, currentYear, mychart1);
+                currentMonth = currentMonth - 1;
+            }
+
+        });
+
+        $("#left-right-icon").on('click', function () {
+            if (currentMonth == 12) {
+                currentMonth = 1;
+                currentYear = currentYear + 1;
+                GetChart(currentMonth, currentYear, myChart);
+            }
+            else {
+                GetChart(currentMonth + 1, currentYear, myChart);
+                currentMonth = currentMonth + 1;
+            }
+
+        })
+
+    });
+
+    new Chart(document.getElementById('myChart2'), {
+        type: 'bar',
+        data: {
+            labels: ['Created Students.', 'Created Professors.'],
+            datasets: [
+                {
+                    label: '',
+                    data: [],
+                    backgroundColor: 'rgb(119, 185, 229)'
+                },
+                {
+                    label: 'Created Professors',
+                    data: [0.45, 0.7],
+                    backgroundColor: 'rgb(231,200,28)'
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: false,
+                    type: 'time',
+                    position: 'bottom',
+                    time: {
+                        unit: 'day',
+                    }
+                },
+                y: {
+                    stacked: false,
+                    gridlines: {
+                        display: true
+                    },
+                }
+            },
+            legend: {
+                display: [false, true, true, true]
+            },
+            title: {
+                display: true,
+                text: 'Where Are We Going to Land?'
+            }
+        },
+    });
+
+
+
+    function GetChart(month, year, myChart) {
+        $.ajax({
+            url: 'GetStudentProfessorChartDetails',
+            type: 'GET',
+            data: {
+                month: month,
+                year: year,
+            },
+            dataType: 'json',
+            success: function (response) {
+                console.log(response);
+                var labels = [];
+                var dataPoints = [];
+
+                var labels2 = [];
+                var dataPoints2 = [];
+
+                response.data.forEach(function (item) {
+                    labels.push(item.createdDate1);
+                    dataPoints.push(item.studentDayWiseCount);
+                });
+
+                response.data.forEach(function (item) {
+                    dataPoints2.push(item.professorDayWiseCount);
+                });
+
+                console.log(dataPoints2);
+                console.log("labels ::::: ", labels);
+
+                myChart.data.labels = labels;
+                myChart.data.datasets[0].data = dataPoints;
+                myChart.data.datasets[0].label = response.monthName + " / " + response.year + " CreatedStudents";
+                myChart.data.datasets[0].backgroundColor = 'rgb(119, 215, 229)';
+
+                //myChart.data.labels = labels2;
+                myChart.data.datasets[1].data = dataPoints2;
+                myChart.data.datasets[1].label = response.monthName + " / " + response.year + " CreatedProfessors";
+                myChart.data.datasets[1].backgroundColor = 'rgb(231,200,28)';
+
+                myChart.update();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("Error fetching data:", textStatus, errorThrown);
+            }
+        });
     }
+
+
 </script>

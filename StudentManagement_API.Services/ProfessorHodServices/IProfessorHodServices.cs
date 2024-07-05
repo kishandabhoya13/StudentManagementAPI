@@ -6,7 +6,7 @@ namespace StudentManagement_API.Services
 {
     public interface IProfessorHodServices
     {
-        ProfessorHod CheckUserNamePassword(StudentLoginDto studentLoginDto);
+        JwtClaimsDto CheckUserNamePassword(StudentLoginDto studentLoginDto);
 
         bool IsAuthorized(ApiRequest apiRequest);
 

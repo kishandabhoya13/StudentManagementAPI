@@ -3,6 +3,7 @@
     ViewData["Title"] = "Home Page";
 }
 @model StudentManagement.Models.RoleBaseResponse<Book>
+<h3 class="text-danger">@TempData["Error"]</h3>
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-5 col-lg-5 col-12 col-sm-12">
@@ -16,11 +17,12 @@
             </div>
         </div>
     </div>
-    <div class="container-fluid">
+    <div class="container-fluid table-responsive">
         <table id="BooksTable" class="table table-borderless">
         </table>
     </div>
 </div>
+<div id="popup"></div>
 <script>
     function CreateCourse() {
         $.ajax({
@@ -37,312 +39,30 @@
         });
     };
 
-    //function loadDataTable(startIndex) {
-    //    var TOTAL_ITEMS = 0;
-    //    var searchQuery = $("#inputsearch").val();
-    //    var pageSize = $("#dt-length-0").val();
-    //    var OrderBy = $("#searchOrderdropdown").val();
-    //    var secondApiRequest = {
-    //        searchQuery: searchQuery,
-    //        StartIndex: startIndex,
-    //        PageSize: pageSize,
-    //        OrderBy: OrderBy,
-    //    }
-    //    sessionStorage.setItem("currentPageIndex", startIndex);
-    //    var table = new DataTable('#BooksTable', {
-    //        "infoCallback": function (settings, start, end, max, total, pre) {
-
-    //            var pageInfo = this.api().page.info(); // Get the current page info
-    //            var pageSize1 = $("#dt-length-0").val();
-    //            console.log("pageinfo::::",pageInfo);
-    //            currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
-    //            // Calculate the start and end indices for the current page
-    //            console.log("currentPageIndex ::: ", currentPageIndex);
-    //            console.log("pageSize ::: ", pageSize1);
-    //            var startIndex = (currentPageIndex * pageSize1) + 1;
-    //            console.log("startIndex ::: ", startIndex)
-    //            console.log("startIndex + pageSize1 - 1", parseInt(startIndex,10) + parseInt(pageSize1,10) - 1);
-    //            var endIndex = Math.min(parseInt(startIndex,10) + parseInt(pageSize1,10) - 1, TOTAL_ITEMS);
-    //            console.log("endIndex ::: ", endIndex);
-    //            console.log("TOTAL ITEMS::: ", TOTAL_ITEMS)
-
-    //            if (endIndex == TOTAL_ITEMS) {
-    //                console.log("next disable");
-    //                $(".page-link.next").addClass("disabled");
-    //            }
-    //            else {
-    //                console.log("next not disable");
-
-    //                $(".page-link.next").removeClass("disabled");
-    //            }
-
-    //            if (startIndex == 1) {
-    //                console.log("preivous disable");
-
-    //                $(".page-link.previous").addClass("disabled");
-    //            }
-    //            else {
-    //                console.log("preivous not disable");
-
-    //                $(".page-link.previous").removeClass("disabled");
-
-    //            }
-    //            return "Showing " + startIndex + " to " + endIndex + " of " + TOTAL_ITEMS + " entries";
-    //        },
-    //        drawCallback: function () {
-
-    //            $(".dt-paging-button").removeClass("disabled");
-    //        },
-    //        "initComplete": function (settings, json) {
-
-    //            $('#inputsearch').val(settings.oPreviousSearch.sSearch);
-
-    //            $('#inputsearch').on('keyup', function () {
-    //                var searchValue = $(this).val();
-    //                settings.oPreviousSearch.sSearch = searchValue;
-    //                settings.oApi._fnDraw(settings);
-    //            });
-    //            console.log("JSON ::: ", TOTAL_ITEMS);
-    //            $('#totalCell').text(TOTAL_ITEMS);
-    //            $(".dt-paging-button").removeClass("disabled");
-    //        },
-    //        "lengthMenu": [[5, 10, 15], [5, 10, 15]],
-    //        "pageLength": pageSize,
-    //        "language": {
-    //            oPaginate: {
-    //                sNext: '<i class="bi bi-caret-right-fill text-info"></i>',
-    //                sPrevious: '<i class="bi bi-caret-left-fill text-info"></i>'
-
-    //            }
-    //        },
-    //        "stateSave": true,
-    //        "pagingType": "simple",
-
-    //        ajax: {
-    //            method: "POST",
-    //            url: "/Home/GetFilteredBooks",
-    //            data: secondApiRequest,
-    //            dataSrc: function (response) {
-    //                TOTAL_ITEMS = response.totalItems;
-    //                console.log(TOTAL_ITEMS);
-    //                return response.data;
-    //            },
-    //            error: function () {
-    //                console.log("Function Fail")
-    //            }
-    //        },
-    //        columns: [
-    //            {
-    //                "title": "BookId",
-    //                "data": "bookId",
-    //                "class": "text-center",
-    //                "render": function (data1, type, row) {
-    //                    return data1;
-    //                }
-    //            },
-    //            {
-    //                "title": "BookNumber",
-    //                "data": "bookNumber",
-    //                "class": "text-center",
-    //                "render": function (data1, type, row) {
-    //                    return "<input id='booknumber-input-" + row.bookId + "' class='table-inputs form-control-disables-" + row.bookId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <a class='input-values-" + row.bookId + "' href='/Home/CreateUpdateStudent?StudentId=" + row.studentId + "'>" + data1 + "</a>";
-    //                }
-    //            },
-    //            {
-    //                "title": "BookTitle",
-    //                "data": "bookTitle",
-    //                "class": "text-center",
-    //                "render": function (data1, type, row) {
-    //                    return "<input id='booktitle-input-" + row.bookId + "' class='table-inputs form-control-disables-" + row.bookId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
-    //                }
-    //            },
-    //            {
-    //                "title": "CourseName",
-    //                "data": "courseName",
-    //                "class": "text-center",
-    //                "render": function (data1, type, row) {
-    //                    return "<select id='courseDropdown-" + row.bookId + "' style='display:none;'></select> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
-
-    //                }
-    //            },
-    //            {
-    //                "title": "Subject",
-    //                "data": "subject",
-    //                "class": "text-center",
-    //                "render": function (data1, type, row) {
-    //                    return "<input id='subject-input-" + row.bookId + "' class='table-inputs form-control-disables-" + row.bookId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
-
-    //                }
-    //            },
-    //            {
-    //                "title": "Action",
-    //                "data": "-",
-    //                "class": "text-center",
-    //                "render": function (data1, type, row) {
-    //                    return "<div class='inline-flex'> <i onclick='displayInput(" + row.bookId + "," + row.courseId + ")' id='edit-btn-" + row.bookId + "' style='color:green;' class='fas fa-edit'></i>"
-    //                        + "<div id='right-div-" + row.bookId + "' class='right-wrong-div right-div' style='display:none'>"
-    //                        + "<i style='color:green;' onclick='updateStudent(" + row.bookId + ")' class='fa fa-check' aria-hidden='true'></i></div>"
-    //                        + "<div id='wrong-div-" + row.bookId + "' onclick='hideInput(" + row.bookId + ")' class='right-wrong-div wrong-div' style='display:none'>"
-    //                        + "<i style='color:red;' class='fa fa-times' aria-hidden='true'></i>"
-    //                        + "</div></div>";
-    //                }
-    //            },
-    //        ]
-    //    });
-    //    return table;
-
-    //}
-
-    //$(document).ready(function () {
-    //    sessionStorage.setItem("currentPageIndex", 0);
-    //    var table = loadDataTable(0);
-
-    //    $("#dt-length-0").val(5);
-    //    $(".dt-paging-button").removeClass("disabled");
-    //    $(document).on('change', '.form-select', function (event) {
-    //        var pageSize = $("#dt-length-0").val();
-    //        var secondApiRequest = {
-    //            StartIndex: 0,
-    //            PageSize: pageSize,
-    //        };
-    //        event.preventDefault();
-    //        secondApiRequest.StartIndex = 0;
-    //        secondApiRequest.PageSize = pageSize;
-    //        console.log(secondApiRequest);
-    //        $.ajax({
-    //            method: "POST",
-    //            url: "/Home/GetFilteredBooks",
-    //            data: secondApiRequest,
-    //            dataSrc: "data",
-    //            success: function (response) {
-    //                sessionStorage.setItem("currentPageIndex", 0);
-    //                var newRows = response.data;
-
-    //                table.clear();
-    //                table.rows.add(newRows).draw(false);
-    //            },
-    //            error: function (xhr, status, error) {
-    //                console.error(error);
-    //            }
-    //        });
-    //    });
-
-    //    $(document).on('keyup', '#inputsearch', function (event) {
-    //        var pageSize = $("#dt-length-0").val();
-    //        var secondApiRequest = {
-    //            searchQuery: this.value,
-    //            StartIndex: 0,
-    //            PageSize: pageSize,
-    //        };
-    //        console.log(secondApiRequest);
-    //        $.ajax({
-    //            method: "POST",
-    //            url: "/Home/GetFilteredBooks",
-    //            data: secondApiRequest,
-    //            dataSrc: "data",
-    //            success: function (response) {
-    //                sessionStorage.setItem("currentPageIndex", 0);
-    //                var newRows = response.data;
-
-    //                table.clear();
-    //                table.rows.add(newRows).draw(false);
-    //            },
-    //            error: function (xhr, status, error) {
-    //                console.error(error);
-    //            }
-    //        });
-    //    });
-
-    //    let currentPageIndex = 0;
-    //    let totalPages = table.page.info().pages;
-
-    //    $(document).on('click', '.page-link.next', function (event) {
-    //        var pageSize = $("#dt-length-0").val();
-
-    //        if (sessionStorage.getItem("currentPageIndex") != null) {
-    //            currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) + 1;
-    //        }
-    //        let startIndex = currentPageIndex * pageSize;
-    //        event.preventDefault();
-    //        var secondApiRequest = {
-    //            StartIndex: startIndex,
-    //            PageSize: pageSize,
-    //        };
-    //        $.ajax({
-    //            method: "POST",
-    //            url: "/Home/GetFilteredBooks",
-    //            data: secondApiRequest,
-    //            dataSrc: "data",
-    //            success: function (response) {
-    //                sessionStorage.setItem("currentPageIndex", currentPageIndex);
-    //                var newRows = response.data;
-
-    //                table.clear();
-    //                table.rows.add(newRows).draw(false);
-    //            },
-    //            error: function (xhr, status, error) {
-    //                console.error(error);
-    //            }
-    //        });
-    //    });
-
-    //    $('.page-link.previous').on('click', function (event) {
-    //        event.preventDefault();
-    //        var pageSize = $("#dt-length-0").val();
-
-    //        if (sessionStorage.getItem("currentPageIndex") != null) {
-    //            currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
-    //        }
-    //        let startIndex1 = currentPageIndex * pageSize;
-    //        var secondApiRequest = {
-    //            StartIndex: startIndex1,
-    //            PageSize: pageSize,
-    //        };
-    //        $.ajax({
-    //            method: "POST",
-    //            url: "/Home/GetFilteredBooks",
-    //            data: secondApiRequest,
-    //            dataSrc: "data",
-    //            success: function (response) {
-    //                sessionStorage.setItem("currentPageIndex", currentPageIndex);
-    //                var newRows = response.data;
-
-    //                table.clear();
-    //                table.rows.add(newRows).draw(false);
-
-    //            },
-    //            error: function (xhr, status, error) {
-    //                console.error(error);
-    //            }
-    //        });
-    //    });
-
-    //});
-
     function loadDataTable(startIndex) {
         var TOTAL_ITEMS = 0;
         var searchQuery = $("#inputsearch").val();
         var pageSize = $("#dt-length-0").val();
-        var OrderBy = $("#searchOrderdropdown").val();
         var secondApiRequest = {
             searchQuery: searchQuery,
             StartIndex: startIndex,
             PageSize: pageSize,
-            OrderBy: OrderBy,
         }
         sessionStorage.setItem("currentPageIndex", startIndex);
         var table = new DataTable('#BooksTable', {
+            "responsive": true,
+            searching: false,
             "infoCallback": function (settings, start, end, max, total, pre) {
 
                 var pageInfo = this.api().page.info(); // Get the current page info
-                var pageSize1 = pageInfo.length;
+                var pageSize1 = $("#dt-length-0").val();
 
                 currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
                 var startIndex = (currentPageIndex * pageSize1) + 1;
-                
-                var endIndex = Math.min(startIndex + pageSize1 - 1, TOTAL_ITEMS);
-                if (endIndex == TOTAL_ITEMS) {
-                    console.log($(".dt-paging-button"));
+
+                var endIndex = Math.min(parseInt(startIndex, 10) + parseInt(pageSize1, 10) - 1, parseInt(TOTAL_ITEMS,10));
+
+                if (parseInt(endIndex, 10) === parseInt(TOTAL_ITEMS, 10)) {
                     $(".page-link.next").addClass("disabled");
                 }
                 else {
@@ -363,16 +83,6 @@
                 $(".dt-paging-button").removeClass("disabled");
             },
             "initComplete": function (settings, json) {
-
-                $('#inputsearch').val(settings.oPreviousSearch.sSearch);
-
-                $('#inputsearch').on('keyup', function () {
-                    var searchValue = $(this).val();
-                    settings.oPreviousSearch.sSearch = searchValue;
-                    settings.oApi._fnDraw(settings);
-                });
-                console.log("JSON ::: ", TOTAL_ITEMS);
-                $('#totalCell').text(TOTAL_ITEMS);
                 $(".dt-paging-button").removeClass("disabled");
             },
             "lengthMenu": [[5, 10, 15], [5, 10, 15]],
@@ -394,7 +104,6 @@
                 dataType: "JSON",
                 dataSrc: function (response) {
                     TOTAL_ITEMS = response.totalItems;
-                    console.log(response.data);
                     return response.data;
                 },
                 error: function () {
@@ -415,7 +124,7 @@
                     "data": "bookNumber",
                     "class": "text-center",
                     "render": function (data1, type, row) {
-                        return "<a href='/Home/CreateUpdateStudent?StudentId=" + row.studentId + "'>" + data1 + "</a>";
+                        return "<a href='/Home/AddEditBook?BookId=" + row.bookId+ "'>" + data1 + "</a>";
                     }
                 },
                 {
@@ -445,11 +154,36 @@
                     }
                 },
                 {
+                    "title": "Photo",
+                    "data": "-",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        //if (row.photos != null && row.photos != '') {
+                        //    return "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><img class='book-photo' src='" + row.photos + "' title='" + row.photoName + "' /></a>";
+                        //}
+                        //return "";
+
+                        if (row.photoName != null && row.photoName != '') {
+                            return "<a onclick='ViewUpload(" + row.bookId + ")' target='_blank'>View</a>"
+                        }
+                        return "";
+
+
+                    }
+                },
+                {
                     "title": "Action",
                     "data": "-",
                     "class": "text-center",
                     "render": function (data1, type, row) {
-                        return "<div class='inline-flex'> <i onclick='displayInput(" + row.bookId + "," + row.courseId + ")' id='edit-btn-" + row.bookId + "' style='color:green;' class='fas fa-edit'></i>"
+                        var photoLink = "";
+                        if(row.photoName != null && row.photoName != '')
+                        {
+                           photoLink =  "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><i class='fa fa-eye' aria-hidden='true'></i></a>"
+                        }
+                        return "<div class='inline-flex d-flex align-items-center justify-content-center'>"
+                            + " <i onclick='displayInput(" + row.bookId + "," + row.courseId + ")' id='edit-btn-" + row.bookId + "' style='color:green;' class='fas fa-edit'></i>"
+                            + " <i onclick='deleteBookModal(" + row.bookId + ")' id='delete-btn-" + row.bookId + "' style='color:darkred;' class='fas fa-trash'></i>"
                             + "<div id='right-div-" + row.bookId + "' class='right-wrong-div right-div' style='display:none'>"
                             + "<i style='color:green;' onclick='updateBook(" + row.bookId + ")' class='fa fa-check' aria-hidden='true'></i></div>"
                             + "<div id='wrong-div-" + row.bookId + "' onclick='hideInput(" + row.bookId + ")' class='right-wrong-div wrong-div' style='display:none'>"
@@ -478,7 +212,6 @@
                 PageSize: pageSize,
             };
             event.preventDefault();
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/GetFilteredBooks",
@@ -504,7 +237,6 @@
                 StartIndex: 0,
                 PageSize: pageSize,
             };
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/GetFilteredBooks",
@@ -536,7 +268,6 @@
                 StartIndex: startIndex,
                 PageSize: pageSize,
             };
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/GetFilteredBooks",
@@ -566,14 +297,12 @@
                 StartIndex: startIndex1,
                 PageSize: pageSize,
             };
-            console.log(secondApiRequest);
             $.ajax({
                 method: "POST",
                 url: "/Home/GetFilteredBooks",
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
-                    console.log(response);
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
 
@@ -591,7 +320,26 @@
 
 </script>
 <script>
-    function displayInput(BookId,CourseId) {
+
+    function deleteBookModal(BookId) {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("BookDeleteModal","Home")',
+            data: {
+                BookId: BookId,
+            },
+            success: function (response) {
+                $('#popup').html(response)
+                $('#DeleteBookModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+
+    function displayInput(BookId, CourseId) {
+        let deletebtn = document.getElementById(`delete-btn-${BookId}`);
         let editbtn = document.getElementById(`edit-btn-${BookId}`);
         let submitdiv = document.getElementById(`right-div-${BookId}`);
         let canceldiv = document.getElementById(`wrong-div-${BookId}`);
@@ -608,6 +356,7 @@
         }
         $(`#courseDropdown-${BookId}`).picker();
         editbtn.style.display = 'none';
+        deletebtn.style.display = 'none';
         submitdiv.style.display = 'flex';
         canceldiv.style.display = 'flex';
 
@@ -623,6 +372,7 @@
 
 
     function hideInput(BookId) {
+        let deletebtn = document.getElementById(`delete-btn-${BookId}`);
         let editbtn = document.getElementById(`edit-btn-${BookId}`);
         let submitdiv = document.getElementById(`right-div-${BookId}`);
         let canceldiv = document.getElementById(`wrong-div-${BookId}`);
@@ -632,6 +382,7 @@
         let courseDropdown = document.getElementById(`courseDropdown-${BookId}`);
 
         editbtn.style.display = 'block';
+        deletebtn.style.display = 'block';
         submitdiv.style.display = 'none';
         canceldiv.style.display = 'none';
         $(`#courseDropdown-${BookId}`).picker('destroy');
@@ -655,12 +406,11 @@
 
         var bookViewModel =
         {
-            BookId : BookId,
+            BookId: BookId,
             BookTitle: booktitle,
             Subject: subject,
             CourseId: courseDropdown,
         };
-        console.log(bookViewModel);
         $.ajax({
             type: "POST",
             url: '@Url.Action("UpsertBook","Home")',
@@ -672,6 +422,34 @@
                 console.error(error);
             }
         });
-        console.log(studentViewModel);
+    }
+
+    function ViewUpload(BookId)
+    {
+        // $.ajax({
+        //    type: "GET",
+        //    url: '@Url.Action("ViewBookPhoto","Home")',
+        //    data: {
+        //        BookId:BookId,
+        //    },
+        //    success: function (response) {
+        //        var tempLink = document.createElement('a');
+        //        // Set the href attribute to the URL of the file
+        //        tempLink.href = window.URL.createObjectURL(new Blob([response]));
+        //        // Set the download attribute to specify the filename
+        //        tempLink.download = 'book_photo.jpg'; // Change 'book_photo.jpg' to your desired filename
+        //        // Append the anchor element to the body temporarily
+        //        document.body.appendChild(tempLink);
+        //        // Programmatically click the link to start downloading
+        //        tempLink.click();
+        //        // Remove the anchor element from the body after triggering the download
+        //        document.body.removeChild(tempLink);
+        //    },
+        //    error: function (xhr, status, error) {
+        //        console.error(error);
+        //    }
+        //});
+        var url = '@Url.Action("ViewBookPhoto", "Home")' + '?BookId=' + encodeURIComponent(BookId);
+        window.open(url, '_blank');
     }
 </script>

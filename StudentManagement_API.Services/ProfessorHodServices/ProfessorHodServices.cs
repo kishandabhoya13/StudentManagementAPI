@@ -19,7 +19,7 @@ namespace StudentManagement_API.Services
         private readonly string connectionString;
         private readonly IJwtServices _jwtService;
         private readonly IMapper _mapper;
-        public ProfessorHodServices(IConfiguration configuration, IJwtServices jwtService,IMapper mapper)
+        public ProfessorHodServices(IConfiguration configuration, IJwtServices jwtService, IMapper mapper)
         {
             _configuration = configuration;
             connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
@@ -28,22 +28,21 @@ namespace StudentManagement_API.Services
         }
 
 
-        public ProfessorHod CheckUserNamePassword(StudentLoginDto studentLoginDto)
+        public JwtClaimsDto CheckUserNamePassword(StudentLoginDto studentLoginDto)
         {
             try
             {
                 Collection<DbParameters> parameters = new Collection<DbParameters>();
                 parameters.Add(new DbParameters() { Name = "@UserName", Value = studentLoginDto.UserName, DBType = DbType.String });
                 parameters.Add(new DbParameters() { Name = "@PassWord", Value = studentLoginDto.Password, DBType = DbType.String });
-                ProfessorHod professorHod= DbClient.ExecuteOneRecordProcedure<ProfessorHod>("[dbo].[Get_ProfessorHod_UserName_Password]", parameters);
+                JwtClaimsDto jwtClaims = DbClient.ExecuteOneRecordProcedure<JwtClaimsDto>("[dbo].[Get_ProfessorHod_UserName_Password]", parameters);
 
-                JwtClaims jwtClaims = _mapper.Map<JwtClaims>(professorHod);
-                professorHod.JwtToken = _jwtService.GenerateToken(jwtClaims);
-                if (professorHod.Id!= 0)
+                if (jwtClaims.Id != 0)
                 {
-                    UpdateJwtToken(professorHod.JwtToken, professorHod.Id);
+                    jwtClaims.JwtToken = _jwtService.GenerateToken(jwtClaims);
+                    UpdateJwtToken(jwtClaims.JwtToken, jwtClaims.Id);
                 }
-                return professorHod;
+                return jwtClaims;
             }
             catch (Exception ex)
             {
@@ -64,11 +63,11 @@ namespace StudentManagement_API.Services
         {
             string query = "";
             int roleId = 0;
-            if(apiRequest.MethodType == "IsInsert")
+            if (apiRequest.MethodType == "IsInsert")
             {
                 query = "SELECT RoleId FROM [dbo].[RoleAccess] WHERE RoleId = @RoleId AND PageName = @PageName AND IsInsert = 1";
             }
-            else if(apiRequest.MethodType == "IsManaged")
+            else if (apiRequest.MethodType == "IsManaged")
             {
                 query = "SELECT RoleId FROM [dbo].[RoleAccess] WHERE RoleId = @RoleId AND PageName = @PageName AND IsManaged = 1";
             }
@@ -81,7 +80,7 @@ namespace StudentManagement_API.Services
             parameters.Add(new DbParameters() { Name = "@PageName", Value = apiRequest.PageName, DBType = DbType.String });
             AllIdDto allIdDto = DbClient.ExecuteOneRecordProcedureWithQuery<AllIdDto>(query, parameters);
             roleId = allIdDto.RoleId;
-            if(roleId != 0)
+            if (roleId != 0)
             {
                 return true;
             }

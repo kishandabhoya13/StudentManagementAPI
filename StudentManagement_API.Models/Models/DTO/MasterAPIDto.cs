@@ -41,6 +41,8 @@
 
         public int? RoleId { get; set; } = null;
 
+        public List<string>? RoleIds { get; set; } = null;
+
         public string? MethodType { get; set; } = null;
 
     }
@@ -52,4 +54,19 @@
         public int Id { get; set; }
     }
 
+
+    public class CountStudentProfessorDto
+    {
+        public DateTime? CreatedDate1 { get; set; } = null;
+
+        public DateTime? CreatedDate2 { get; set; } = null;
+
+        public int? StudentDayWiseCount { get; set; } = null;
+
+        public int? ProfessorDayWiseCount { get; set; } = null;
+
+        public int? month { get; set; } = 0;
+
+        public int? year { get; set; } = 0;
+    }
 }

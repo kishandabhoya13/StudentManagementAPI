@@ -1,5 +1,10 @@
-﻿using StudentManagement.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using StudentManagement.Models;
+using StudentManagement_API.Services;
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace StudentManagment.Models
 {
@@ -44,5 +49,9 @@ namespace StudentManagment.Models
         public string? OrderBy { get; set; } = null;
 
         public string? OrderDirection { get; set; } = null;
+
+        [RegularExpression("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", ErrorMessage = "Enter Correct Email")]
+        [Required]
+        public string Email { get; set; }
     }
 }

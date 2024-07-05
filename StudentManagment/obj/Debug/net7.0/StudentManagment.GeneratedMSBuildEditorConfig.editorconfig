@@ -16,8 +16,8 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = D:\StudentManagement\StudentManagment
 build_property._RazorSourceGeneratorDebug = 
 
-[D:/StudentManagement/StudentManagment/Views/Home/AddBook.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRCb29rLmNzaHRtbA==
+[D:/StudentManagement/StudentManagment/Views/Home/AddEditBook.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRFZGl0Qm9vay5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/StudentManagement/StudentManagment/Views/Home/AdminIndex.cshtml]
@@ -26,6 +26,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/StudentManagement/StudentManagment/Views/Home/AllBooks.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBbGxCb29rcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/StudentManagement/StudentManagment/Views/Home/AllEmails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBbGxFbWFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/StudentManagement/StudentManagment/Views/Home/BookDeleteModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxCb29rRGVsZXRlTW9kYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/StudentManagement/StudentManagment/Views/Home/CreateCourseModal.cshtml]
@@ -52,12 +60,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/StudentManagement/StudentManagment/Views/Home/SendEmailModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxTZW5kRW1haWxNb2RhbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/StudentManagement/StudentManagment/Views/Home/TotalEmailChart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxUb3RhbEVtYWlsQ2hhcnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/StudentManagement/StudentManagment/Views/Login/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9naW5cTG9naW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/StudentManagement/StudentManagment/Views/Login/ProfessorHodLogin.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9naW5cUHJvZmVzc29ySG9kTG9naW4uY3NodG1s
+[D:/StudentManagement/StudentManagment/Views/Login/Login1.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9naW5cTG9naW4xLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/StudentManagement/StudentManagment/Views/Shared/AdminIndexTableView.cshtml]

@@ -32,5 +32,9 @@ namespace StudentManagment.Models.DataModels
         public string Password { get; set; } = null!;
         public string? JwtToken { get; set; } = null;
 
+        [RegularExpression("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", ErrorMessage = "Enter Correct Email")]
+        [Required]
+        public string Email { get; set; }
+
     }
 }

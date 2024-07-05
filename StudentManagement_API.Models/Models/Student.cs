@@ -32,5 +32,9 @@ namespace StudentManagement_API.Models.Models
 
         public int? TotalRecords { get; set; } = 0;
 
+        [RegularExpression("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", ErrorMessage = "Enter Correct Email")]
+        [Required]
+        public string Email { get; set; }
+
     }
 }

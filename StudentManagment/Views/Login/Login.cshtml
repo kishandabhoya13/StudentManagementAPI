@@ -4,10 +4,11 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@model StudentManagment.Models.StudentViewModel
+@model StudentManagment.Models.AdminStudentViewModel
+
 <form asp-action="CheckLogin" asp-controller="Login" method="post">
     <div class="container">
-        <h2>Student Login</h2>
+        <h2>Login Page</h2>
         <h4 class="text-danger">@TempData["error"]</h4>
 
         <label for="uname"><b>Username</b></label>
@@ -18,6 +19,6 @@
         <input type="password" asp-for="Password" placeholder="Enter Password">
         <span class="text-danger" asp-validation-for="Password"></span>
 
-        <button type="submit">Login</button>
+        <button class="admin-submit-btn" type="submit">Login</button>
     </div>
 </form>

@@ -6,7 +6,7 @@ namespace StudentManagement_API.Services
 {
     public interface IJwtServices
     {
-        string GenerateToken(JwtClaims jwtClaims);
+        string GenerateToken(JwtClaimsDto jwtClaims);
 
         bool ValidateToken(string? token, out JwtSecurityToken jwtSecurityToken);
     }

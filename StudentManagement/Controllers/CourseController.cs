@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using StudentManagement_API.Models;
 using StudentManagement_API.Models.Models;
 using StudentManagement_API.Models.Models.DTO;
@@ -18,13 +20,20 @@ namespace StudentManagement_API.Controllers
         private readonly IJwtServices _jwtService;
         public IStudentServices _studentServices;
         private readonly IProfessorHodServices _professorHodServices;
+        private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
 
-        public CourseController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices)
+
+
+        public CourseController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices,
+            IConfiguration configuration, IMapper mapper)
         {
             this._response = new();
             _studentServices = studentServices;
             this._jwtService = jwtService;
             _professorHodServices = professorHodServices;
+            _mapper = mapper;
+            _configuration = configuration;
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -33,7 +42,7 @@ namespace StudentManagement_API.Controllers
         [HttpGet()]
         public ActionResult<APIResponse> GetAllCourses()
         {
-            IList<Course> courses = _studentServices.GetRecordsWithoutPagination<Course>("[dbo].[Get_All_Courses]");
+            IList<Course> courses = _studentServices.GetRecordsWithoutPagination<Course>("[dbo].[Get_All_Courses]","Courses");
             if (courses.Count > 0)
             {
                 _response.result = courses;
@@ -43,9 +52,8 @@ namespace StudentManagement_API.Controllers
             else
             {
                 _response.ErroMessages = new List<string> { "Courses Not Found" };
-                _response.IsSuccess = false;
+                _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.NotFound;
-                return _response;
             }
             return _response;
         }
@@ -65,7 +73,7 @@ namespace StudentManagement_API.Controllers
                     _response.IsSuccess = false;
                     return _response;
                 }
-                Course course = _studentServices.GetData<Course>("Select * From Courses where CourseId = " + courseId);
+                Course course = _studentServices.GetData<Course>("Select * From Courses where CourseId = " + courseId, "Course" + courseId);
                 if (course.CourseId > 0)
                 {
                     _response.result = course;

@@ -34,6 +34,8 @@ namespace StudentManagement_API.Models.Models
         public int TotalItems { get; set; } = 0;
 
         public int TotalPages { get; set; }
+
+        public string? searchQuery { get; set; } = null;
     }
 
     public class AllIdDto

@@ -5,8 +5,28 @@
       "PackagePath": "staticwebassets\\StudentManagment.bundle.scp.css"
     },
     {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\0d0b64f4-b05e-477d-80b2-4040189437e9Fig11. View Notes.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\0d0b64f4-b05e-477d-80b2-4040189437e9Fig11. View Notes.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\1cb9a547-3f1d-40e2-8bb1-a6cfca9c4077ERDIAGRAM2.png",
+      "PackagePath": "staticwebassets\\BookPhotos\\1cb9a547-3f1d-40e2-8bb1-a6cfca9c4077ERDIAGRAM2.png"
+    },
+    {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\20ad0d50-4671-46f8-a77f-9fb0ab02db35View Notes_mobile.png",
       "PackagePath": "staticwebassets\\BookPhotos\\20ad0d50-4671-46f8-a77f-9fb0ab02db35View Notes_mobile.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\3dc2b30a-89dc-4efc-aeec-e722065e3792Fig19.Send Agreement pop-up.png",
+      "PackagePath": "staticwebassets\\BookPhotos\\3dc2b30a-89dc-4efc-aeec-e722065e3792Fig19.Send Agreement pop-up.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\48c6e762-6e47-4c57-a6e3-f3fe9b88e898Fig11. View Notes.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\48c6e762-6e47-4c57-a6e3-f3fe9b88e898Fig11. View Notes.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\4d3428a3-36ab-4843-9246-e2185d1f1e04Fig58. Create Patient request.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\4d3428a3-36ab-4843-9246-e2185d1f1e04Fig58. Create Patient request.jpg"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\99a66f15-f36a-4e79-a2fb-6e3aa237ef8fSpinner-5.gif",
@@ -19,6 +39,18 @@
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\9e53e6d9-159b-4364-91df-3960ff414e45Fig10. View case.jpg",
       "PackagePath": "staticwebassets\\BookPhotos\\9e53e6d9-159b-4364-91df-3960ff414e45Fig10. View case.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\bc085aec-c228-4153-83f6-437347f64155Fig2. Forgot Password.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\bc085aec-c228-4153-83f6-437347f64155Fig2. Forgot Password.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\d3b01302-af28-4670-a891-30de6f3247caFig11. View Notes.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\d3b01302-af28-4670-a891-30de6f3247caFig11. View Notes.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\ef0cbf96-fee9-490c-bb5a-45baf655cb8311116016_415.jpg",
+      "PackagePath": "staticwebassets\\BookPhotos\\ef0cbf96-fee9-490c-bb5a-45baf655cb8311116016_415.jpg"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\fe5b3568-2726-4f4f-bdd3-0b50164e9af7spinner.gif",
@@ -275,6 +307,10 @@
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\natural.jfif",
+      "PackagePath": "staticwebassets\\natural.jfif"
     },
     {
       "Id": "obj\\Debug\\net7.0\\staticwebassets\\msbuild.StudentManagment.Microsoft.AspNetCore.StaticWebAssets.props",

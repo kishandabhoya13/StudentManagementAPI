@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing.Internal;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,20 +30,28 @@ namespace StudentManagement_API.Controllers
         private readonly IJwtServices _jwtService;
         private readonly IProfessorHodServices _professorHodServices;
         private APIResponse _response;
+        private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
+
         public Dictionary<string, Type> controllers = new()
         {
             { "Student", typeof(StudentController) },
             { "Course", typeof(CourseController) },
             { "ProfessorHod", typeof(ProfessorHodController) },
             { "Book", typeof(BookController) },
+            { "Login" , typeof(LoginController) },
+            {"Email", typeof(EmailController) }
         };
 
-        public MasterApiController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices)
+        public MasterApiController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices,
+            IConfiguration configuration,IMapper mapper)
         {
             _studentServices = studentServices;
             _jwtService = jwtService;
             this._response = new();
             _professorHodServices = professorHodServices;
+            _configuration = configuration;
+            _mapper = mapper;
         }
 
 
@@ -77,10 +88,15 @@ namespace StudentManagement_API.Controllers
                     }
                     if (isAuthorized)
                     {
+                        var userRoles = jwtSecurityToken.Claims?.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+                        if (userRoles == null || (apiRequest.RoleIds?.Count == 0) || !apiRequest.RoleIds.Any(role => userRoles.Contains(role)))
+                        {
+                            throw new UnauthorizedAccessException();
+                        }
                         object controller = null;
                         if (controllers.TryGetValue(apiRequest.ControllerName, out Type controllerType))
                         {
-                            controller = Activator.CreateInstance(controllerType, _studentServices, _jwtService, _professorHodServices);
+                            controller = Activator.CreateInstance(controllerType, _studentServices, _jwtService, _professorHodServices, _configuration, _mapper);
                         }
                         MethodInfo methodInfo = controller.GetType().GetMethod(apiRequest.MethodName);
                         if (methodInfo != null)
@@ -132,10 +148,7 @@ namespace StudentManagement_API.Controllers
             }
             catch (Exception ex)
             {
-                _response.ErroMessages = new List<string> { ex.Message };
-                _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                return _response;
+                throw new Exception(ex.ToString());
             }
 
         }
@@ -152,7 +165,7 @@ namespace StudentManagement_API.Controllers
                 object controller = null;
                 if (controllers.TryGetValue(apiRequest.ControllerName, out Type controllerType))
                 {
-                    controller = Activator.CreateInstance(controllerType, _studentServices, _jwtService, _professorHodServices);
+                    controller = Activator.CreateInstance(controllerType, _studentServices, _jwtService, _professorHodServices, _configuration, _mapper);
                 }
                 MethodInfo methodInfo = controller.GetType().GetMethod(apiRequest.MethodName);
                 if (methodInfo != null)

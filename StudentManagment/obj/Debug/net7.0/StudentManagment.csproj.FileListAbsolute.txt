@@ -89,3 +89,12 @@ D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.Json
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Newtonsoft.Json.Bson.dll
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\NetCore.AutoRegisterDi.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Net.Http.Formatting.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Web.Http.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.DataContext.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.Models.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.Services.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.Services.pdb
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.DataContext.pdb
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.Models.pdb
+D:\StudentManagement\StudentManagment\obj\Debug\net7.0\StudentManagment.MvcApplicationPartsAssemblyInfo.cs

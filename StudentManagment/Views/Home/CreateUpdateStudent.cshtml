@@ -7,6 +7,7 @@
 @model StudentManagment.Models.StudentViewModel
 <h2 class="text-danger">@TempData["ErrorMsg"]</h2>
 <div class="container main-container">
+    <h1 class="mb-3">Create/Update Student</h1>
     <form method="post" asp-action="UpsertStudent" asp-controller="Home">
         <input type="hidden" asp-for="StudentId" />
         <div class="row">
@@ -27,8 +28,8 @@
                            class="form-control input-lg"
                            id="floatingLastName"
                            asp-for="LastName"
-                           placeholder="First Name" />
-                    <label for="floatingFirstname">Last Name</label>
+                           placeholder="Last Name" />
+                    <label for="floatingLastName">Last Name</label>
                     <span asp-validation-for="LastName" class="text-danger"></span>
                 </div>
             </div>
@@ -36,11 +37,22 @@
                 <div class="form-group form-floating mb-3">
                     <input type="date"
                            class="form-control input-lg"
-                           id="floatingFirstname"
+                           id="floatingBirthDate"
                            asp-for="BirthDate"
-                           placeholder="First Name" />
-                    <label for="floatingFirstname">Birth Date</label>
+                           placeholder="Birth Date" />
+                    <label for="floatingBirthDate">Birth Date</label>
                     <span asp-validation-for="BirthDate" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="email"
+                           class="form-control input-lg"
+                           id="floatingFirstname"
+                           asp-for="Email"
+                           placeholder="Email" />
+                    <label for="floatingFirstname">Email</label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
             </div>
             <div class="col-md-6 col-12 col-sm-12">

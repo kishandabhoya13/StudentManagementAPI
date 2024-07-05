@@ -8,6 +8,7 @@ using StudentManagment.Services.Interface;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using StudentManagement_API.Services.CacheService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddControllersWithViews(options =>
     option.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
 }).AddXmlDataContractSerializerFormatters();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<ICacheServices,CacheServices>();
 builder.Services.AddScoped<CustomExceptionFilter>();
 builder.Services.AddSingleton<IHttpContextAccessor,HttpContextAccessor>();
 builder.Services.AddSingleton<IExceptionFilter, CustomExceptionFilter>();
@@ -47,7 +49,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

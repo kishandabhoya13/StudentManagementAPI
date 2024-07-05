@@ -25,5 +25,9 @@ namespace StudentManagement_API.Models.Models.DTO
         [Required(ErrorMessage = "Password is Required")]
         [RegularExpression(pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", ErrorMessage = "Password must have 8 characters, one uppercase, one lowercase, one digit, and one special character")]
         public string Password { get; set; } = null!;
+
+        [RegularExpression("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", ErrorMessage = "Enter Correct Email")]
+        [Required]
+        public string Email { get; set; }
     }
 }

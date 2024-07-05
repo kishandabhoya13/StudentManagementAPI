@@ -6,9 +6,9 @@ namespace StudentManagment.Services.Interface
 {
     public interface IBaseServices
     {
-        Student CheckLoginDetails(StudentViewModel studentViewModel);
+        JwtClaimsViewModel CheckLoginDetails(AdminStudentViewModel adminStudentViewModel);
 
-        ProfessorHod CheckAdminLoginDetails(AdminViewModel adminViewModel);
+        //ProfessorHod CheckAdminLoginDetails(AdminStudentViewModel adminViewModel);
 
         bool UpdateJwtToken(string token, int StudentId, string currentToken);
 
@@ -17,6 +17,8 @@ namespace StudentManagment.Services.Interface
         Course GetCourseDetailById(int id,int RoleId);
 
         Student GetStudentByMaster(int id, string token,SecondApiRequest secondApiRequest);
+
+        Book GetBook(int BookId, string token, SecondApiRequest apiRequest);
 
         IList<Course> GetAllCourses(string token,int RoleId);
 
@@ -33,5 +35,25 @@ namespace StudentManagment.Services.Interface
         Task<bool> UpsertBook(BookViewModel bookViewModel);
 
         bool UpdateProfessorHodJwtToken(string token, int Id, string currentToken);
+
+        bool DeleteBook(BookViewModel bookViewModel);
+
+        Book GetBookPhoto(BookViewModel bookViewModel);
+
+        List<StudentsEmailAndIds> GetEmailsAndIds(int? RoleId, string JwtToken);
+
+        EmailViewModel GetScheduledEmailById(int? RoleId, string JwtToken, int ScheduledEmailId);
+
+        void SendEmail(EmailViewModel emailViewModel);
+
+        string GetEmailFromStudentId(EmailViewModel emailViewModel);
+
+        RoleBaseResponse<ScheduledEmailViewModel> GetAllScheduledEmail(SecondApiRequest secondApi);
+
+        void UpdateScheduledEmailLog(EmailViewModel emailViewModel);
+
+        RoleBaseResponse<CountEmailViewModel> GetDayWiseEmailCount(int month,int year, int roleId, string jwtToken);
+
+        RoleBaseResponse<CountStudentProfessor> GetDayWiseProfStudentCount(int month, int year, int roleId, string jwtToken);
     }
 }

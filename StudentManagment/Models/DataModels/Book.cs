@@ -20,10 +20,16 @@ namespace StudentManagment.Models.DataModels
         [Required,StringLength(100)]
         public string Subject { get; set; }
 
-        public string Photo { get; set; }
+        public byte[] Photo { get; set; }
+
+        public string? Photos { get; set; }
 
         public string? PhotoName { get; set; } = null;
 
+
         public IFormFile PhotoFile { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
+
     }
 }

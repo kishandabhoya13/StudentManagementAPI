@@ -66,6 +66,10 @@
               "target": "Package",
               "version": "[5.2.1, )"
             },
+            "Microsoft.Extensions.Caching.Memory": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
             "NetCore.AutoRegisterDi": {
               "target": "Package",
               "version": "[2.2.1, )"
@@ -298,6 +302,10 @@
             "Microsoft.Data.SqlClient": {
               "target": "Package",
               "version": "[5.2.1, )"
+            },
+            "Microsoft.Extensions.Caching.Memory": {
+              "target": "Package",
+              "version": "[7.0.0, )"
             },
             "NetCore.AutoRegisterDi": {
               "target": "Package",

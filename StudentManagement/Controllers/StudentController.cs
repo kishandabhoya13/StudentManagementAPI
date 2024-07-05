@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using StudentManagement_API.Models;
 using StudentManagement_API.Models.Models;
 using StudentManagement_API.Models.Models.DTO;
@@ -11,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
+using System.Threading;
 
 namespace StudentManagement_API.Controllers
 {
@@ -23,47 +26,20 @@ namespace StudentManagement_API.Controllers
         private readonly IStudentServices _studentServices;
         private readonly IJwtServices _jwtService;
         private readonly IProfessorHodServices _professorHodServices;
+        private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
+        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
-        public StudentController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices)
+        public StudentController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices,
+            IConfiguration configuration, IMapper mapper)
         {
             this._response = new();
             _studentServices = studentServices;
             _jwtService = jwtService;
             _professorHodServices = professorHodServices;
+            _configuration = configuration;
+            _mapper = mapper;
         }
-
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[HttpGet]
-        //public ActionResult<APIResponse> GetAllStudents(string jwtToken)
-        //{
-        //    try
-        //    {
-        //        var role = "";
-        //        if (_jwtService.ValidateToken(jwtToken, out JwtSecurityToken jwtSecurityToken))
-        //        {
-        //            role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
-        //        }
-        //        List<Student> students = _studentServices.GetAllData();
-        //        RoleBaseResponse roleBaseResponse = new()
-        //        {
-        //            Students = students,
-        //            Role = role
-        //        };
-        //        _response.result = roleBaseResponse;
-        //        _response.IsSuccess = true;
-        //        _response.StatusCode = HttpStatusCode.OK;
-        //        return _response;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _response.IsSuccess = false;
-        //        _response.ErroMessages = new List<string> { ex.Message };
-        //        _response.StatusCode = HttpStatusCode.BadRequest;
-
-        //        return _response;
-        //    }
-
-        //}
 
         [ServiceFilter(typeof(LogActionFilter))]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -79,7 +55,9 @@ namespace StudentManagement_API.Controllers
             {
                 role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
             }
-            IList<Student> students = _studentServices.GetDataWithPegination(paginationDto);
+            string cacheKey = "StudentList" + paginationDto.PageSize + paginationDto.StartIndex + paginationDto.searchQuery;
+
+            IList<Student> students = _studentServices.GetDataWithPagination<Student>(paginationDto,cacheKey, "[dbo].[Get_Students_List]");
             int totalItems = students.Count > 0 ? students.FirstOrDefault(x => x.StudentId != 0)?.TotalRecords ?? 0 : 0;
             int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
             RoleBaseResponse<Student> roleBaseResponse = new()
@@ -90,9 +68,27 @@ namespace StudentManagement_API.Controllers
                 PageSize = paginationDto.PageSize,
                 TotalItems = totalItems,
                 TotalPages = TotalPages,
-                CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize)
+                CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize),
+                searchQuery = paginationDto.searchQuery,
             };
+
             _response.result = roleBaseResponse;
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.OK;
+
+
+
+            return _response;
+        }
+
+        [ServiceFilter(typeof(LogActionFilter))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet]
+        [Route("/GetEmailsAndStudentIds")]
+        public ActionResult<APIResponse> GetEmailsAndStudentIds()
+        {
+            IList<EmailLogs> emailLogs = _studentServices.GetEmailsAndStudentIds();
+            _response.result = emailLogs;
             _response.IsSuccess = true;
             _response.StatusCode = HttpStatusCode.OK;
             return _response;
@@ -103,6 +99,7 @@ namespace StudentManagement_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{studentId:int}", Name = "GetStudent")]
+        [RoleBasedAuthorizeAttribute("1", "2")]
         public ActionResult<APIResponse> GetStudent(int studentId)
         {
             try
@@ -114,7 +111,9 @@ namespace StudentManagement_API.Controllers
                     _response.IsSuccess = false;
                     return _response;
                 }
+
                 Student student = _studentServices.GetStudent<Student>("[dbo].[Get_Student_Details]", studentId);
+
                 if (student.StudentId > 0)
                 {
                     _response.result = student;
@@ -140,28 +139,28 @@ namespace StudentManagement_API.Controllers
 
         }
 
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [HttpGet("CheckLogin", Name = "LoginStudentDetails")]
-        public ActionResult<APIResponse> LoginStudentDetails([FromQuery] StudentLoginDto studentLoginDto)
-        {
-            try
-            {
-                Student student = _studentServices.GetLoginStudentDetails(studentLoginDto);
-                _response.result = student;
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                return _response;
-            }
-            catch (Exception ex)
-            {
-                _response.ErroMessages = new List<string> { ex.ToString() };
-                _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                return _response;
-            }
-        }
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[HttpGet("CheckLogin", Name = "LoginStudentDetails")]
+        //public ActionResult<APIResponse> LoginStudentDetails([FromQuery] StudentLoginDto studentLoginDto)
+        //{
+        //    try
+        //    {
+        //        Student student = _studentServices.GetLoginStudentDetails(studentLoginDto);
+        //        _response.result = student;
+        //        _response.StatusCode = HttpStatusCode.OK;
+        //        _response.IsSuccess = true;
+        //        return _response;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _response.ErroMessages = new List<string> { ex.ToString() };
+        //        _response.IsSuccess = false;
+        //        _response.StatusCode = HttpStatusCode.BadRequest;
+        //        return _response;
+        //    }
+        //}
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -275,6 +274,74 @@ namespace StudentManagement_API.Controllers
                 return _response;
             }
 
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("/EmailFromStudentId")]
+        public ActionResult<APIResponse> GetEmailFromStudentId([FromBody] EmailLogs emailLogs)
+        {
+            try
+            {
+                if (emailLogs.StudentId == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErroMessages = new List<string> { "Invalid StudentId" };
+                    _response.IsSuccess = false;
+                    return _response;
+                }
+                EmailLogs emailLogs1 = _studentServices.GetStudent<EmailLogs>("[dbo].[Get_Email_from_StudentId]", emailLogs.StudentId ?? 0);
+                if (emailLogs1.Email != null)
+                {
+                    _response.result = emailLogs1;
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                }
+                else
+                {
+                    _response.ErroMessages = new List<string> { "Student Not Fount" };
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    return _response;
+                }
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [HttpGet("DayWiseCountStudentProf")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> DayWiseCountStudentProf(CountStudentProfessorDto countStudentProfessorDto)
+        {
+            try
+            {
+
+                IList<CountStudentProfessorDto> list = _studentServices.GetDayWiseProfStudentCount(countStudentProfessorDto);
+                RoleBaseResponse<CountStudentProfessorDto> roleBaseResponse = new()
+                {
+                    data = list,
+                };
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
         }
     }
 }

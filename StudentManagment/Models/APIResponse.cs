@@ -17,11 +17,13 @@ namespace StudentManagement.Models
 
     public class RoleBaseResponse<T>
     {
-        public IEnumerable<T> data { get; set; }
+        public IList<T> data { get; set; }
 
         public IList<Course> Courses { get; set; }
 
-        public List<OrderByViewModel> OrderBys { get; set; }
+        //public List<OrderByViewModel> OrderBys { get; set; }
+
+        //public IList<EmailViewModel> AllEmails { get; set; }
 
         public string Role { get; set; }
 
@@ -35,6 +37,12 @@ namespace StudentManagement.Models
         public int TotalItems { get; set; } = 0;
 
         public int TotalPages { get; set; }
+
+        public bool IsAuthorize { get; set; } = true;
+
+        public string? MonthName { get; set; } = null;
+
+        public int? year { get; set; } = 0;
     }
 
 

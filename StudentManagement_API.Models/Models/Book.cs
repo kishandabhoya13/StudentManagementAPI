@@ -21,12 +21,15 @@ namespace StudentManagement_API.Models.Models
         [Required,StringLength(100)]
         public string Subject { get; set; }
 
-        public string? Photo { get; set; } = null;
+        public byte[]? Photo { get; set; } = null;
 
         public string? PhotoName { get; set; } = null;
 
         public int RowNumber { get; set; } = 0;
 
         public int TotalRecords { get; set; } = 0;
+
+        public bool IsDeleted { get; set; } = false;
+
     }
 }

@@ -20,4 +20,8 @@
     <Folder Include="wwwroot\BookPhotos\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\StudentManagement_API.Services\StudentManagement_API.Services.csproj" />
+  </ItemGroup>
+
 </Project>

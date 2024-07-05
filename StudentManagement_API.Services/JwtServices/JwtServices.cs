@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StudentManagement_API.Models;
 using StudentManagement_API.Models.Models.DTO;
@@ -12,13 +13,14 @@ namespace StudentManagement_API.Services
     public class JwtServices : IJwtServices
     {
         private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor = new HttpContextAccessor();
 
         public JwtServices(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public string GenerateToken(JwtClaims jwtClaims)
+        public string GenerateToken(JwtClaimsDto jwtClaims)
         {
             try
             {
@@ -26,8 +28,8 @@ namespace StudentManagement_API.Services
                 long unixTimestamp = ((DateTimeOffset)expirationTime).ToUnixTimeSeconds();
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.NameIdentifier,jwtClaims.FirstName + " "+ jwtClaims.LastName),
-                    new Claim(ClaimTypes.Name,jwtClaims.FirstName + " "+ jwtClaims.LastName),
+                    new Claim(ClaimTypes.NameIdentifier,jwtClaims.UserName),
+                    new Claim(ClaimTypes.Name,jwtClaims.UserName),
                     new Claim("UserId", jwtClaims.Id.ToString()),
                     new Claim(ClaimTypes.Email,jwtClaims.UserName),
                     new Claim(ClaimTypes.Role,jwtClaims.RoleId.ToString()),
@@ -75,7 +77,8 @@ namespace StudentManagement_API.Services
                 },out SecurityToken validateToken);
 
                 jwtSecurityToken = (JwtSecurityToken)validateToken;
-                if(jwtSecurityToken == null)
+                
+                if (jwtSecurityToken == null)
                 {
                     return false;
                 }

@@ -4,3 +4,4 @@ Time: 05-06-2024 14:46:07, Controller: Home, Action: Index, Exception: Attempted
 Time: 10-06-2024 16:59:33, Controller: Home, Action: AdminIndex, Exception: One or more errors occurred. (A task was canceled.)
 Time: 12-06-2024 11:22:04, Controller: Home, Action: UpsertStudent, Exception: One or more errors occurred. (A task was canceled.)
 Time: 19-06-2024 11:28:29, Controller: Home, Action: AdminIndex, Exception: Attempted to divide by zero.
+Time: 25-06-2024 15:56:22, Controller: Home, Action: SendEmail, Exception: Error converting value {null} to type 'System.Int32'. Path 'result.studentId', line 1, position 112.

@@ -21,16 +21,18 @@ namespace StudentManagment.Models
         [Required, StringLength(100)]
         public string Subject { get; set; }
 
-        public string? Photo { get; set; } = null;
+        public byte[]? Photo { get; set; } = null;
 
         public string? PhotoName { get; set; } = null;
 
-        public IFormFile PhotoFile { get; set; }
+        public IFormFile? PhotoFile { get; set; } = null;
 
         public IList<Course>? Courses { get; set; } = null;
 
         public string? JwtToken { get; set; } = null;
 
         public int? RoleId { get; set; } = 0;
+
+        public bool IsDeleted { get; set; } = false;
     }
 }

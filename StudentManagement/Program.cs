@@ -1,10 +1,13 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using StudentManagement_API.Services;
 using StudentManagment_API;
 using StudentManagment_API.Middleware;
 using StudentManagment_API.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,18 +20,20 @@ builder.Services.AddControllers(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
-builder.Services.AddMvc(options => {
+builder.Services.AddMvc(options =>
+{
     options.Filters.Add<LogActionFilter>();
     options.Filters.Add<CustomExceptionFilter>();
 });
 
+builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDataLayerServices();
-//builder.Services.AddScoped<IStudentServices, StudentServices>();
-//builder.Services.AddScoped<IProfessorHodServices, ProfessorHodServices>();
-//builder.Services.AddScoped<IJwtServices, JwtServices>();
+
 builder.Services.AddScoped<CustomExceptionFilter>();
 builder.Services.AddSingleton<IExceptionFilter, CustomExceptionFilter>();
+
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -39,10 +44,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
-app.UseAuthorization();
-
+app.UseAuthentication();
+app.UseAuthorization(); 
 app.MapControllers();
 
 app.Run();

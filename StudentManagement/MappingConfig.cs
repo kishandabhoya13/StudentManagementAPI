@@ -9,9 +9,9 @@ namespace StudentManagment_API
     {
         public MappingConfig() 
         {
-            CreateMap<JwtClaims, Student>().ReverseMap();
-            CreateMap<JwtClaims, ProfessorHod>().ReverseMap();
-
+            CreateMap<JwtClaimsDto, Student>().ReverseMap();
+            CreateMap<JwtClaimsDto, ProfessorHod>().ReverseMap();
+            CreateMap<EmailLogs, SendEmailDto>().ReverseMap();
         }
     }
 }
