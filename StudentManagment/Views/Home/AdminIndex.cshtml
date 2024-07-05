@@ -571,29 +571,29 @@
         })
 
         $("#right-left-icon").on('click', function () {
-            if (currentMonth == 1) {
-                currentMonth = 12;
-                currentYear = currentYear - 1;
-                GetChart(currentMonth, currentYear, null, mychart2);
+            if (currentMonth2 == 1) {
+                currentMonth2 = 12;
+                currentYear2 = currentYear2 - 1;
+                GetChart(currentMonth2, currentYear2, null, mychart2);
 
             }
             else {
 
-                GetChart(currentMonth - 1, currentYear, null, mychart2);
-                currentMonth = currentMonth - 1;
+                GetChart(currentMonth2 - 1, currentYear2, null, mychart2);
+                currentMonth2 = currentMonth2 - 1;
             }
 
         });
 
         $("#right-right-icon").on('click', function () {
-            if (currentMonth == 12) {
-                currentMonth = 1;
-                currentYear = currentYear + 1;
-                GetChart(currentMonth, currentYear, null, mychart2);
+            if (currentMonth2 == 12) {
+                currentMonth2 = 1;
+                currentYear2 = currentYear2 + 1;
+                GetChart(currentMonth2, currentYear2, null, mychart2);
             }
             else {
-                GetChart(currentMonth + 1, currentYear, null, mychart2);
-                currentMonth = currentMonth + 1;
+                GetChart(currentMonth2 + 1, currentYear2, null, mychart2);
+                currentMonth2 = currentMonth2 + 1;
             }
 
         })
