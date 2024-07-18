@@ -60,7 +60,7 @@
                 currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
                 var startIndex = (currentPageIndex * pageSize1) + 1;
 
-                var endIndex = Math.min(parseInt(startIndex, 10) + parseInt(pageSize1, 10) - 1, parseInt(TOTAL_ITEMS,10));
+                var endIndex = Math.min(parseInt(startIndex, 10) + parseInt(pageSize1, 10) - 1, parseInt(TOTAL_ITEMS, 10));
 
                 if (parseInt(endIndex, 10) === parseInt(TOTAL_ITEMS, 10)) {
                     $(".page-link.next").addClass("disabled");
@@ -103,6 +103,9 @@
                 data: secondApiRequest,
                 dataType: "JSON",
                 dataSrc: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     TOTAL_ITEMS = response.totalItems;
                     return response.data;
                 },
@@ -124,7 +127,7 @@
                     "data": "bookNumber",
                     "class": "text-center",
                     "render": function (data1, type, row) {
-                        return "<a href='/Home/AddEditBook?BookId=" + row.bookId+ "'>" + data1 + "</a>";
+                        return "<a href='/Home/AddEditBook?BookId=" + row.bookId + "'>" + data1 + "</a>";
                     }
                 },
                 {
@@ -177,9 +180,8 @@
                     "class": "text-center",
                     "render": function (data1, type, row) {
                         var photoLink = "";
-                        if(row.photoName != null && row.photoName != '')
-                        {
-                           photoLink =  "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><i class='fa fa-eye' aria-hidden='true'></i></a>"
+                        if (row.photoName != null && row.photoName != '') {
+                            photoLink = "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><i class='fa fa-eye' aria-hidden='true'></i></a>"
                         }
                         return "<div class='inline-flex d-flex align-items-center justify-content-center'>"
                             + " <i onclick='displayInput(" + row.bookId + "," + row.courseId + ")' id='edit-btn-" + row.bookId + "' style='color:green;' class='fas fa-edit'></i>"
@@ -218,6 +220,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
 
@@ -243,6 +248,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
 
@@ -274,6 +282,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
 
@@ -303,6 +314,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
 
@@ -415,7 +429,10 @@
             type: "POST",
             url: '@Url.Action("UpsertBook","Home")',
             data: bookViewModel,
-            success: function () {
+            success: function (response) {
+                if (response == false) {
+                    window.location.href = '/Login/Logout';
+                }
                 window.location.reload();
             },
             error: function (xhr, status, error) {
@@ -424,8 +441,7 @@
         });
     }
 
-    function ViewUpload(BookId)
-    {
+    function ViewUpload(BookId) {
         // $.ajax({
         //    type: "GET",
         //    url: '@Url.Action("ViewBookPhoto","Home")',

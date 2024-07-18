@@ -98,3 +98,9 @@ D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.Ser
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.DataContext.pdb
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\StudentManagement_API.Models.pdb
 D:\StudentManagement\StudentManagment\obj\Debug\net7.0\StudentManagment.MvcApplicationPartsAssemblyInfo.cs
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\BouncyCastle.Cryptography.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\MailKit.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\MimeKit.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Formats.Asn1.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\System.Security.Cryptography.Pkcs.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Security.Cryptography.Pkcs.dll

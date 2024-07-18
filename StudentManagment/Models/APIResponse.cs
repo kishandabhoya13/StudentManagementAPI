@@ -17,13 +17,15 @@ namespace StudentManagement.Models
 
     public class RoleBaseResponse<T>
     {
-        public IList<T> data { get; set; }
+        public T data { get; set; }
 
         public IList<Course> Courses { get; set; }
 
         //public List<OrderByViewModel> OrderBys { get; set; }
 
         //public IList<EmailViewModel> AllEmails { get; set; }
+
+        public T record{ get; set; }
 
         public string Role { get; set; }
 
@@ -51,5 +53,20 @@ namespace StudentManagement.Models
         public string OrderByValues{ get; set; }
 
         public string OrderByName { get; set; }
+    }
+
+    public class ApiVersionViewModel
+    {
+        public int ApiVersionId { get; set; }
+        public string ApiVersionName { get; set;}
+    }
+
+    public class SettingdViewModel
+    {
+        public int SettingId { get; set; }
+
+        public string SettingName { get; set; }
+
+        public string SettingDescription { get; set; }
     }
 }

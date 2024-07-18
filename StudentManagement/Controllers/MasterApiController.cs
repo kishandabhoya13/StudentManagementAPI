@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,8 @@ using OkResult = System.Web.Http.Results.OkResult;
 
 namespace StudentManagement_API.Controllers
 {
+    [ApiVersion(1.0)]
+    [ApiVersion(2.0)]
     [Route("[controller]")]
     [ApiController]
     public class MasterApiController : ControllerBase

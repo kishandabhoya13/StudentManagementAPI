@@ -58,7 +58,7 @@ namespace StudentManagement_API.Controllers
                 IList<EmailLogs> emailLogs = _studentServices.GetDataWithPagination<EmailLogs>(paginationDto,cacheKey ,"[dbo].[Get_ScheduledEmail_All_Details]");
                 int totalItems = emailLogs.Count > 0 ? emailLogs.FirstOrDefault(x => x.ScheduledEmailId != 0)?.TotalRecords ?? 0 : 0;
                 int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
-                RoleBaseResponse<EmailLogs> roleBaseResponse = new()
+                RoleBaseResponse<IList<EmailLogs>> roleBaseResponse = new()
                 {
                     data = emailLogs,
                     Role = role,
@@ -104,6 +104,15 @@ namespace StudentManagement_API.Controllers
                     {
                         emailLogs.StudentId = 0;
                     }
+                    IList<EmailLogs> attachments = _studentServices.GetAttachementsFromScheduledId(emailLogs.ScheduledEmailId); 
+                    if(attachments.Count > 0)
+                    {
+                        emailLogs.AttachmentsByte = new();
+                        foreach(var attachment in attachments)
+                        {
+                            emailLogs.AttachmentsByte.Add(attachment.AttachmentFile);
+                        }
+                    }
                     _response.result = emailLogs;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
@@ -140,6 +149,7 @@ namespace StudentManagement_API.Controllers
                 //     " VALUES (@FirstName, @LastName, @BirthDate, @CourseId,@UserName,@Password)";
                 string sql = "[dbo].[Add_ScheduledEmail_Details]";
                 _studentServices.AddEditScheduledEmailLogs(emailLogs, sql);
+                _studentServices.UpdateAttachments(emailLogs, "[dbo].[Update_Attachments_ById]");
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;
@@ -188,7 +198,7 @@ namespace StudentManagement_API.Controllers
             {
 
                 IList<EmailLogs> emailLogs = _studentServices.GetDayWiseEmailCount(emailLog);
-                RoleBaseResponse<EmailLogs> roleBaseResponse = new()
+                RoleBaseResponse<IList<EmailLogs>> roleBaseResponse = new()
                 {
                     data = emailLogs,
                 };

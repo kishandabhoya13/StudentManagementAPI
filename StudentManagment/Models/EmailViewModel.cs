@@ -44,7 +44,11 @@ namespace StudentManagment.Models
 
         public int? DayWiseDayWiseCount { get; set; } = 0;
 
+        public List<IFormFile>? AttachmentFiles { get; set; } = null;
 
+        public List<Byte[]>? AttachmentsByte { get; set; } = null;
+
+        public Dictionary<string, byte[]>? FileNameWithAttachments { get; set; }
     }
 }
 

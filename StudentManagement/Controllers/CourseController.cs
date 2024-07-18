@@ -45,7 +45,11 @@ namespace StudentManagement_API.Controllers
             IList<Course> courses = _studentServices.GetRecordsWithoutPagination<Course>("[dbo].[Get_All_Courses]","Courses");
             if (courses.Count > 0)
             {
-                _response.result = courses;
+                RoleBaseResponse<IList<Course>> roleBase = new()
+                {
+                    data = courses,
+                };
+                _response.result = roleBase;
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
             }
@@ -109,6 +113,11 @@ namespace StudentManagement_API.Controllers
                 string sql = "Insert into Courses(CourseName) values (@CourseName)";
 
                 _studentServices.InsertCourse(courseCreateDto, sql);
+                RoleBaseResponse<bool> roleBaseResponse = new()
+                {
+                    data = true,
+                };
+                _response.result = roleBaseResponse;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;

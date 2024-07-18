@@ -59,7 +59,7 @@ namespace StudentManagement_API.Controllers
 
                 int totalItems = books.Count > 0 ? books.FirstOrDefault(x => x.BookId != 0)?.TotalRecords ?? 0 : 0;
                 int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
-                RoleBaseResponse<Book> roleBaseResponse = new()
+                RoleBaseResponse<IList<Book>> roleBaseResponse = new()
                 {
                     data = books,
                     Role = role,

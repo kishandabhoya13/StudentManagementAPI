@@ -98,3 +98,6 @@ D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Microsoft.AspNetCore.Jso
 D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Microsoft.Web.Infrastructure.dll
 D:\StudentManagement\StudentManagement\bin\Debug\net7.0\NetCore.AutoRegisterDi.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Asp.Versioning.Abstractions.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Asp.Versioning.Http.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Asp.Versioning.Mvc.dll

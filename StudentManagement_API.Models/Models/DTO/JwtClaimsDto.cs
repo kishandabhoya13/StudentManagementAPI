@@ -20,5 +20,7 @@ namespace StudentManagement_API.Models.Models.DTO
         public int RoleId { get; set; }
 
         public string? JwtToken { get; set; } = null;
+
+        public string? SettingDescription { get; set; } = "1.0";
     }
 }

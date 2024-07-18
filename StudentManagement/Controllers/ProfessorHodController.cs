@@ -7,9 +7,11 @@ using StudentManagement_API.Models.Models;
 using StudentManagement_API.Models.Models.DTO;
 using StudentManagement_API.Services;
 using System.Data;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Mail;
 using System.Text;
+using System.IO;
 using System.Web.Helpers;
 
 namespace StudentManagement_API.Controllers
@@ -68,7 +70,7 @@ namespace StudentManagement_API.Controllers
         {
             try
             {
-                ProfessorHod professorHod = _studentServices.GetData<ProfessorHod>("Select Id from ProfessorHod where Id=" + updateJwtDTo.Id,"ProfessorHod");
+                ProfessorHod professorHod = _studentServices.GetData<ProfessorHod>("Select Id from ProfessorHod where Id=" + updateJwtDTo.Id, "ProfessorHod");
                 if (professorHod.Id <= 0)
                 {
                     _response.IsSuccess = false;
@@ -105,7 +107,22 @@ namespace StudentManagement_API.Controllers
                 {
                     string Scheduledsql = "[dbo].[Add_ScheduledEmail_Details]";
                     emailLogs.StudentId = emailLogs.StudentId == 0 ? null : emailLogs.StudentId;
-                    _studentServices.AddEditScheduledEmailLogs(emailLogs, Scheduledsql);
+                    int scheduledEmailId = _studentServices.AddEditScheduledEmailLogs(emailLogs, Scheduledsql);
+                    //if (emailLogs.AttachmentsByte != null && emailLogs.AttachmentsByte.Count > 0)
+                    //{
+                    //    foreach(var attachment in emailLogs.AttachmentsByte)
+                    //    {
+                    //        _studentServices.AddEmailAttachments(attachment, scheduledEmailId, "[dbo].[Add_DataIn_EmailAttachments]");
+                    //    }
+                    //}
+
+                    if (emailLogs.FileNameWithAttachments != null && emailLogs.FileNameWithAttachments.Count > 0)
+                    {
+                        foreach (var attachment in emailLogs.FileNameWithAttachments)
+                        {
+                            _studentServices.AddEmailAttachments(attachment.Value,attachment.Key, scheduledEmailId, "[dbo].[Add_DataIn_EmailAttachments]");
+                        }
+                    }
 
                 }
                 else
@@ -124,10 +141,34 @@ namespace StudentManagement_API.Controllers
                         message.Body = mailbody;
                         message.BodyEncoding = Encoding.UTF8;
                         message.IsBodyHtml = true;
+                        message.Headers.Add("X-Message-ID", "123456789");
+                        message.ReplyToList.Add(new MailAddress(_configuration["EmailCredential:From"]));
+                        if (emailLogs.FileNameWithAttachments != null && emailLogs.FileNameWithAttachments.Count > 0)
+                        {
+                            foreach (var attachmentByte in emailLogs.FileNameWithAttachments)
+                            {
+                                string contentType;
+                                string fileName =attachmentByte.Key; // Default to JPEG extension
+
+                                // Check if the byte array represents a PDF
+                                if (_studentServices.IsPDF(attachmentByte.Value))
+                                {
+                                    contentType = "application/pdf";
+                                }
+                                else
+                                {
+                                    contentType = "image/jpeg";
+                                }
+                                message.Attachments.Add(new Attachment(new MemoryStream(attachmentByte.Value), fileName, contentType));
+                            }
+                        }
+
                         try
                         {
+                            string id = "123456789"; //Save the id in your database 
+                            message.Headers.Add("Message-Id", String.Format("<{0}@{1}>", id.ToString(), "mail.example.com"));
                             client.Send(message);
-
+                            string messageId = message.Headers["Message-ID"] ?? "";
                         }
                         catch (Exception)
                         {
@@ -142,7 +183,7 @@ namespace StudentManagement_API.Controllers
                         _studentServices.AddEmailLogs(emailLogs, sql);
                     }
                 }
-                
+
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
             }

@@ -10,7 +10,7 @@
 @model StudentManagement.Models.RoleBaseResponse<EmailViewModel>
 <div class="container-fluid">
     <div class="send-email-div">
-        <button onclick="OpenEmailModal()" type="button" class="btn send-email-btn">
+        <button onclick="OpenEditModal(0)" type="button" class="btn send-email-btn">
             Send Email
         </button>
     </div>
@@ -46,22 +46,10 @@
         <canvas width="400" height="100" id="myChart"></canvas>
     </div>
 </div>
-<div id="popup"></div>
+<div id="popups"></div>
+
 <script>
-    function OpenEmailModal() {
-        $.ajax({
-            type: "get",
-            url: '@Url.Action("SendEmailModal","Home")',
-            data: {},
-            success: function (response) {
-                $('#popup').html(response)
-                $('#SendEmailModal').modal("show");
-            },
-            error: function (xhr, status, error) {
-                console.error(error + "djsfhsdjkfhsdkjfh");
-            }
-        });
-    };
+
 
     function loadDataTable(startIndex) {
         var TOTAL_ITEMS = 0;
@@ -126,6 +114,9 @@
                 data: secondApiRequest,
                 dataType: "JSON",
                 dataSrc: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     TOTAL_ITEMS = response.totalItems;
                     return response.data;
                 },
@@ -230,6 +221,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
 
@@ -255,6 +249,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
 
@@ -286,6 +283,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
 
@@ -315,6 +315,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     console.log(response);
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
@@ -338,7 +341,7 @@
                 ScheduledEmailId: scheduledEmailId,
             },
             success: function (response) {
-                $('#popup').html(response)
+                $('#popups').html(response)
                 $('#SendEmailModal').modal("show");
             },
             error: function (xhr, status, error) {
@@ -346,7 +349,26 @@
             }
         });
     }
+    //function OpenEmailModal(scheduledEmailId) {
+    //    $('#popups').empty();
+    //    $('#SendEmailModal').modal('hide');
+    //    $.ajax({
+    //        type: "get",
+    //        url: '@Url.Action("SendEmailModal","Home")',
+    //        data: {},
+    //        success: function (response) {
+    //            $('#popups').empty();
+    //            console.log($('#popups'));
+    //            $('#popups').html(response)
+    //            console.log($('#SendEmailModal'));
 
+    //            $('#SendEmailModal').modal("show");
+    //        },
+    //        error: function (xhr, status, error) {
+    //            console.error(error + "djsfhsdjkfhsdkjfh");
+    //        }
+    //    });
+    //};
 </script>
 
 <script>
@@ -427,6 +449,9 @@
             },
             dataType: 'json',
             success: function (response) {
+                if (response == false) {
+                    window.location.href = '/Login/Logout';
+                }
                 //console.log(response);
                 var labels = [];
                 var dataPoints = [];

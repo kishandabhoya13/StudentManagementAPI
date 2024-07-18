@@ -1,0 +1,26 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model List<EmailViewModel>
+
+<div class="container table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <td>Subject</td>
+                <td>Body</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var email in Model)
+            {
+                <tr>
+                    <td>@email.Subject</td>
+                    <td>@email.Body</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

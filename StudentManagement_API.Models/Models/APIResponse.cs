@@ -17,7 +17,7 @@ namespace StudentManagement_API.Models.Models
 
     public class RoleBaseResponse<T>
     {
-        public IEnumerable<T> data { get; set; }
+        public T data { get; set; }
         //public IList<Student> Students { get; set; }
 
         //public IList<Book> Books { get; set; }

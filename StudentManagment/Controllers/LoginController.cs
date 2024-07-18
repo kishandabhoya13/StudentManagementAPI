@@ -69,6 +69,7 @@ namespace StudentManagment.Controllers
                 bool isUpdate = _baseServices.UpdateJwtToken("", Id, JwtToken);
             }
             HttpContext.Session.Clear();
+            HttpContext.Request.Headers.Remove("Api-Version");
             return RedirectToAction("Login");
         }
 

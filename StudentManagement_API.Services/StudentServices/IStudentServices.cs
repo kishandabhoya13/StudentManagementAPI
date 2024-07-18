@@ -41,7 +41,11 @@ namespace StudentManagement_API.Services
 
         IList<EmailLogs> GetEmailsAndStudentIds();
 
-        void AddEditScheduledEmailLogs(EmailLogs? emailLogs, string query);
+        int AddEditScheduledEmailLogs(EmailLogs? emailLogs, string query);
+
+        void UpdateAttachments(EmailLogs? emailLogs, string query);
+
+        void AddEmailAttachments(Byte[] attachment,string fileName, int scheduledEmailId, string query);
 
         void AddEmailLogs(EmailLogs? emailLogs, string query);
 
@@ -54,5 +58,11 @@ namespace StudentManagement_API.Services
         IList<EmailLogs> GetDayWiseEmailCount(EmailLogs emailLogs);
 
         IList<CountStudentProfessorDto> GetDayWiseProfStudentCount(CountStudentProfessorDto countStudentProfessorDto);
+
+        bool IsPDF(byte[] bytes);
+
+        IList<EmailLogs> GetAttachementsFromScheduledId(int scheduledId);
+
+        SettingDto GetApiVersion();
     }
 }

@@ -33,3 +33,33 @@ Time: 02-07-2024 11:20:29, Controller: MasterApi, Action: CallExternalGetMethod,
    at StudentManagement_API.Controllers.MasterApiController.CallExternalGetMethod(ApiRequest apiRequest) in D:\StudentManagement\StudentManagement\Controllers\MasterApiController.cs:line 126
 Time: 02-07-2024 11:20:31, Controller: MasterApi, Action: CallExternalGetMethod, Exception: System.InvalidCastException: Unable to cast object of type 'Microsoft.AspNetCore.Mvc.ActionResult`1[StudentManagement_API.Models.Models.APIResponse]' to type 'System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[StudentManagement_API.Models.Models.APIResponse]]'.
    at StudentManagement_API.Controllers.MasterApiController.CallExternalGetMethod(ApiRequest apiRequest) in D:\StudentManagement\StudentManagement\Controllers\MasterApiController.cs:line 126
+Time: 10-07-2024 12:26:18, Controller: MasterApi, Action: CallExternalGetMethod, Exception: Newtonsoft.Json.JsonSerializationException: Could not create an instance of type Microsoft.AspNetCore.Http.IFormFile. Type is an interface or abstract class and cannot be instantiated. Path 'AttachmentFiles[0].ContentDisposition'.
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.CreateNewObject(JsonReader reader, JsonObjectContract objectContract, JsonProperty containerMember, JsonProperty containerProperty, String id, Boolean& createdFromNonDefaultCreator)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.CreateObject(JsonReader reader, Type objectType, JsonContract contract, JsonProperty member, JsonContainerContract containerContract, JsonProperty containerMember, Object existingValue)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.CreateValueInternal(JsonReader reader, Type objectType, JsonContract contract, JsonProperty member, JsonContainerContract containerContract, JsonProperty containerMember, Object existingValue)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.PopulateList(IList list, JsonReader reader, JsonArrayContract contract, JsonProperty containerProperty, String id)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.CreateList(JsonReader reader, Type objectType, JsonContract contract, JsonProperty member, Object existingValue, String id)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.CreateValueInternal(JsonReader reader, Type objectType, JsonContract contract, JsonProperty member, JsonContainerContract containerContract, JsonProperty containerMember, Object existingValue)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.SetPropertyValue(JsonProperty property, JsonConverter propertyConverter, JsonContainerContract containerContract, JsonProperty containerProperty, JsonReader reader, Object target)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.PopulateObject(Object newObject, JsonReader reader, JsonObjectContract contract, JsonProperty member, String id)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.CreateObject(JsonReader reader, Type objectType, JsonContract contract, JsonProperty member, JsonContainerContract containerContract, JsonProperty containerMember, Object existingValue)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.CreateValueInternal(JsonReader reader, Type objectType, JsonContract contract, JsonProperty member, JsonContainerContract containerContract, JsonProperty containerMember, Object existingValue)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.Deserialize(JsonReader reader, Type objectType, Boolean checkAdditionalContent)
+   at Newtonsoft.Json.JsonSerializer.DeserializeInternal(JsonReader reader, Type objectType)
+   at Newtonsoft.Json.JsonSerializer.Deserialize(JsonReader reader, Type objectType)
+   at Newtonsoft.Json.Linq.JToken.ToObject(Type objectType, JsonSerializer jsonSerializer)
+   at Newtonsoft.Json.Linq.JToken.ToObject(Type objectType)
+   at Newtonsoft.Json.Linq.JToken.ToObject[T]()
+   at StudentManagement_API.Services.StudentServices.GetDataModel[T](Object dataObj) in D:\StudentManagement\StudentManagement_API.Services\StudentServices\StudentServices.cs:line 250
+   at StudentManagement_API.Services.StudentServices.GetDynamicData(String controllerName, String methodName, Object dataObj) in D:\StudentManagement\StudentManagement_API.Services\StudentServices\StudentServices.cs:line 324
+   at StudentManagement_API.Controllers.MasterApiController.CallExternalGetMethod(ApiRequest apiRequest) in D:\StudentManagement\StudentManagement\Controllers\MasterApiController.cs:line 108
+Time: 10-07-2024 15:01:55, Controller: MasterApi, Action: CallExternamLoginMethod, Exception: Could not load type 'Microsoft.AspNetCore.Http.Internal.FormFile' from assembly 'Microsoft.AspNetCore.Http, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'.
+Time: 10-07-2024 15:01:58, Controller: MasterApi, Action: CallExternamLoginMethod, Exception: Could not load type 'Microsoft.AspNetCore.Http.Internal.FormFile' from assembly 'Microsoft.AspNetCore.Http, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'.
+Time: 10-07-2024 15:02:02, Controller: MasterApi, Action: CallExternamLoginMethod, Exception: Could not load type 'Microsoft.AspNetCore.Http.Internal.FormFile' from assembly 'Microsoft.AspNetCore.Http, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'.
+Time: 10-07-2024 15:02:22, Controller: MasterApi, Action: CallExternamLoginMethod, Exception: Could not load type 'Microsoft.AspNetCore.Http.Internal.FormFile' from assembly 'Microsoft.AspNetCore.Http, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'.
+Time: 10-07-2024 15:02:38, Controller: MasterApi, Action: CallExternamLoginMethod, Exception: Could not load type 'Microsoft.AspNetCore.Http.Internal.FormFile' from assembly 'Microsoft.AspNetCore.Http, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'.
+Time: 18-07-2024 14:07:06, Controller: MasterApi, Action: CallExternalGetMethod, Exception: System.FormatException: The input string '' was not in a correct format.
+   at System.Number.ThrowOverflowOrFormatException(ParsingStatus status, ReadOnlySpan`1 value, TypeCode type)
+   at System.String.System.IConvertible.ToInt32(IFormatProvider provider)
+   at StudentManagement_API.Services.StudentServices.GetDynamicData(String controllerName, String methodName, Object dataObj) in D:\StudentManagement\StudentManagement_API.Services\StudentServices\StudentServices.cs:line 342
+   at StudentManagement_API.Controllers.MasterApiController.CallExternalGetMethod(ApiRequest apiRequest) in D:\StudentManagement\StudentManagement\Controllers\MasterApiController.cs:line 111

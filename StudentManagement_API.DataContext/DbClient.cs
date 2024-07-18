@@ -150,19 +150,38 @@ namespace StudentManagement_API.DataContext
         {
             foreach (DbParameters param in parameters)
             {
-                SqlParameter sqlParameter = new()
+                if(param.Direction == ParameterDirection.Output)
                 {
-                    DbType = param.DBType,
-                    Direction = ParameterDirection.Input,
-                    ParameterName = param.Name,
-                    Value = param.Value
-                };
-                if (param.TypeName != null)
-                {
-                    sqlParameter.TypeName = param.TypeName;
-                    sqlParameter.SqlDbType = SqlDbType.Structured;
+                    SqlParameter sqlParameter = new()
+                    {
+                        DbType = param.DBType,
+                        Direction = ParameterDirection.Output,
+                        ParameterName = param.Name,
+                    };
+                    if (param.TypeName != null)
+                    {
+                        sqlParameter.TypeName = param.TypeName;
+                        sqlParameter.SqlDbType = SqlDbType.Structured;
+                    }
+                    sqlCommand.Parameters.Add(sqlParameter);
                 }
-                sqlCommand.Parameters.Add(sqlParameter);
+                else
+                {
+                    SqlParameter sqlParameter = new()
+                    {
+                        DbType = param.DBType,
+                        Direction = ParameterDirection.Input,
+                        ParameterName = param.Name,
+                        Value = param.Value
+                    };
+                    if (param.TypeName != null)
+                    {
+                        sqlParameter.TypeName = param.TypeName;
+                        sqlParameter.SqlDbType = SqlDbType.Structured;
+                    }
+                    sqlCommand.Parameters.Add(sqlParameter);
+                }
+               
             }
         }
 

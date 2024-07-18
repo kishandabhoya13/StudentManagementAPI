@@ -43,6 +43,28 @@ namespace StudentManagment.Models
 
         public List<string>? RoleIds { get; set; } = null;
 
+    }
+
+    public class BaseApiRequest<T> : PaginationViewModel
+    {
+        public string ControllerName { get; set; }
+
+        public string MethodName { get; set; }
+
+        public int? RoleId { get; set; } = null;
+
+        public string token { get; set; }
+
+        public string? MethodType { get; set; } = null;
+
+        public T dataObject { get; set; }
+
+        public List<string>? RoleIds { get; set; } = null;
+
+        public string? PageName { get; set; }
+
+
+        public int Id { get; set; }
 
 
     }

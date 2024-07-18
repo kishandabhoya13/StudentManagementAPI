@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace StudentManagement_API.Models.Models
 {
@@ -43,6 +44,18 @@ namespace StudentManagement_API.Models.Models
         public int? year { get; set; } = 0;
 
         public int? month { get; set; } = 0;
+
+        //public List<IFormFile>? AttachmentFiles { get; set; } = null;
+
+        public Byte[]? AttachmentFile { get; set; } = null;
+
+        public List<Byte[]>? AttachmentsByte { get; set; } = null;
+
+        public Dictionary<string, byte[]>? FileNameWithAttachments { get; set; }
+
+        public string? FileName { get; set; } = null;
+
+
     }
 
 }

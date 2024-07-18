@@ -15,19 +15,19 @@
                 </div>
             </div>
         </div>
-        @* <div class="col-md-2 col-lg-2 col-12 col-sm-12">
-        <div class="form-group pb-4">
-        <div class="input_box">
-        <Select id="searchOrderTypedropdown"
-        class="form-control dropdown-color">
-        <option value="ASC">Ascending</option>
-        <option value="DESC">Descending </option>
-        </Select>
-        </div>
-        </div>
-        </div>*@
     </div>
     <div class="container-fluid table-responsive">
+        <div class="plus-minus-div">
+            <div class="plus-minus-icon-div">
+                <div id="minus-icon" class="left-icon">
+                    <i class="fa fa-minus" style="font-size:24px"></i>
+                </div>
+                <div id="plus-icon" class="right-icon">
+                    <i class="fa fa-plus" style="font-size:24px"></i>
+                </div>
+            </div>
+        </div>
+
         <table id="StudentTable" class="table table-borderless">
         </table>
     </div>
@@ -38,9 +38,9 @@
                 <div id="left-left-icon" class="left-icon">
                     <i class="fa fa-angle-left" style="font-size:24px"></i>
                 </div>
-                <div id="left-right-icon" class="right-icon">
+                <d iv id="left-right-icon" class="right-icon">
                     <i class="fa fa-angle-right" style="font-size:24px"></i>
-                </div>
+                </d>
             </div>
             <canvas width="400" height="100" id="myChart"></canvas>
         </div>
@@ -85,6 +85,9 @@
         sessionStorage.setItem("currentPageIndex", startIndex);
         var table = new DataTable('#StudentTable', {
             searching: false,
+            rowId: function (data) {
+                return data.studentId;
+            },
             "infoCallback": function (settings, start, end, max, total, pre) {
 
                 var pageInfo = this.api().page.info(); // Get the current page info
@@ -116,14 +119,6 @@
                 $(".dt-paging-button").removeClass("disabled");
             },
             "initComplete": function (settings, json) {
-
-                $('#inputsearch').val(settings.oPreviousSearch.sSearch);
-
-                $('#inputsearch').on('keyup', function () {
-                    var searchValue = $(this).val();
-                    settings.oPreviousSearch.sSearch = searchValue;
-                    settings.oApi._fnDraw(settings);
-                });
                 $(".dt-paging-button").removeClass("disabled");
             },
             "lengthMenu": [[5, 10, 15], [5, 10, 15]],
@@ -144,6 +139,9 @@
                 data: secondApiRequest,
                 dataType: "JSON",
                 dataSrc: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     TOTAL_ITEMS = response.totalItems;
                     return response.data;
                 },
@@ -158,6 +156,14 @@
                     "class": "text-center",
                     "render": function (data1, type, row) {
                         return data1;
+                    }
+                },
+                {
+                    "title": "Count",
+                    "data": "-",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "1.00";
                     }
                 },
                 {
@@ -223,6 +229,8 @@
                     "class": "text-center",
                     "render": function (data1, type, row) {
                         return "<div class='inline-flex'> <i onclick='displayInput(" + row.studentId + "," + row.courseId + ")' id='edit-btn-" + row.studentId + "' style='color:green;' class='fas fa-edit'></i>"
+                            + "<i onclick='incrementCountOneColumn(" + row.studentId + ")' id='edit-btn-" + row.studentId + "' style='color:green;' class='fas fa-plus'></i>"
+                            + "<i onclick='decrementCountOneColumn(" + row.studentId + ")' id='edit-btn-" + row.studentId + "' style='color:red;' class='fas fa-minus'></i>"
                             + "<div id='right-div-" + row.studentId + "' class='right-wrong-div right-div' style='display:none'>"
                             + "<i style='color:green;' onclick='updateStudent(" + row.studentId + ")' class='fa fa-check' aria-hidden='true'></i></div>"
                             + "<div id='wrong-div-" + row.studentId + "' onclick='hideInput(" + row.studentId + ")' class='right-wrong-div wrong-div' style='display:none'>"
@@ -240,6 +248,9 @@
 
 
     $(document).ready(function () {
+        console.log(localStorage.getItem("currentCount"));
+
+        var currentCounts = {};
         sessionStorage.setItem("currentPageIndex", 0);
         var table = loadDataTable(0);
         $("#dt-length-0").val(5);
@@ -257,11 +268,16 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
-
                     table.clear();
+
                     table.rows.add(newRows).draw(false);
+                    incrementForChanging();
+
                 },
                 error: function (xhr, status, error) {
                     console.error(error);
@@ -282,11 +298,17 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
 
                     table.clear();
                     table.rows.add(newRows).draw(false);
+
+                    incrementForChanging();
+
                 },
                 error: function (xhr, status, error) {
                     console.error(error);
@@ -313,11 +335,17 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
 
                     table.clear();
                     table.rows.add(newRows).draw(false);
+
+                    incrementForChanging();
+
                 },
                 error: function (xhr, status, error) {
                     console.error(error);
@@ -342,20 +370,178 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
-                    console.log(response);
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
 
                     table.clear();
                     table.rows.add(newRows).draw(false);
 
+                    incrementForChanging();
+
+
                 },
                 error: function (xhr, status, error) {
-                    console.error(error);
+                    if (xhr.status === 401) {
+                        console.log('Unauthorized - Logout user');
+                        // Perform logout action (e.g., redirect to logout page)
+                        window.location.href = '/Login/Logout'; // Adjust URL as per your project's logout route
+                    } else {
+                        console.error('API request error:', error);
+                    }
                 }
             });
         });
+
+
+        //function incrementCountOneColumn(rowId) {
+        //    console.log(rowId);
+        //    var row = table.row('#' + rowId);
+
+        //    if (row && row.length > 0) {
+        //        var cell = row.node();
+        //        var countCell = $(cell).find('td:eq(1)');
+        //        var currentCount = parseFloat(countCell.text());
+        //        var newCount = currentCount + 0.20;
+        //        countCell.text(newCount.toFixed(2));
+        //        currentCounts[rowId] = newCount.toFixed(2);
+        //    }
+        //}
+
+        window.incrementCountOneColumn = function (rowId) {
+            var row = table.row('#' + rowId);
+            if (row && row.length > 0) {
+                var cell = row.node();
+
+                var countCell = $(cell).find('td:eq(1)');
+                var currentCount = parseFloat(countCell.text());
+                var newCount = currentCount + 1;
+                countCell.text(newCount.toFixed(2));
+                currentCounts[rowId] = newCount.toFixed(2);
+            }
+        };
+
+
+        window.decrementCountOneColumn = function (rowId) {
+            var row = table.row('#' + rowId);
+            if (row && row.length > 0) {
+                var cell = row.node();
+
+                var countCell = $(cell).find('td:eq(1)');
+                var currentCount = parseFloat(countCell.text());
+                var newCount = currentCount - 1;
+                countCell.text(newCount.toFixed(2));
+                currentCounts[rowId] = newCount.toFixed(2);
+            }
+        };
+
+
+
+
+
+        //FOR INCREASE COUNT BY 0.20
+        function incrementCountColumn() {
+            table.rows({ search: 'applied' }).every(function () {
+                var cell = this.node();
+                var rowId = this.id();
+                var countCell = $(cell).find('td:eq(1)');
+                var currentCount = parseFloat(countCell.text());
+                var newCount = currentCount + 0.20;
+                countCell.text(newCount.toFixed(2));
+                //if (currentCounts.hasOwnProperty(rowId)) {
+                //    currentCounts[rowId] = newCount.toFixed(2);
+                //}
+                //else {
+                //    currentCounts["currentCount"] = newCount.toFixed(2);
+                //    console.log("current count", currentCounts["currentCount"]);
+                //}
+
+                if (!currentCounts.hasOwnProperty(rowId)) {
+                    currentCounts["currentCount"] = newCount.toFixed(2);
+                    console.log("current count", currentCounts["currentCount"]);
+                }
+            });
+            for (var key in currentCounts) {
+                if (key !== "currentCount") {
+                    var currentValue = parseFloat(currentCounts[key]);
+                    currentCounts[key] = (currentValue + 0.20).toFixed(2);
+                    console.log("current counts key value ", currentCounts[key]);
+
+                }
+            }
+        }
+
+
+        //FOR INCREASE COUNT BY CLICK ON PLUS BUTTON
+        function incrementCountColumn1() {
+            table.rows({ search: 'applied' }).every(function () {
+                var cell = this.node();
+                var countCell = $(cell).find('td:eq(1)');
+                var currentCount = parseFloat(countCell.text());
+                var newCount = currentCount + 1;
+                countCell.text(newCount.toFixed(2));
+                currentCounts["currentCount"] = newCount.toFixed(2);
+            });
+        }
+
+
+        $(document).on('click', '#plus-icon', function (event) {
+            console.log("plus");
+            incrementCountColumn1();
+        });
+
+
+        //FOR DECREASE COUNT BY CLICK ON MINUS BUTTON
+        function decrementCountColumn1() {
+            table.rows({ search: 'applied' }).every(function () {
+                var cell = this.node();
+                var countCell = $(cell).find('td:eq(1)');
+                var currentCount = parseFloat(countCell.text());
+                var newCount = currentCount - 1;
+                countCell.text(newCount.toFixed(2));
+                currentCounts["currentCount"] = newCount.toFixed(2);
+            });
+        }
+
+
+        $(document).on('click', '#minus-icon', function (event) {
+            decrementCountColumn1();
+        });
+
+
+        //SET INTERVAL
+        setInterval(incrementCountColumn, 10000);
+
+
+
+        //FOR GET PREVIOUS COUNT AFTER CHANGE SIZE OR PAGES
+        function incrementForChanging() {
+            table.rows({ search: 'applied' }).every(function () {
+                var cell = this.node();
+                var rowId = this.id();
+                var countCell = $(cell).find('td:eq(1)');
+                var currentCount = countCell.text();
+                var newCount = currentCount; // Start with currentCount as default
+
+                if (currentCounts[rowId] != null) {
+                    newCount = parseFloat(currentCounts[rowId]);
+                    countCell.text(newCount.toFixed(2));
+                }
+                else if (currentCounts["currentCount"] != null) {
+                    newCount = parseFloat(currentCounts["currentCount"]);
+                    countCell.text(newCount.toFixed(2));
+                }
+                else {
+
+                    countCell.text(newCount);
+                }
+
+            });
+        }
     });
+
 
 </script>
 <script>
@@ -366,7 +552,6 @@
         let inputFields = document.getElementsByClassName(`form-control-disables-${StudentId}`);
         let inputFieldValues = document.getElementsByClassName(`input-values-${StudentId}`);
         let CourseDropdown = $(`#courseDropdown-${StudentId}`);
-        //console.log(courseDropdown);
         var items = @Html.Raw(Json.Serialize(Model.Courses));
         if (CourseDropdown.children().length === 0) {
             $.each(items, function (index, value) {
@@ -428,7 +613,6 @@
         var courseDropdown = $(`#courseDropdown-${StudentId}`).val();
 
         var filter = @Html.Raw(@"/^[^@\s]+@[^@\.\s]+(\.[^@\.\s]+)+$/");
-        console.log(filter);
         if (!filter.test(email)) {
             alert("Email is Invalid");
         } else {
@@ -447,6 +631,9 @@
                 url: '@Url.Action("UpsertStudent","Home")',
                 data: studentViewModel,
                 success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
                     window.location.reload();
                 },
                 error: function (xhr, status, error) {
@@ -526,11 +713,6 @@
                 scales: {
                     x: {
                         stacked: false,
-                        //type: 'time',
-                        //position: 'bottom',
-                        //time: {
-                        //    unit: 'day',
-                        //}
                     },
                     y: {
                         stacked: false,
@@ -611,7 +793,9 @@
             },
             dataType: 'json',
             success: function (response) {
-                console.log(response);
+                if (response == false) {
+                    window.location.href = '/Login/Logout';
+                }
                 var labels = [];
                 var dataPoints = [];
 
@@ -635,8 +819,6 @@
                     dataPoints2.push(item.professorDayWiseCount);
                 });
 
-                console.log(dataPoints2);
-                console.log("labels ::::: ", labels);
 
                 if (myChart != null) {
                     myChart.data.labels = labels;

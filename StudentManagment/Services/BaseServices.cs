@@ -4,17 +4,21 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StudentManagement.Models;
 using StudentManagement.Models.DTO;
+using StudentManagement_API.DataContext;
 using StudentManagement_API.Services.CacheService;
 using StudentManagment.Models;
 using StudentManagment.Models.DataModels;
 using StudentManagment.Services.Interface;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Mail;
 using System.Reflection;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using static System.Net.WebRequestMethods;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace StudentManagment.Services
@@ -23,6 +27,8 @@ namespace StudentManagment.Services
     {
         Uri BaseAddress = new Uri("https://localhost:7105/StudentApi");
         Uri SecondAddress = new("https://localhost:7105/MasterApi");
+        string apiVersionUrl = "https://localhost:7105/api/Login/GetApiVersion";
+
         private readonly HttpClient _httpClient;
         private readonly ICacheServices _cacheServices;
         public BaseServices(ICacheServices cacheServices)
@@ -124,6 +130,7 @@ namespace StudentManagment.Services
                 {
                     jwtClaimsViewModel = aPIResponse.result;
                 }
+
             }
             return jwtClaimsViewModel;
         }
@@ -165,6 +172,19 @@ namespace StudentManagment.Services
         public RoleBaseResponse<Student> GetAllStudentsWithPagination(SecondApiRequest secondApi)
         {
             string url = _httpClient.BaseAddress + "/Student/GetAllStudents/";
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             PaginationViewModel paginationViewModel = new()
             {
                 PageSize = secondApi.PageSize,
@@ -198,10 +218,10 @@ namespace StudentManagment.Services
                 {
                     roleBaseResponse = aPIResponse.result;
                 }
-                else if (aPIResponse.StatusCode == HttpStatusCode.NonAuthoritativeInformation)
-                {
-                    roleBaseResponse.IsAuthorize = false;
-                }
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                roleBaseResponse.IsAuthorize = false;
             }
             return roleBaseResponse;
         }
@@ -210,6 +230,19 @@ namespace StudentManagment.Services
         public RoleBaseResponse<Book> GetAllBooksWithPagination(SecondApiRequest secondApi)
         {
             string url = _httpClient.BaseAddress + "/Book/GetAllBooks/";
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             PaginationViewModel paginationViewModel = new()
             {
                 PageSize = secondApi.PageSize,
@@ -247,6 +280,10 @@ namespace StudentManagment.Services
                 {
                     roleBaseResponse.IsAuthorize = false;
                 }
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                roleBaseResponse.IsAuthorize = false;
             }
             return roleBaseResponse;
         }
@@ -289,6 +326,19 @@ namespace StudentManagment.Services
 
         public Book GetBook(int BookId, string token, SecondApiRequest apiRequest)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             string url = _httpClient.BaseAddress + "/Book/GetBook/";
             Book book = new();
             SecondApiRequest secondApiRequest = new()
@@ -323,14 +373,28 @@ namespace StudentManagment.Services
         {
             string cacheKey = "Courses";
             IList<Course> cacheList = _cacheServices.GetListCachedResponse<Course>(cacheKey);
-            if(cacheList == null)
+            if (cacheList == null)
             {
                 string url = _httpClient.BaseAddress + "/Course/GetAllCourses/";
+                if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+                {
+                    HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                    if (apiVersionResponse.IsSuccessStatusCode)
+                    {
+                        string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                        SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                        if (settingdViewModel != null)
+                        {
+                            _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                        }
+                    }
+                }
+
                 SecondApiRequest secondApiRequest = new()
                 {
                     ControllerName = "Course",
                     MethodName = "GetAllCourses",
-                    DataObject = JsonConvert.SerializeObject(null), 
+                    DataObject = JsonConvert.SerializeObject(null),
                     MethodType = "IsViewed",
                     PageName = "GetAllCourses",
                     RoleId = RoleId,
@@ -356,6 +420,7 @@ namespace StudentManagment.Services
                         return courses;
                     }
                 }
+
             }
             return cacheList;
         }
@@ -363,6 +428,19 @@ namespace StudentManagment.Services
         public Course GetCourseDetailById(int id, int RoleId)
         {
             string url = _httpClient.BaseAddress + "/Course/GetCourse/";
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             Course course = new();
             SecondApiRequest secondApiRequest = new()
             {
@@ -447,6 +525,19 @@ namespace StudentManagment.Services
         public bool UpsertStudent(StudentViewModel studentViewModel)
         {
             _httpClient.DefaultRequestHeaders.Add("token", studentViewModel.JwtToken);
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             string url = "";
             SecondApiRequest secondApiRequest = new();
             if (studentViewModel.StudentId != 0)
@@ -491,15 +582,30 @@ namespace StudentManagment.Services
         public bool InsertCouse(Course course, int RoleId)
         {
             _httpClient.DefaultRequestHeaders.Add("token", course.JwtToken);
-            SecondApiRequest secondApiRequest = new();
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             string url = _httpClient.BaseAddress + "/Course/CreateCourse";
-            secondApiRequest.ControllerName = "Course";
-            secondApiRequest.MethodName = "CreateCourse";
-            secondApiRequest.DataObject = JsonConvert.SerializeObject(course);
-            secondApiRequest.PageName = "CreateCourse";
-            secondApiRequest.MethodType = "IsInsert";
-            secondApiRequest.RoleId = RoleId;
-            secondApiRequest.RoleIds = new List<string> { "1", "2" };
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Course",
+                MethodName = "CreateCourse",
+                DataObject = JsonConvert.SerializeObject(course),
+                PageName = "CreateCourse",
+                MethodType = "IsInsert",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" }
+            };
 
             var serializedData = JsonConvert.SerializeObject(secondApiRequest);
             var content = new StringContent(serializedData, Encoding.UTF8, "application/json");
@@ -518,6 +624,19 @@ namespace StudentManagment.Services
 
         public async Task<bool> UpsertBook(BookViewModel bookViewModel)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             if (bookViewModel.PhotoFile != null)
             {
                 IFormFile SingleFile = bookViewModel.PhotoFile;
@@ -579,6 +698,19 @@ namespace StudentManagment.Services
 
         public bool DeleteBook(BookViewModel bookViewModel)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             string url = _httpClient.BaseAddress + "/Book/UpdateBook";
             SecondApiRequest secondApiRequest = new();
             secondApiRequest.ControllerName = "Book";
@@ -607,6 +739,19 @@ namespace StudentManagment.Services
 
         public Book GetBookPhoto(BookViewModel bookViewModel)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             string url = _httpClient.BaseAddress + "/Book/GetBookPhoto/";
             Book book = new();
             SecondApiRequest secondApiRequest = new()
@@ -638,6 +783,19 @@ namespace StudentManagment.Services
 
         public string GetEmailFromStudentId(EmailViewModel emailViewModel)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             if (!(_httpClient.DefaultRequestHeaders.Contains("token")))
             {
                 _httpClient.DefaultRequestHeaders.Add("token", emailViewModel.JwtToken);
@@ -671,6 +829,19 @@ namespace StudentManagment.Services
         }
         public List<StudentsEmailAndIds> GetEmailsAndIds(int? RoleId, string JwtToken)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             string url = _httpClient.BaseAddress + "/Student/GetEmailsAndStudentIds/";
             List<StudentsEmailAndIds> list = new();
             SecondApiRequest secondApiRequest = new()
@@ -706,6 +877,19 @@ namespace StudentManagment.Services
 
         public EmailViewModel GetScheduledEmailById(int? RoleId, string JwtToken, int ScheduledEmailId)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             string url = _httpClient.BaseAddress + "/Email/GetScheduledEmailById/";
             EmailViewModel emailViewModel = new();
             SecondApiRequest secondApiRequest = new()
@@ -736,13 +920,51 @@ namespace StudentManagment.Services
             return emailViewModel;
         }
 
-        public void SendEmail(EmailViewModel emailViewModel)
+        public async void SendEmail(EmailViewModel emailViewModel)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             if (!(_httpClient.DefaultRequestHeaders.Contains("token")))
             {
                 _httpClient.DefaultRequestHeaders.Add("token", emailViewModel.JwtToken);
             }
             string url = _httpClient.BaseAddress + "/ProfessorHod/SendEmail/";
+
+            if (emailViewModel.AttachmentFiles != null && emailViewModel.AttachmentFiles.Count > 0)
+            {
+                emailViewModel.FileNameWithAttachments = new();
+                var tasks = emailViewModel.AttachmentFiles.Select(async attachment =>
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        try
+                        {
+                            await attachment.CopyToAsync(memoryStream);
+                            var imageData = memoryStream.ToArray();
+                            emailViewModel.FileNameWithAttachments.Add(attachment.FileName, imageData);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Handle or log the exception as needed
+                            Console.WriteLine($"Error copying attachment: {ex.Message}");
+                        }
+                    }
+
+
+                });
+                await Task.WhenAll(tasks);
+            }
             SecondApiRequest secondApiRequest = new()
             {
                 ControllerName = "ProfessorHod",
@@ -770,6 +992,19 @@ namespace StudentManagment.Services
 
         public RoleBaseResponse<ScheduledEmailViewModel> GetAllScheduledEmail(SecondApiRequest secondApi)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             if (!(_httpClient.DefaultRequestHeaders.Contains("token")))
             {
                 _httpClient.DefaultRequestHeaders.Add("token", secondApi.token);
@@ -812,14 +1047,55 @@ namespace StudentManagment.Services
                     roleBaseResponse.IsAuthorize = false;
                 }
             }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                roleBaseResponse.IsAuthorize = false;
+            }
             return roleBaseResponse;
         }
 
-        public void UpdateScheduledEmailLog(EmailViewModel emailViewModel)
+        public async void UpdateScheduledEmailLog(EmailViewModel emailViewModel)
         {
             if (!(_httpClient.DefaultRequestHeaders.Contains("token")))
             {
                 _httpClient.DefaultRequestHeaders.Add("token", emailViewModel.JwtToken);
+            }
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
+            if (emailViewModel.AttachmentFiles != null && emailViewModel.AttachmentFiles.Count > 0)
+            {
+                emailViewModel.AttachmentsByte = new();
+                var tasks = emailViewModel.AttachmentFiles.Select(async attachment =>
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        try
+                        {
+                            await attachment.CopyToAsync(memoryStream);
+                            var imageData = memoryStream.ToArray();
+                            emailViewModel.AttachmentsByte.Add(imageData);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Handle or log the exception as needed
+                            Console.WriteLine($"Error copying attachment: {ex.Message}");
+                        }
+                    }
+
+
+                });
+                await Task.WhenAll(tasks);
             }
             SecondApiRequest secondApiRequest = new();
             string url = _httpClient.BaseAddress + "/Email/AddEditScheduledEmailLogs";
@@ -844,8 +1120,21 @@ namespace StudentManagment.Services
             }
         }
 
-        public RoleBaseResponse<CountEmailViewModel> GetDayWiseEmailCount(int month,int year,int roleId,string jwtToken)
+        public RoleBaseResponse<CountEmailViewModel> GetDayWiseEmailCount(int month, int year, int roleId, string jwtToken)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             if (!(_httpClient.DefaultRequestHeaders.Contains("token")))
             {
                 _httpClient.DefaultRequestHeaders.Add("token", jwtToken);
@@ -853,7 +1142,7 @@ namespace StudentManagment.Services
             string url = _httpClient.BaseAddress + "/Email/GetDayWiseEmailCount/";
             CountEmailViewModel countEmailViewModel = new()
             {
-                month= month,
+                month = month,
                 year = year,
             };
             SecondApiRequest secondApiRequest = new()
@@ -884,17 +1173,34 @@ namespace StudentManagment.Services
                     roleBaseResponse.IsAuthorize = false;
                 }
             }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                roleBaseResponse.IsAuthorize = false;
+            }
             return roleBaseResponse;
         }
 
         public RoleBaseResponse<CountStudentProfessor> GetDayWiseProfStudentCount(int month, int year, int roleId, string jwtToken)
         {
+            if (!(_httpClient.DefaultRequestHeaders.Contains("Api-Version")))
+            {
+                HttpResponseMessage apiVersionResponse = _httpClient.GetAsync(apiVersionUrl).Result;
+                if (apiVersionResponse.IsSuccessStatusCode)
+                {
+                    string data = apiVersionResponse.Content?.ReadAsStringAsync().Result;
+                    SettingdViewModel settingdViewModel = JsonConvert.DeserializeObject<SettingdViewModel>(data);
+                    if (settingdViewModel != null)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add("Api-Version", settingdViewModel.SettingDescription);
+                    }
+                }
+            }
             if (!(_httpClient.DefaultRequestHeaders.Contains("token")))
             {
                 _httpClient.DefaultRequestHeaders.Add("token", jwtToken);
             }
             string url = _httpClient.BaseAddress + "/Student/DayWiseCountStudentProf/";
-            CountStudentProfessor countStudentProfessor= new()
+            CountStudentProfessor countStudentProfessor = new()
             {
                 month = month,
                 year = year,
@@ -926,6 +1232,10 @@ namespace StudentManagment.Services
                 {
                     roleBaseResponse.IsAuthorize = false;
                 }
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                roleBaseResponse.IsAuthorize = false;
             }
             return roleBaseResponse;
         }

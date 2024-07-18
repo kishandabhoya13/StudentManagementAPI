@@ -20,10 +20,10 @@ namespace WindowServices
     {
         private readonly IConfiguration _configuration;
         private readonly IDbServices _dbServices;
-        public EmailControl(IConfiguration configuration,IDbServices dbServices) 
+        public EmailControl(IConfiguration configuration, IDbServices dbServices)
         {
-            _configuration= configuration;
-            _dbServices= dbServices;
+            _configuration = configuration;
+            _dbServices = dbServices;
         }
 
         public void SendEmail()
@@ -45,15 +45,39 @@ namespace WindowServices
                     message.Body = mailbody;
                     message.BodyEncoding = Encoding.UTF8;
                     message.IsBodyHtml = true;
+                    IList<EmailLogs> attachments = _dbServices.GetAttachementsFromScheduledId(emailLog.ScheduledEmailId);
+                    if(attachments != null && attachments.Count > 0)
+                    {
+                        foreach (var attachment in attachments)
+                        {
+                            if (attachment.AttachmentFile != null)
+                            {
+                                string contentType;
+                                if (_dbServices.IsPDF(attachment.AttachmentFile))
+                                {
+                                    contentType = "application/pdf";
+                                }
+                                else
+                                {
+                                    contentType = "image/jpeg";
+                                }
+                                message.Attachments.Add(new Attachment(new MemoryStream(attachment.AttachmentFile), attachment.FileName, contentType));
+                            }
+                        }
+                    }
                     try
                     {
                         client.Send(message);
-                        _dbServices.AddEmailLogs(emailLog,true);
+                        int emailLogId = _dbServices.AddEmailLogs(emailLog, true);
+                        if(attachments != null && attachments.Count > 0)
+                        {
+                            _dbServices.UpdateAttachmentEmailLogId(attachments, emailLogId);
+                        }
                         _dbServices.ChangeScheduledMailStatus(emailLog.ScheduledEmailId);
                     }
                     catch (Exception)
                     {
-                        _dbServices.AddEmailLogs(emailLog,false);
+                        _dbServices.AddEmailLogs(emailLog, false);
                         throw;
                     }
                 }

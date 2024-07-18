@@ -1,20 +1,46 @@
-﻿using Microsoft.Identity.Client;
+﻿using Azure.Core;
+using Microsoft.Identity.Client;
+using StudentManagement_API.DataContext;
+using StudentManagement_API.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
+using static DemoApiWithoutEF.Utilities.Enums;
 
 namespace StudentManagment_API.Middleware
 {
     public class CustomHeaderMiddleWare
     {
         private readonly RequestDelegate _next;
-        public CustomHeaderMiddleWare(RequestDelegate requestDelegate)
+        private readonly IConfiguration _configuration;
+        private readonly IJwtServices _jwtServices;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public CustomHeaderMiddleWare(RequestDelegate requestDelegate,
+            IConfiguration configuration, IJwtServices jwtServices, IHttpContextAccessor httpContextAccessor)
         {
             _next = requestDelegate;
+            _configuration = configuration;
+            _jwtServices = jwtServices;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
+                var apiVersion = context.Request.Headers["Api-Version"];
+                if (!string.IsNullOrEmpty(apiVersion))
+                {
+                    var token = context.Request.Headers["token"];
+                    if (!string.IsNullOrEmpty(token) && apiVersion != GetCurrentApiVersion(token))
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        await context.Response.WriteAsync("API version changed. Please login again.");
+                        //string query = "Update ApiVersion Set ApiVersionName = " + GetCurrentApiVersion();
+                        //DbClient.ExecuteProcedureWithQuery(query, null, ExecuteType.ExecuteNonQuery);
+                        //context.Request.Headers.Remove("Api-Version");
+                        return;
+                    }
+                }
                 await _next(context);
             }
             catch (Exception ex)
@@ -25,6 +51,16 @@ namespace StudentManagment_API.Middleware
                 // Set the response status code to 500 Internal Server Error
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
+        }
+
+        private string GetCurrentApiVersion(string token)
+        {
+            if(_jwtServices.ValidateToken(token, out JwtSecurityToken jwtSecurityToken))
+            {
+                Claim claim = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Version);
+                return claim.Value;
+            }
+            return "";
         }
     }
 }

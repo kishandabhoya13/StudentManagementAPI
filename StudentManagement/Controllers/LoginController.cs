@@ -40,7 +40,7 @@ namespace StudentManagement_API.Controllers
             try
             {
                 JwtClaimsDto jwtClaimsDto1 = _studentServices.GetLoginStudentDetails(studentLoginDto);
-                if(jwtClaimsDto1 != null && jwtClaimsDto1.StudentId != 0)
+                if (jwtClaimsDto1 != null && jwtClaimsDto1.StudentId != 0)
                 {
                     jwtClaimsDto1.RoleId = 3;
                     _response.result = jwtClaimsDto1;
@@ -50,13 +50,13 @@ namespace StudentManagement_API.Controllers
                 }
                 else
                 {
-                    JwtClaimsDto jwtClaimsDto= _professorHodServices.CheckUserNamePassword(studentLoginDto);
+                    JwtClaimsDto jwtClaimsDto = _professorHodServices.CheckUserNamePassword(studentLoginDto);
                     _response.result = jwtClaimsDto;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                     return _response;
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -64,6 +64,24 @@ namespace StudentManagement_API.Controllers
                 _response.IsSuccess = false;
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 return _response;
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("GetApiVersion")]
+        public ActionResult<SettingDto> GetApiVersion()
+        {
+            try
+            {
+                SettingDto settingDto= _studentServices.GetApiVersion();
+                return settingDto;
+
+            }
+            catch (Exception ex)
+            {
+                return new SettingDto();
             }
         }
     }

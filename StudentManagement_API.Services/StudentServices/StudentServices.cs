@@ -48,57 +48,41 @@ namespace StudentManagement_API.Services
 
         public T GetStudent<T>(string Procedure, int Id)
         {
-            T obj = _cacheServices.GetSingleCachedResponse<T>("Student" + Id);
-            if (obj == null)
-            {
                 Collection<DbParameters> parameters = new();
                 parameters.Add(new DbParameters { Name = "@StudentId", Value = Id, DBType = DbType.Int64 });
                 T newobj = DbClient.ExecuteOneRecordProcedure<T>(Procedure, parameters);
                 _cacheServices.SetSingleCachedResponse("Student" + Id, newobj);
                 return newobj;
-            }
-
-            return obj;
 
         }
 
 
         public IList<T> GetRecordsWithoutPagination<T>(string ProcedureName, string cacheKey)
         {
-            IList<T> cacheList = _cacheServices.GetListCachedResponse<T>(cacheKey);
-            if (cacheList == null || cacheList.Count == 0)
-            {
-                IList<T> list = DbClient.ExecuteProcedure<T>(ProcedureName, null);
-                _cacheServices.SetListCachedResponse<T>(cacheKey, list);
-                return list;
-            }
-            return cacheList;
+            IList<T> list = DbClient.ExecuteProcedure<T>(ProcedureName, null);
+            _cacheServices.SetListCachedResponse<T>(cacheKey, list);
+            return list;
         }
 
-        public IList<T> GetDataWithPagination<T>(PaginationDto paginationDto,string cacheKey,string sp)
+        public IList<T> GetDataWithPagination<T>(PaginationDto paginationDto, string cacheKey, string sp)
         {
-            IList<T> list = _cacheServices.GetListCachedResponse<T>(cacheKey);
-            if (list == null || list.Count == 0)
+            try
             {
-                try
-                {
-                    Collection<DbParameters> parameters = new();
-                    parameters.Add(new DbParameters { Name = "@Search_Query", Value = paginationDto.searchQuery ?? "", DBType = DbType.String });
-                    parameters.Add(new DbParameters { Name = "@Sort_Column_Name", Value = paginationDto.OrderBy ?? "", DBType = DbType.String });
-                    parameters.Add(new DbParameters { Name = "@Start_index", Value = paginationDto.StartIndex, DBType = DbType.Int64 });
-                    parameters.Add(new DbParameters { Name = "@Page_Size", Value = paginationDto.PageSize, DBType = DbType.Int64 });
-                    //IList<Book> books = DbClient.ExecuteProcedure<Book>("[dbo].[Get_Books_List]", parameters);
-                    IList<T> data= DbClient.ExecuteProcedure<T>(sp, parameters);
+                Collection<DbParameters> parameters = new();
+                parameters.Add(new DbParameters { Name = "@Search_Query", Value = paginationDto.searchQuery ?? "", DBType = DbType.String });
+                parameters.Add(new DbParameters { Name = "@Sort_Column_Name", Value = paginationDto.OrderBy ?? "", DBType = DbType.String });
+                parameters.Add(new DbParameters { Name = "@Start_index", Value = paginationDto.StartIndex, DBType = DbType.Int64 });
+                parameters.Add(new DbParameters { Name = "@Page_Size", Value = paginationDto.PageSize, DBType = DbType.Int64 });
+                //IList<Book> books = DbClient.ExecuteProcedure<Book>("[dbo].[Get_Books_List]", parameters);
+                IList<T> data = DbClient.ExecuteProcedure<T>(sp, parameters);
 
-                    _cacheServices.SetListCachedResponse<T>(cacheKey, data);
-                    return data;
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
+                _cacheServices.SetListCachedResponse<T>(cacheKey, data);
+                return data;
             }
-            return list;
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public void UpsertStudent(StudentUpdateDto? studentUpdateDto, StudentCreateDto? studentCreateDto, string query)
@@ -159,7 +143,7 @@ namespace StudentManagement_API.Services
             }
         }
 
-        public void AddEditScheduledEmailLogs(EmailLogs? emailLogs, string query)
+        public int AddEditScheduledEmailLogs(EmailLogs? emailLogs, string query)
         {
             var table = new DataTable();
             table.Columns.Add("StudentId");
@@ -176,13 +160,53 @@ namespace StudentManagement_API.Services
             row["SentBy"] = emailLogs.SentBy;
             table.Rows.Add(row);
             Collection<DbParameters> parameters = new Collection<DbParameters>();
+            parameters.Add(new DbParameters() { Name = "@email_details", Value = table, DBType = DbType.Object, TypeName = "Email_Details" });
             if (emailLogs.ScheduledEmailId != 0)
             {
                 parameters.Add(new DbParameters() { Name = "@scheduledEmailId", Value = emailLogs.ScheduledEmailId, DBType = DbType.Int64, });
             }
-            parameters.Add(new DbParameters() { Name = "@email_details", Value = table, DBType = DbType.Object, TypeName = "Email_Details" });
+            DbParameters outputParameter = new DbParameters()
+            {
+                Name = "@newScheduledEmailId",
+                DBType = DbType.Int64,
+                Direction = ParameterDirection.Output
+            };
+            parameters.Add(outputParameter);
+
+            EmailLogs scheduledEmailIdLogs = DbClient.ExecuteOneRecordProcedure<EmailLogs>(query, parameters);
+            return scheduledEmailIdLogs.ScheduledEmailId;
+        }
+
+        public void UpdateAttachments(EmailLogs? emailLogs, string query)
+        {
+            var table = new DataTable();
+            table.Columns.Add("AttachmentFile", typeof(byte[]));
+            table.Columns.Add("ScheduledEmailId");
+
+            foreach (var attachment in emailLogs.AttachmentsByte)
+            {
+                var row = table.NewRow();
+                row["AttachmentFile"] = attachment;
+                row["ScheduledEmailId"] = emailLogs.ScheduledEmailId;
+                table.Rows.Add(row);
+            }
+
+            Collection<DbParameters> parameters = new Collection<DbParameters>();
+            parameters.Add(new DbParameters() { Name = "@scheduledEmailid", Value = emailLogs.ScheduledEmailId, DBType = DbType.Int64, });
+            parameters.Add(new DbParameters() { Name = "@attachments", Value = table, DBType = DbType.Object, TypeName = "AttachmentsTableType" });
             DbClient.ExecuteProcedure(query, parameters, ExecuteType.ExecuteNonQuery);
         }
+        public void AddEmailAttachments(Byte[] attachment,string fileName, int scheduledEmailId, string query)
+        {
+            Collection<DbParameters> parameters = new Collection<DbParameters>();
+            parameters.Add(new DbParameters() { Name = "@scheduledEmailid", Value = scheduledEmailId, DBType = DbType.Int64, });
+            parameters.Add(new DbParameters() { Name = "@attachment", Value = attachment, DBType = DbType.Binary, });
+            parameters.Add(new DbParameters() { Name = "@fileName", Value = fileName, DBType = DbType.String, });
+
+            DbClient.ExecuteProcedure(query, parameters, ExecuteType.ExecuteNonQuery);
+        }
+
+
 
         public void AddEmailLogs(EmailLogs? emailLogs, string query)
         {
@@ -206,6 +230,7 @@ namespace StudentManagement_API.Services
 
             Collection<DbParameters> parameters = new Collection<DbParameters>();
             parameters.Add(new DbParameters() { Name = "@email_details", Value = table, DBType = DbType.Object, TypeName = "[Email_log_details]" });
+            parameters.Add(new DbParameters() { Name = "@emailLogId", DBType = DbType.Int64, Direction = ParameterDirection.Output });
             DbClient.ExecuteProcedure(query, parameters, ExecuteType.ExecuteNonQuery);
         }
 
@@ -317,13 +342,13 @@ namespace StudentManagement_API.Services
                 return Convert.ToInt32(dataObj);
             }
             else if ((controllerName == "Email" && methodName == "AddEditScheduledEmailLogs")
-                || (controllerName == "Email" && methodName == "AddEmailLogs") || 
+                || (controllerName == "Email" && methodName == "AddEmailLogs") ||
                 (controllerName == "Student" && methodName == "GetEmailFromStudentId")
                 || (controllerName == "Email" && methodName == "GetDayWiseEmailCount"))
             {
                 return GetDataModel<EmailLogs>(dataObj);
             }
-            else if(controllerName == "Student" && methodName == "DayWiseCountStudentProf")
+            else if (controllerName == "Student" && methodName == "DayWiseCountStudentProf")
             {
                 return GetDataModel<CountStudentProfessorDto>(dataObj);
             }
@@ -402,7 +427,7 @@ namespace StudentManagement_API.Services
         public IList<EmailLogs> GetDayWiseEmailCount(EmailLogs emailLog)
         {
             Collection<DbParameters> parameters = new();
-            parameters.Add(new DbParameters { Name = "@month", Value = emailLog.month , DBType = DbType.Int64 });
+            parameters.Add(new DbParameters { Name = "@month", Value = emailLog.month, DBType = DbType.Int64 });
             parameters.Add(new DbParameters { Name = "@year", Value = emailLog.year, DBType = DbType.Int64 });
 
             IList<EmailLogs> emailLogs = DbClient.ExecuteProcedure<EmailLogs>("[dbo].[get_daywise_count_email]", parameters);
@@ -419,5 +444,30 @@ namespace StudentManagement_API.Services
             return list;
         }
 
+        public bool IsPDF(byte[] bytes)
+        {
+            byte[] PDFSignature = { 37, 80, 68, 70, 45, 49, 46 };
+            if (bytes.Length >= PDFSignature.Length &&
+         bytes.Take(PDFSignature.Length).SequenceEqual(PDFSignature))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public IList<EmailLogs> GetAttachementsFromScheduledId(int scheduledId)
+        {
+            string Sql = "[dbo].[Get_Attachment_By_ScheduledEmailId]";
+
+            Collection<DbParameters> parameters = new Collection<DbParameters>();
+            parameters.Add(new DbParameters() { Name = "@scheduledEmailid", Value = scheduledId, DBType = DbType.Int64 });
+            return DbClient.ExecuteProcedure<EmailLogs>(Sql, parameters);
+        }
+
+        public SettingDto GetApiVersion()
+        {
+            string query = "SELECT SettingDescription FROM Settings Where SettingName = 'ApiVersion'";
+            return DbClient.ExecuteOneRecordProcedureWithQuery<SettingDto>(query, null);
+        }
     }
 }

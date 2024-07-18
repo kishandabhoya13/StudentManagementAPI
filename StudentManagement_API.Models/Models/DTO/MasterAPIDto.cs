@@ -1,4 +1,6 @@
-﻿namespace StudentManagement_API.Models.Models.DTO
+﻿using Microsoft.AspNetCore.Http;
+
+namespace StudentManagement_API.Models.Models.DTO
 {
     public class MasterAPIGetDto
     {

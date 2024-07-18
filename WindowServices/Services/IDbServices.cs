@@ -9,8 +9,14 @@ namespace WindowServices.Services
 {
     public interface IDbServices
     {
-        void AddEmailLogs(EmailLogs emailLog,bool IsSent);
+        int AddEmailLogs(EmailLogs emailLog,bool IsSent);
+
+        IList<EmailLogs> GetAttachementsFromScheduledId(int scheduledId);
 
         void ChangeScheduledMailStatus(int scheduledEmailId);
+
+        bool IsPDF(byte[] bytes);
+
+        void UpdateAttachmentEmailLogId(IList<EmailLogs> attachments, int emailLogId);
     }
 }

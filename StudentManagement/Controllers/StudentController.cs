@@ -29,7 +29,7 @@ namespace StudentManagement_API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
-
+        private readonly IHttpContextAccessor httpContextAccessor = new HttpContextAccessor();
         public StudentController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices,
             IConfiguration configuration, IMapper mapper)
         {
@@ -46,6 +46,7 @@ namespace StudentManagement_API.Controllers
         [HttpGet]
         public ActionResult<APIResponse> GetAllStudents(PaginationDto paginationDto)
         {
+            var user = httpContextAccessor.HttpContext.User;
             if (paginationDto.StartIndex < 0 || paginationDto.PageSize < 0)
             {
                 return _response;
@@ -60,7 +61,7 @@ namespace StudentManagement_API.Controllers
             IList<Student> students = _studentServices.GetDataWithPagination<Student>(paginationDto,cacheKey, "[dbo].[Get_Students_List]");
             int totalItems = students.Count > 0 ? students.FirstOrDefault(x => x.StudentId != 0)?.TotalRecords ?? 0 : 0;
             int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
-            RoleBaseResponse<Student> roleBaseResponse = new()
+            RoleBaseResponse<IList<Student>> roleBaseResponse = new()
             {
                 data = students,
                 Role = role,
@@ -113,10 +114,13 @@ namespace StudentManagement_API.Controllers
                 }
 
                 Student student = _studentServices.GetStudent<Student>("[dbo].[Get_Student_Details]", studentId);
-
+                RoleBaseResponse<Student> roleBaseResponse = new()
+                {
+                    data = student
+                };
                 if (student.StudentId > 0)
                 {
-                    _response.result = student;
+                    _response.result = roleBaseResponse;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                 }
@@ -173,6 +177,7 @@ namespace StudentManagement_API.Controllers
                 //     " VALUES (@FirstName, @LastName, @BirthDate, @CourseId,@UserName,@Password)";
                 string sql = "Add_Student_Details";
                 _studentServices.UpsertStudent(null, studentCreateDto, sql);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;
@@ -239,6 +244,7 @@ namespace StudentManagement_API.Controllers
                 //string sql = "Update Students SET FirstName = @FirstName, LastName = @LastName, BirthDate = @BirthDate, CourseId = @CourseId, UserName = @UserName, PassWord = @Password Where StudentId = @Id";
                 _studentServices.UpsertStudent(studentUpdateDto, null, sql);
                 //_studentServices.UpdateStudent(studentUpdateDto);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;
@@ -325,7 +331,7 @@ namespace StudentManagement_API.Controllers
             {
 
                 IList<CountStudentProfessorDto> list = _studentServices.GetDayWiseProfStudentCount(countStudentProfessorDto);
-                RoleBaseResponse<CountStudentProfessorDto> roleBaseResponse = new()
+                RoleBaseResponse<IList<CountStudentProfessorDto>> roleBaseResponse = new()
                 {
                     data = list,
                 };

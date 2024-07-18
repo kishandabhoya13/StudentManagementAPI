@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StudentManagement_API.Models;
 using StudentManagement_API.Models.Models.DTO;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -33,13 +36,12 @@ namespace StudentManagement_API.Services
                     new Claim("UserId", jwtClaims.Id.ToString()),
                     new Claim(ClaimTypes.Email,jwtClaims.UserName),
                     new Claim(ClaimTypes.Role,jwtClaims.RoleId.ToString()),
-                    new Claim(ClaimTypes.Expiration, unixTimestamp.ToString())
+                    new Claim(ClaimTypes.Expiration, unixTimestamp.ToString()),
+                    new Claim(ClaimTypes.Version, jwtClaims.SettingDescription)
                 };
-
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
                 var credential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                 var expires = DateTime.UtcNow.AddHours(2);
-
                 var token = new JwtSecurityToken(
                         _configuration["Jwt:Issuer"],
                         _configuration["Jwt:Audience"],
@@ -47,7 +49,12 @@ namespace StudentManagement_API.Services
                         expires: expires,
                         signingCredentials: credential
                   );
+                var identity = new ClaimsIdentity(claims, "jwt");
+                var principal = new ClaimsPrincipal(identity);
+                var httpContext = _httpContextAccessor.HttpContext;
+                httpContext.User = principal;
 
+                HttpContext http =  _httpContextAccessor.HttpContext;
                 return new JwtSecurityTokenHandler().WriteToken(token);
             }
             catch (Exception ex)

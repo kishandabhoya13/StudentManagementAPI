@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "ig7fLILnblN5c8YYsJLRXqjKWb5YH2u1hnvm02Afpk0B+9bMSTR/ciQ3BptDhLTSi9fq0MXC5+OC9brIvRoOHw==",
+  "dgSpecHash": "n/MqiNo+CFqpjJgyPYLVQKI9Z2n4Bo8syNGcXjDZOaWVlC94v29FFdEJ9nxG0Kkg22hcEF2ZGeq2vBQP2dS5jQ==",
   "success": true,
   "projectFilePath": "D:\\StudentManagement\\StudentManagement\\StudentManagement_API.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\pctr54\\.nuget\\packages\\asp.versioning.abstractions\\7.0.0\\asp.versioning.abstractions.7.0.0.nupkg.sha512",
+    "C:\\Users\\pctr54\\.nuget\\packages\\asp.versioning.http\\7.1.0\\asp.versioning.http.7.1.0.nupkg.sha512",
+    "C:\\Users\\pctr54\\.nuget\\packages\\asp.versioning.mvc\\7.1.1\\asp.versioning.mvc.7.1.1.nupkg.sha512",
     "C:\\Users\\pctr54\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\pctr54\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\pctr54\\.nuget\\packages\\azure.identity\\1.11.3\\azure.identity.1.11.3.nupkg.sha512",
