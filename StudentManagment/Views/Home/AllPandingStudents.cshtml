@@ -1,0 +1,357 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@using StudentManagment.Models.DataModels;
+@{
+    ViewData["Title"] = "All Pending Students";
+    var currentDate = DateTime.Now;
+    var currentMonth = currentDate.Month;
+}
+@model StudentManagement.Models.RoleBaseResponse<EmailViewModel>
+<div class="container-fluid">
+    <div class="search-div row">
+        <div class="col-md-5 col-lg-5 col-12 col-sm-12">
+            <div class="form-group pb-4">
+                <div class="input_box">
+                    <input id="inputsearch"
+                           class="form-control"
+                           type="search"
+                           placeholder="Search Email" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <h1>Pending Student List</h1>
+    <div class="container-fluid table-responsive">
+        <table id="StudentTable" class="table table-borderless">
+        </table>
+    </div>
+</div>
+<div id="popups"></div>
+
+<script>
+
+
+    function loadDataTable(startIndex) {
+        var TOTAL_ITEMS = 0;
+        var searchQuery = $("#inputsearch").val();
+        var pageSize = $("#dt-length-0").val();
+        var secondApiRequest = {
+            searchQuery: searchQuery,
+            StartIndex: startIndex,
+            PageSize: pageSize,
+        }
+        sessionStorage.setItem("currentPageIndex", startIndex);
+        var table = new DataTable('#StudentTable', {
+            searching: false,
+            "infoCallback": function (settings, start, end, max, total, pre) {
+
+                var pageInfo = this.api().page.info(); // Get the current page info
+                var pageSize1 = $("#dt-length-0").val();;
+
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
+
+                var startIndex = (currentPageIndex * pageSize1) + 1;
+
+                var endIndex = Math.min(parseInt(startIndex, 10) + parseInt(pageSize1, 10) - 1, parseInt(TOTAL_ITEMS, 10));
+                if (parseInt(endIndex, 10) === parseInt(TOTAL_ITEMS, 10)) {
+                    $(".page-link.next").addClass("disabled");
+                }
+                else {
+                    $(".page-link.next").removeClass("disabled");
+                }
+
+                if (startIndex == 1) {
+                    $(".page-link.previous").addClass("disabled");
+                }
+                else {
+                    $(".page-link.previous").removeClass("disabled");
+
+                }
+                return "Showing " + startIndex + " to " + endIndex + " of " + TOTAL_ITEMS + " entries";
+            },
+            drawCallback: function () {
+
+                $(".dt-paging-button").removeClass("disabled");
+            },
+            "initComplete": function (settings, json) {
+                $(".dt-paging-button").removeClass("disabled");
+            },
+            "lengthMenu": [[5, 10, 15], [5, 10, 15]],
+            "pageLength": pageSize,
+            "language": {
+                oPaginate: {
+                    sNext: '<i class="bi bi-caret-right-fill text-info"></i>',
+                    sPrevious: '<i class="bi bi-caret-left-fill text-info"></i>'
+
+                }
+            },
+            "stateSave": true,
+            "pagingType": "simple",
+
+            ajax: {
+                method: "POST",
+                url: "/Home/GetAllPendingStudents",
+                data: secondApiRequest,
+                dataType: "JSON",
+                dataSrc: function (response) {
+                    TOTAL_ITEMS = response.totalItems;
+                    return response.data;
+                },
+                error: function () {
+                    console.log("Function Fail")
+                }
+            },
+            columns: [
+                {
+                    "title": "StudentId",
+                    "data": "studentId",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return data1;
+                    }
+                },
+                {
+                    "title": "FirstName",
+                    "data": "firstName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return data1
+                    }
+                },
+                {
+                    "title": "LastName",
+                    "data": "lastName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return data1
+                    }
+                },
+                {
+                    "title": "Email",
+                    "data": "email",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        if (data1 == null) {
+                            data1 = "-";
+                        }
+                        return data1;
+                    }
+                },
+                {
+                    "title": "BirthDate",
+                    "data": "birthDate",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        var date = new Date(data1);
+                        var localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+                        var formattedDate = localDate.toISOString().split('T')[0];
+                        return  formattedDate ;
+
+                    }
+                },
+                {
+                    "title": "CourseName",
+                    "data": "courseName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return  data1;
+
+                    }
+                },
+                {
+                    "title": "UserName",
+                    "data": "userName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return data1;
+
+                    }
+                },
+                {
+                    "title": "Action",
+                    "data": "-",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        var email = JSON.stringify(row.email);
+                        return "<div class='inline-flex'>"
+                            + "<div id='right-div-" + row.studentId + "' class='right-wrong-div right-div'>"
+                            + "<i style='color:green;' onclick='OpenApproveModal(" + row.studentId + "," + email + ")' class='fa fa-check' aria-hidden='true'></i></div>"
+                            + "<div id='wrong-div-" + row.studentId + "' onclick='OpenRejectModal(" + row.studentId + "," + email + ")' class='right-wrong-div wrong-div'>"
+                            + "<i style='color:red;' class='fa fa-times' aria-hidden='true'></i>"
+                            + "</div></div>";
+                    }
+                },
+            ]
+        });
+        return table;
+
+    }
+
+
+    $(document).ready(function () {
+        sessionStorage.setItem("currentPageIndex", 0);
+        var table = loadDataTable(0);
+        $("#dt-length-0").val(5);
+        $(".dt-paging-button").removeClass("disabled");
+        $(document).on('change', '.form-select', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            event.preventDefault();
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllPendingStudents",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('keyup', '#inputsearch', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                searchQuery: this.value,
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllPendingStudents",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        let currentPageIndex = 0;
+        let totalPages = table.page.info().pages;
+        $(document).on('click', '.page-link.next', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) + 1;
+            }
+            let startIndex = currentPageIndex * pageSize;
+            event.preventDefault();
+            var secondApiRequest = {
+                StartIndex: startIndex,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllPendingStudents",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('click', '.page-link.previous', function (event) {
+            event.preventDefault();
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
+            }
+            let startIndex1 = currentPageIndex * pageSize;
+            var secondApiRequest = {
+                StartIndex: startIndex1,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllPendingStudents",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    console.log(response);
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+    });
+
+    function OpenApproveModal(studentId,email) {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("ApproveRejectModal","Home")',
+            data: {
+                StudentId: studentId,
+                ApproveOrReject: true,
+                Email : email
+            },
+            success: function (response) {
+                if(response == false)
+                {
+                    window.location.href = '/Login/Logout';
+                }
+                $('#popups').html(response)
+                $('#ApproveRejectModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+
+     function OpenRejectModal(studentId,email) {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("ApproveRejectModal","Home")',
+            data: {
+                StudentId: studentId,
+                ApproveOrReject: false,
+                Email : email,
+            },
+            success: function (response) {
+                if(response == false)
+                {
+                    window.location.href = '/Login/Logout';
+                }
+                $('#popups').html(response)
+                $('#ApproveRejectModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+
+
+</script>

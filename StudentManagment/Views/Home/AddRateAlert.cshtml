@@ -1,0 +1,108 @@
+﻿@using StudentManagement.Models;
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model RoleBaseResponse<IList<CurrencyRateViewModel>>
+<div class="container-fluid">
+    <div class="send-email-div">
+        <button onclick="OpenAddAlertModal(0)" type="button" class="btn send-email-btn">
+            Add Rate Alert
+        </button>
+    </div>
+
+    <div class="container card-container">
+        <div class="row">
+            @if (Model.data.Count > 0)
+            {
+                @foreach (var data in Model.data)
+                {
+                    <div class="col-12 col-md-12 col-lg-6 col-sm-12 column">
+                        <div class="card">
+                            <div class="currency-main-div">
+                                <h3>@data.CurrencyPair.Substring(0,3)</h3>
+                                <h3><i style="color: #695cfe;" class="fa-solid fa-arrow-right"></i></h3>
+                                <h3>@data.CurrencyPair.Substring(3)</h3>
+                            </div>
+                            <div class="content-text mt-3">
+                                <span>Current Rate : 1 <span id="">@data.CurrencyPair.Substring(0,3)</span> = <span style="color: #695cfe;" id="">@data.Rate</span> <span id="">@data.CurrencyPair.Substring(3)</span></span>
+                                <span>Expected Rate : 1 <span id="">@data.CurrencyPair.Substring(0,3)</span> = <span style="color: forestgreen;" id="">@data.ExpectedRate</span> <span id="">@data.CurrencyPair.Substring(3)</span></span>
+                            </div>
+                            <div class="btn-div d-flex justify-content-center align-items-center gap-3 mt-4">
+                                <button type="button" onclick="OpenUpdateAlertModal(@data.RateAlertId)" class="btn btn-dark">Edit</button>
+                                <button type="button" onclick="RemoveRateAlertModal(@data.RateAlertId)" class="btn btn-danger">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+            }
+        </div>
+    </div>
+
+
+    <div id="popups"></div>
+</div>
+
+<script>
+
+    function OpenAddAlertModal() {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("AddRateAlertModal","Home")',
+            success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
+                $('#popups').html(response)
+                $('#AddRateAlertModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+
+
+    function OpenUpdateAlertModal(rateAlertId) {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("UpdateRateAlertModal","Home")',
+            data : {
+                RateAlertId : rateAlertId
+            },
+            success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
+                $('#popups').html(response)
+                $('#AddRateAlertModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+
+
+    function RemoveRateAlertModal(rateAlertId) {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("RemoveRateAlertModal","Home")',
+            data : {
+                RateAlertId : rateAlertId
+            },
+            success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
+                $('#popups').html(response)
+                $('#RemoveRateAlertModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+</script>

@@ -74,15 +74,19 @@
                 <input id="myinputfile" type="file" asp-for="PhotoFile" accept="image/*">
 
             </div>
-
-            @if (Model.Photo != null)
-            {
-                string imageBase64 = Convert.ToBase64String(Model.Photo);
-                string imageSrc = $"data:image/jpeg;base64,{imageBase64}";
-                <div class="image-preview" id="image-preview-div" style="">
+            <div class="image-preview" id="image-preview-div" style="">
+                @if (Model.Photo != null)
+                {
+                    string imageBase64 = Convert.ToBase64String(Model.Photo);
+                    string imageSrc = $"data:image/jpeg;base64,{imageBase64}";
                     <img id="image" src="@imageSrc" alt="Current Image" width="200" height="200" />
-                </div>
-            }
+                }
+                else
+                {
+                    <img id="image" src="" alt="Current Image" width="200" height="200" />
+
+                }
+            </div>
             <div class="gap-2 d-flex justify-content-center pt-4 submit-cancel-btn">
                 <button class="btn me-md-2 submit-btn" type="submit">
                     Submit
@@ -144,7 +148,7 @@
 
     function changeImage(input) {
         var reader;
-
+        var previewDiv = document.getElementById("image-preview-div");
         if (input.files && input.files[0]) {
             reader = new FileReader();
             previewDiv.style.display = "flex";

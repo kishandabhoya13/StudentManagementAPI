@@ -9,7 +9,7 @@ namespace StudentManagement_API.Services
 {
     public interface IStudentServices
     {
-        T GetData<T>(string query,string cacheKey);
+        T GetData<T>(string query);
 
         T GetStudent<T>(string Procedure, int Id);
 
@@ -29,7 +29,7 @@ namespace StudentManagement_API.Services
 
         void InsertCourse(CourseCreateDto? courseCreateDto, string query);
 
-        IList<T> GetRecordsWithoutPagination<T>(string ProcedureName,string cacheKey);
+        IList<T> GetRecordsWithoutPagination<T>(string ProcedureName);
 
         void InsertBook(Book book);
 
@@ -51,7 +51,7 @@ namespace StudentManagement_API.Services
 
         //IList<EmailLogs> GetScheduledEmailsWithPegination(PaginationDto paginationDto);
 
-        IList<T> GetDataWithPagination<T>(PaginationDto paginationDto, string cacheKey, string sp);
+        IList<T> GetDataWithPagination<T>(PaginationDto paginationDto,string sp);
 
         T GetScheduledEmailById<T>(string Procedure, int Id);
 
@@ -64,5 +64,27 @@ namespace StudentManagement_API.Services
         IList<EmailLogs> GetAttachementsFromScheduledId(int scheduledId);
 
         SettingDto GetApiVersion();
+
+        ProfessorHod ProfessorBlockUnblockDetails(int userId);
+
+        Student StudentBlockUnblockDetails(int userId);
+
+        bool AprroveRejectRequest(StudentUpdateDto studentUpdateDto);
+
+        ExchangeRate getExchangeRate(ExchangeRate exchangeRate);
+
+        void AddExchangeRates(ExchangeRate exchangeRate);
+
+        ExchangeRate GetExchangeRateDetails(ExchangeRate exchangeRate);
+
+        CurrencyPairDto GetCurrencyPairData(string currencyPair);
+
+        void UpsertRateAlert(CurrencyPairDto currencyPairDto);
+
+        IList<CurrencyPairDto> GetRateAlerts(int StudentId);
+
+        CurrencyPairDto GetRateAlertById(int RateAlertId);
+
+        void RemoveRateAlert(int RateAlertId);
     }
 }

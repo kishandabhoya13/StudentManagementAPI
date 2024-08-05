@@ -53,9 +53,8 @@ namespace StudentManagement_API.Controllers
                 {
                     role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
                 }
-                string cacheKey = "BookList" + paginationDto.PageSize + paginationDto.StartIndex + paginationDto.searchQuery;
 
-                IList<Book> books = _studentServices.GetDataWithPagination<Book>(paginationDto,cacheKey, "[dbo].[Get_Books_List]");
+                IList<Book> books = _studentServices.GetDataWithPagination<Book>(paginationDto, "[dbo].[Get_Books_List]");
 
                 int totalItems = books.Count > 0 ? books.FirstOrDefault(x => x.BookId != 0)?.TotalRecords ?? 0 : 0;
                 int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
@@ -104,11 +103,14 @@ namespace StudentManagement_API.Controllers
                     _response.IsSuccess = false;
                     return _response;
                 }
-                Book book = _studentServices.GetData<Book>("Select * From Books where BookId = " + BookId, "Book" + BookId);
-
+                Book book = _studentServices.GetData<Book>("Select * From Books where BookId = " + BookId);
+                RoleBaseResponse<Book> roleBaseResponse = new()
+                {
+                    data = book,
+                };
                 if (book.BookId > 0)
                 {
-                    _response.result = book;
+                    _response.result = roleBaseResponse;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                 }
@@ -141,6 +143,7 @@ namespace StudentManagement_API.Controllers
             {
 
                 _studentServices.InsertBook(book);
+                _response.result = new RoleBaseResponse<bool>() { data= true };
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;
@@ -165,6 +168,7 @@ namespace StudentManagement_API.Controllers
             {
 
                 _studentServices.UpdateBook(book);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;
@@ -189,6 +193,7 @@ namespace StudentManagement_API.Controllers
                 if (book.BookId != 0)
                 {
                     _studentServices.DeleteBook(book.BookId);
+                    _response.result = new RoleBaseResponse<bool>() { data = true };
                     _response.IsSuccess = true;
                     _response.StatusCode = HttpStatusCode.OK;
                     return _response;
@@ -219,7 +224,11 @@ namespace StudentManagement_API.Controllers
                 if (book.BookId != 0)
                 {
                     Book newbook = _studentServices.GetBookPhoto(book.BookId);
-                    _response.result = newbook;
+                    RoleBaseResponse<Book> roleBaseResponse = new()
+                    {
+                        data = newbook
+                    };
+                    _response.result = roleBaseResponse;
                     _response.IsSuccess = true;
                     _response.StatusCode = HttpStatusCode.OK;
                     return _response;

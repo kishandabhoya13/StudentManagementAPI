@@ -42,7 +42,7 @@ namespace StudentManagement_API.Controllers
         [HttpGet()]
         public ActionResult<APIResponse> GetAllCourses()
         {
-            IList<Course> courses = _studentServices.GetRecordsWithoutPagination<Course>("[dbo].[Get_All_Courses]","Courses");
+            IList<Course> courses = _studentServices.GetRecordsWithoutPagination<Course>("[dbo].[Get_All_Courses]");
             if (courses.Count > 0)
             {
                 RoleBaseResponse<IList<Course>> roleBase = new()
@@ -77,7 +77,7 @@ namespace StudentManagement_API.Controllers
                     _response.IsSuccess = false;
                     return _response;
                 }
-                Course course = _studentServices.GetData<Course>("Select * From Courses where CourseId = " + courseId, "Course" + courseId);
+                Course course = _studentServices.GetData<Course>("Select * From Courses where CourseId = " + courseId);
                 if (course.CourseId > 0)
                 {
                     _response.result = course;

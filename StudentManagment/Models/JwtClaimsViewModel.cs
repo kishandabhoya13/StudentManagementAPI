@@ -12,6 +12,8 @@ namespace StudentManagment.Models
         [StringLength(50)]
         public string FirstName { get; set; } = null!;
 
+        public string Email { get; set; }
+
         [StringLength(50)]
         public string LastName { get; set; } = null!;
 
@@ -20,5 +22,11 @@ namespace StudentManagment.Models
         public int RoleId { get; set; }
 
         public string? JwtToken { get; set; } = null;
+
+        public bool IsConfirmed { get; set; }
+
+        public bool IsRejected { get; set; }
+
+        public bool IsBlocked { get; set; }
     }
 }

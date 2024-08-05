@@ -16,6 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<CustomExceptionFilter>();
+    options.Filters.Add(new UnauthorizedExceptionFilter());
+    options.Filters.Add(new AccessViolationFilter());
 }).AddNewtonsoftJson(option =>
 {
     option.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();

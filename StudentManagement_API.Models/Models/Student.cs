@@ -36,5 +36,6 @@ namespace StudentManagement_API.Models.Models
         [Required]
         public string Email { get; set; }
 
+        public bool IsBlocked { get; set; }
     }
 }

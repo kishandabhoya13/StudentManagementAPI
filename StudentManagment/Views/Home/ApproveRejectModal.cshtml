@@ -1,0 +1,171 @@
+﻿@using StudentManagement.Models.DTO;
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+@model SignUpViewModel
+
+<div id="ApproveRejectModal" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (Model.ApproveReject)
+                {
+                    <h5 class="modal-title">Approve Confirmation</h5>
+                }
+                else
+                {
+                    <h5 class="modal-title">Reject Confirmation</h5>
+                }
+                <button type="button"
+                        class="btn-close btn-close-custom"
+                        data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @if (Model.ApproveReject)
+                {
+                    <p class="mt-3">Are you Sure You want to approve this student request?</p>
+
+                }
+                else
+                {
+                    <p class="mt-3">Are you Sure You want to reject this student request?</p>
+
+                }
+                <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
+                    <form class="w-100" asp-action="ApproveRejectRequest" asp-controller="Home" method="post">
+                        <input type="hidden" asp-for="StudentId"/>
+                        <input type="hidden" asp-for="ApproveReject" />
+                        <input type="hidden" asp-for="Email" />
+
+                        <button class="btn btn-primary me-md-2 submit-btn" type="submit">
+                            Submit
+                        </button>
+                    </form>
+                    <button class="btn btn-primary cancel-btn" data-bs-dismiss="modal" type="button">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<link href="~/summernote/summernote.css" rel="stylesheet" />
+<script src="~/summernote/summernote.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#summernote').summernote({
+            tabsize: 2,
+            height: 300,
+            minHeight: null,
+            maxHeight: null,
+            focus: true,
+            callbacks: {
+                onInit: function () {
+                    // Disable editing for header and footer
+                    $('#header, #footer').attr('contenteditable', false);
+                }
+            }
+        });
+
+        var selectedOption = $('#email-dropdown').find(':selected');
+        var firstName = selectedOption.text();
+        if (firstName === 'Select Student') {
+            firstName = "All Students";
+        }
+        $('#to-email').text(firstName);
+    });
+
+    $("#email-dropdown").on("change", function () {
+        var selectedOption = $('#email-dropdown').find(':selected');
+        var firstName = selectedOption.text();
+        if (firstName === 'Select Student') {
+            firstName = "All Students";
+        }
+        $('#to-email').text(firstName);
+    });
+
+    $(document).ready(function () {
+        var imageDiv = document.getElementById("preview-image-div");
+        if (imageDiv != null) {
+            imageDiv.style.display = "flex";
+        }
+
+        if ($("#select-all-checkbox").is(':checked')) {
+            document.getElementById("dropdown-div").style.display = 'none';
+            var firstOption = $("#email-dropdown option:first");
+            firstOption.prop("selected", true);
+            var selectedOption = $('#email-dropdown').find(':selected');
+            var firstName = selectedOption.text();
+            if (firstName === 'Select Student') {
+                firstName = "All Students";
+            }
+            $('#to-email').text(firstName);
+        }
+    });
+
+    var selectedText = $("#email-dropdown").find('option:selected').text();
+    if ($("#select-all-checkbox").is(':checked')) {
+        document.getElementById("dropdown-div").style.display = 'none';
+        var firstOption = $("#email-dropdown option:first");
+        firstOption.prop("selected", true);
+        var firstName = "All Students";
+        $('#to-email').text(firstName);
+    } else {
+        document.getElementById("dropdown-div").style.display = 'block';
+        var firstOption = $("#email-dropdown option:first");
+        firstOption.prop("selected", false);
+    }
+
+    $('#select-all-checkbox').on('change', function () {
+        if ($(this).is(':checked')) {
+            document.getElementById("dropdown-div").style.display = 'none';
+            var firstOption = $("#email-dropdown option:first");
+            firstOption.prop("selected", true);
+            var selectedOption = $('#email-dropdown').find(':selected');
+            var firstName = selectedOption.text();
+            if (firstName === 'Select Student') {
+                firstName = "All Students";
+            }
+            $('#to-email').text(firstName);
+        } else {
+            document.getElementById("dropdown-div").style.display = 'block';
+
+        }
+    });
+
+
+    var isChecked = localStorage.getItem('selectAllCheckbox');
+    if (isChecked === 'true') {
+        $('#select-all-checkbox').prop('checked', true);
+    }
+
+    $('#select-all-checkbox').on('change', function () {
+        localStorage.setItem('selectAllCheckbox', this.checked);
+    });
+
+    var fileTag = document.getElementById("attachementFile");
+
+    fileTag.addEventListener("change", function () {
+
+        if (this.files.length > 0) {
+            changeImage(this);
+        }
+    });
+
+    function changeImage(input) {
+
+        if (input.files && input.files[0]) {
+            console.log("inbside");
+            console.log(imageDiv);
+
+            imageDiv.style.display = "none";
+        }
+    }
+</script>

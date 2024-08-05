@@ -4,17 +4,21 @@
 }
 @model StudentManagement.Models.RoleBaseResponse<Student>
 <div class="container-fluid">
-    <div class="search-div row">
-        <div class="col-md-5 col-lg-5 col-12 col-sm-12">
-            <div class="form-group pb-4">
-                <div class="input_box">
-                    <input id="inputsearch"
-                           class="form-control"
-                           type="search"
-                           placeholder="Search Student" />
-                </div>
+    <div class="search-div">
+        <div class="form-group pb-4 div1">
+            <div class="input_box">
+                <input id="inputsearch"
+                       class="form-control"
+                       type="search"
+                       placeholder="Search Student" />
             </div>
         </div>
+        <div class="div2">
+            <a asp-controller="Home" asp-action="CreateUpdateStudent" class="btn send-email-btn text-center d-flex align-items-center">
+                Create Student
+            </a>
+        </div>
+
     </div>
     <div class="container-fluid table-responsive">
         <div class="plus-minus-div">
@@ -57,6 +61,7 @@
         </div>
     </div>
 </div>
+<div id="popup"></div>
 <script>
     function CreateCourse() {
         $.ajax({
@@ -139,8 +144,8 @@
                 data: secondApiRequest,
                 dataType: "JSON",
                 dataSrc: function (response) {
-                    if (response == false) {
-                        window.location.href = '/Login/Logout';
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
                     }
                     TOTAL_ITEMS = response.totalItems;
                     return response.data;
@@ -228,9 +233,19 @@
                     "data": "-",
                     "class": "text-center",
                     "render": function (data1, type, row) {
+                        var blockstring = "";
+                        if (row.currentUserRole == 1) {
+                            if (row.isBlocked) {
+                                blockstring = "<i onclick='BlockUnblockModal(" + row.studentId + "," + row.isBlocked + ")' id='edit-btn-" + row.studentId + "' style='color:red;' class='bx bx-block'></i>"
+                            }
+                            else {
+                                blockstring = "<i onclick='BlockUnblockModal(" + row.studentId + "," + row.isBlocked + ")' id='edit-btn-" + row.studentId + "' style='color:green;' class='fa fa-unlock'></i>"
+                            }
+                        }
                         return "<div class='inline-flex'> <i onclick='displayInput(" + row.studentId + "," + row.courseId + ")' id='edit-btn-" + row.studentId + "' style='color:green;' class='fas fa-edit'></i>"
                             + "<i onclick='incrementCountOneColumn(" + row.studentId + ")' id='edit-btn-" + row.studentId + "' style='color:green;' class='fas fa-plus'></i>"
                             + "<i onclick='decrementCountOneColumn(" + row.studentId + ")' id='edit-btn-" + row.studentId + "' style='color:red;' class='fas fa-minus'></i>"
+                            + blockstring
                             + "<div id='right-div-" + row.studentId + "' class='right-wrong-div right-div' style='display:none'>"
                             + "<i style='color:green;' onclick='updateStudent(" + row.studentId + ")' class='fa fa-check' aria-hidden='true'></i></div>"
                             + "<div id='wrong-div-" + row.studentId + "' onclick='hideInput(" + row.studentId + ")' class='right-wrong-div wrong-div' style='display:none'>"
@@ -244,6 +259,23 @@
 
     }
 
+    function BlockUnblockModal(Id, isBlocked) {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("BlockUnblockStudentModal","Home")',
+            data: {
+                Id: Id,
+                IsBlocked: isBlocked,
+            },
+            success: function (response) {
+                $('#popup').html(response)
+                $('#BlockUnblockStudentModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    };
 
 
 
@@ -268,6 +300,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
                     if (response == false) {
                         window.location.href = '/Login/Logout';
                     }
@@ -335,6 +370,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
                     if (response == false) {
                         window.location.href = '/Login/Logout';
                     }
@@ -370,6 +408,9 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
                     if (response == false) {
                         window.location.href = '/Login/Logout';
                     }
@@ -631,6 +672,9 @@
                 url: '@Url.Action("UpsertStudent","Home")',
                 data: studentViewModel,
                 success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
                     if (response == false) {
                         window.location.href = '/Login/Logout';
                     }
@@ -793,8 +837,8 @@
             },
             dataType: 'json',
             success: function (response) {
-                if (response == false) {
-                    window.location.href = '/Login/Logout';
+                if (response.redirect) {
+                    window.location.href = response.redirect;
                 }
                 var labels = [];
                 var dataPoints = [];
@@ -853,6 +897,7 @@
             }
         });
     }
+
 
 
 </script>

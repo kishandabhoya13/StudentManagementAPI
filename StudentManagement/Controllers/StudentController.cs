@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using StudentManagement_API.Models;
 using StudentManagement_API.Models.Models;
 using StudentManagement_API.Models.Models.DTO;
@@ -11,9 +12,13 @@ using StudentManagment_API.Services;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Net.Mail;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
+using System.Text;
 using System.Threading;
+using System.Web.Helpers;
 
 namespace StudentManagement_API.Controllers
 {
@@ -56,9 +61,46 @@ namespace StudentManagement_API.Controllers
             {
                 role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
             }
-            string cacheKey = "StudentList" + paginationDto.PageSize + paginationDto.StartIndex + paginationDto.searchQuery;
 
-            IList<Student> students = _studentServices.GetDataWithPagination<Student>(paginationDto,cacheKey, "[dbo].[Get_Students_List]");
+            IList<Student> students = _studentServices.GetDataWithPagination<Student>(paginationDto, "[dbo].[Get_Students_List]");
+            int totalItems = students.Count > 0 ? students.FirstOrDefault(x => x.StudentId != 0)?.TotalRecords ?? 0 : 0;
+            int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
+            RoleBaseResponse<IList<Student>> roleBaseResponse = new()
+            {
+                data = students,
+                Role = role,
+                StartIndex = paginationDto.StartIndex,
+                PageSize = paginationDto.PageSize,
+                TotalItems = totalItems,
+                TotalPages = TotalPages,
+                CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize),
+                searchQuery = paginationDto.searchQuery,
+            };
+
+            _response.result = roleBaseResponse;
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.OK;
+
+
+
+            return _response;
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("GetAllPendingStudents")]
+        public ActionResult<APIResponse> GetAllPendingStudents(PaginationDto paginationDto)
+        {
+            if (paginationDto.StartIndex < 0 || paginationDto.PageSize < 0)
+            {
+                return _response;
+            }
+            var role = "";
+            if (_jwtService.ValidateToken(paginationDto.JwtToken, out JwtSecurityToken jwtSecurityToken))
+            {
+                role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
+            }
+
+            IList<Student> students = _studentServices.GetDataWithPagination<Student>(paginationDto, "[dbo].[Get_Pending_Students_List]");
             int totalItems = students.Count > 0 ? students.FirstOrDefault(x => x.StudentId != 0)?.TotalRecords ?? 0 : 0;
             int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
             RoleBaseResponse<IList<Student>> roleBaseResponse = new()
@@ -89,7 +131,11 @@ namespace StudentManagement_API.Controllers
         public ActionResult<APIResponse> GetEmailsAndStudentIds()
         {
             IList<EmailLogs> emailLogs = _studentServices.GetEmailsAndStudentIds();
-            _response.result = emailLogs;
+            RoleBaseResponse<IList<EmailLogs>> roleBaseResponse = new()
+            {
+                data = emailLogs,
+            };
+            _response.result = roleBaseResponse;
             _response.IsSuccess = true;
             _response.StatusCode = HttpStatusCode.OK;
             return _response;
@@ -210,6 +256,7 @@ namespace StudentManagement_API.Controllers
                 }
                 _studentServices.UpdateJwtToken(updateJwtDTo.token, updateJwtDTo.Id);
                 //_studentServices.UpdateStudent(studentUpdateDto);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;
@@ -300,7 +347,11 @@ namespace StudentManagement_API.Controllers
                 EmailLogs emailLogs1 = _studentServices.GetStudent<EmailLogs>("[dbo].[Get_Email_from_StudentId]", emailLogs.StudentId ?? 0);
                 if (emailLogs1.Email != null)
                 {
-                    _response.result = emailLogs1;
+                    RoleBaseResponse<EmailLogs> roleBaseResponse = new()
+                    {
+                        data = emailLogs1
+                    };
+                    _response.result = roleBaseResponse;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                 }
@@ -348,6 +399,163 @@ namespace StudentManagement_API.Controllers
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 return _response;
             }
+        }
+
+        [HttpPut("ApproveRejectStudentRequest")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<APIResponse> ApproveRejectStudentRequest(StudentUpdateDto studentUpdateDto)
+        {
+            try
+            {
+
+                _studentServices.AprroveRejectRequest(studentUpdateDto);
+                MailMessage message = new MailMessage(_configuration["EmailCredential:From"], studentUpdateDto.Email);
+                SmtpClient client = new SmtpClient(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]));
+                System.Net.NetworkCredential basicCredential1 = new
+                System.Net.NetworkCredential(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = basicCredential1;
+                string mailbody = studentUpdateDto.Body ?? "";
+                message.Subject = "Approve/Reject Sign Up Request";
+                message.Body = mailbody;
+                message.BodyEncoding = Encoding.UTF8;
+                message.IsBodyHtml = true;
+                message.Headers.Add("X-Message-ID", "123456789");
+                message.ReplyToList.Add(new MailAddress(_configuration["EmailCredential:From"]));
+                try
+                {
+                    string id = "123456789"; //Save the id in your database 
+                    message.Headers.Add("Message-Id", String.Format("<{0}@{1}>", id.ToString(), "mail.example.com"));
+                    client.Send(message);
+                    string messageId = message.Headers["Message-ID"] ?? "";
+
+                    EmailLogs emailLogs = new()
+                    {
+                        Email = studentUpdateDto.Email,
+                        Body = studentUpdateDto.Body,
+                        Subject = message.Subject,
+                        SentBy = 1,
+                        IsSent = true,
+
+                    };
+                    string EmailLogSql = "[dbo].[Add_EmailLog_Details]";
+                    _studentServices.AddEmailLogs(emailLogs, EmailLogSql);
+                }
+                catch (Exception)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.Unauthorized;
+                    return _response;
+                }
+
+                _response.result = new RoleBaseResponse<bool>() { data = true };
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString()
+    };
+                _response.result = false;
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [HttpGet("GetStudentByEmail")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> GetStudentByEmail(string Email)
+        {
+            try
+            {
+                string sql = "SELECT Email FROM Students WHERE Email = '" + Email + "'";
+                Student student = _studentServices.GetData<Student>(sql);
+                RoleBaseResponse<Student> roleBaseResponse = new()
+                {
+                    data = student,
+                };
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.result = false;
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [HttpGet("GetStudentByUserName")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> GetStudentByUserName(string UserName)
+        {
+            try
+            {
+                string sql = "SELECT UserName FROM Students WHERE UserName = '" + UserName + "'";
+                RoleBaseResponse<Student> roleBaseResponse = new();
+                Student student = _studentServices.GetData<Student>(sql);
+                if (student.UserName == null)
+                {
+                    string sql2 = "SELECT UserName FROM ProfessorHod WHERE UserName = '" + UserName + "'";
+                    Student student2 = _studentServices.GetData<Student>(sql2);
+                    roleBaseResponse.data = student2;
+                }
+                else
+                {
+
+                    roleBaseResponse.data = student;
+                }
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.result = false;
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [HttpGet("GetExchangeRates")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> GetExchangeRates(ExchangeRate exchangeRate)
+        {
+            ExchangeRate newExchangeRates = _studentServices.GetExchangeRateDetails(exchangeRate);
+            if (newExchangeRates.Rate == null)
+            {
+                ExchangeRate exchangeRate1 = _studentServices.getExchangeRate(exchangeRate);
+                exchangeRate1.StartDate = exchangeRate.StartDate;
+                exchangeRate1.EndDate = exchangeRate.EndDate;
+                exchangeRate1.BaseCurrency = exchangeRate.BaseCurrency;
+                exchangeRate1.ToCurrency = exchangeRate.ToCurrency;
+                _studentServices.AddExchangeRates(exchangeRate1);
+                newExchangeRates = _studentServices.GetExchangeRateDetails(exchangeRate);
+            }
+
+            RoleBaseResponse<ExchangeRate> roleBaseResponse = new()
+            {
+                data = newExchangeRates,
+            };
+            _response.result = roleBaseResponse;
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            return _response;
         }
     }
 }

@@ -35,9 +35,7 @@ namespace StudentManagment_API.Middleware
                     {
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                         await context.Response.WriteAsync("API version changed. Please login again.");
-                        //string query = "Update ApiVersion Set ApiVersionName = " + GetCurrentApiVersion();
-                        //DbClient.ExecuteProcedureWithQuery(query, null, ExecuteType.ExecuteNonQuery);
-                        //context.Request.Headers.Remove("Api-Version");
+                       
                         return;
                     }
                 }

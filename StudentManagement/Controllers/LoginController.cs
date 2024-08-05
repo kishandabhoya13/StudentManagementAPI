@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using StudentManagement_API.DataContext;
 using StudentManagement_API.Models.Models;
 using StudentManagement_API.Models.Models.DTO;
 using StudentManagement_API.Services;
@@ -43,7 +44,11 @@ namespace StudentManagement_API.Controllers
                 if (jwtClaimsDto1 != null && jwtClaimsDto1.StudentId != 0)
                 {
                     jwtClaimsDto1.RoleId = 3;
-                    _response.result = jwtClaimsDto1;
+                    RoleBaseResponse<JwtClaimsDto> roleBaseResponse = new()
+                    {
+                        data = jwtClaimsDto1,
+                    };
+                    _response.result = roleBaseResponse;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                     return _response;
@@ -51,7 +56,11 @@ namespace StudentManagement_API.Controllers
                 else
                 {
                     JwtClaimsDto jwtClaimsDto = _professorHodServices.CheckUserNamePassword(studentLoginDto);
-                    _response.result = jwtClaimsDto;
+                    RoleBaseResponse<JwtClaimsDto> roleBaseResponse = new()
+                    {
+                        data = jwtClaimsDto,
+                    };
+                    _response.result = roleBaseResponse;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                     return _response;
@@ -82,6 +91,64 @@ namespace StudentManagement_API.Controllers
             catch (Exception ex)
             {
                 return new SettingDto();
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("ProfessorDetails")]
+        public ActionResult<APIResponse> ProfessorDetails(int UserId)
+        {
+            try
+            {
+
+                ProfessorHod professorHod = _studentServices.ProfessorBlockUnblockDetails(UserId);
+
+                RoleBaseResponse<ProfessorHod> roleBaseResponse = new()
+                {
+                    data = professorHod,
+                };
+                _response.result = roleBaseResponse;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                return _response;
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("StudentDetail")]
+        public ActionResult<APIResponse> StudentDetail(int UserId)
+        {
+            try
+            {
+
+                Student student= _studentServices.StudentBlockUnblockDetails(UserId);
+
+                RoleBaseResponse<Student> roleBaseResponse = new()
+                {
+                    data = student,
+                };
+                _response.result = roleBaseResponse;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                return _response;
             }
         }
     }

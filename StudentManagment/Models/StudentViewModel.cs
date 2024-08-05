@@ -53,5 +53,9 @@ namespace StudentManagment.Models
         [RegularExpression("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", ErrorMessage = "Enter Correct Email")]
         [Required]
         public string Email { get; set; }
+
+        public bool? IsConfirmed { get; set; } = null;
+
+        public bool? IsRejected { get; set; } = null;
     }
 }

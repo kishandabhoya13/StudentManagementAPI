@@ -22,5 +22,9 @@ namespace StudentManagement_API.Models.Models
         public int RoleId { get; set; } 
         
         public string? JwtToken { get; set; } = null;
+
+        public int TotalRecords { get; set; } = 0;
+
+        public bool IsBlocked { get; set; }
     }
 }

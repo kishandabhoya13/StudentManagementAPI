@@ -23,6 +23,7 @@ namespace WindowServices
     {
         private Timer timer;
         private Timer timer2;
+        private Timer timer3;
 
         private static Logger logger = LogManager.GetCurrentClassLogger();
         private readonly IConfiguration _configuration;
@@ -53,7 +54,9 @@ namespace WindowServices
             {
                 System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 var emailControl = new EmailControl(_configuration,_dbServices);
+                var rateAlertControl = new RateAlertControl(_dbServices,_configuration);
                 emailControl.SendEmail();
+                rateAlertControl.SendRateAlertMail();
             }
             catch(Exception ex)
             {
@@ -83,6 +86,17 @@ namespace WindowServices
             timer2 = new Timer(runInterval2.TotalMilliseconds);
             timer2.Elapsed += this.OnTimedSecondEvent;
             timer2.Enabled = true;
+
+            var runIntervalString3 = System.Configuration.ConfigurationManager.AppSettings["RunInterval3"];
+            TimeSpan runInterval3;
+            if (!TimeSpan.TryParseExact(runIntervalString3, "g", CultureInfo.InvariantCulture, out runInterval3))
+            {
+                return false;
+            }
+            timer3 = new Timer(runInterval3.TotalMilliseconds);
+            timer3.Elapsed += this.OnTimedThirdEvent;
+            timer3.Enabled = true;
+
             return true;
         }
 
@@ -110,6 +124,15 @@ namespace WindowServices
             timer2.Start();
         }
 
+        private void OnTimedThirdEvent(object state, ElapsedEventArgs e)
+        {
+            timer3.Stop();
+            this.RunThirdTasks();
+            timer3.Start();
+
+
+        }
+
         private void RunTasks()
         {
             try
@@ -134,6 +157,24 @@ namespace WindowServices
             {
                 System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 logger.Info("Second Service is doing background work.");
+            }
+            catch (Exception ex)
+            {
+                string stackTrace = !string.IsNullOrEmpty(ex.StackTrace) ? ex.StackTrace : "";
+                string source = !string.IsNullOrEmpty(ex.Source) ? ex.Source : "";
+                string exceptionMessage = !string.IsNullOrEmpty(ex.Message) ? ex.Message : "";
+                string message = "Start - Error running Rate Alert service , StackTrace : " + stackTrace + " , Source : " + source + " , Exception Message : " + exceptionMessage;
+                logger.Fatal(ex, message);
+            }
+        }
+
+        private void RunThirdTasks()
+        {
+            try
+            {
+                System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                var rateAlertControl = new RateAlertControl(_dbServices, _configuration);
+                rateAlertControl.SendRateAlertMail();
             }
             catch (Exception ex)
             {

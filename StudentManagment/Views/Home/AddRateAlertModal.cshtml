@@ -1,0 +1,192 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+@model CurrencyRateViewModel
+<div id="AddRateAlertModal" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Rate Alert</h5>
+                <button type="button"
+                        class="btn-close btn-close-custom"
+                        data-bs-dismiss="modal"></button>
+            </div>
+            <form class="" asp-action="UpsertRateAlert" asp-controller="Home">
+                <input asp-for="RateAlertId" type="hidden" />
+                <input asp-for="Rate" id="rate-input" type="hidden" />
+                <div class="modal-body add-rate-main-div">
+                    <div class="currency-main-div">
+                        <div class="currency-dropdown-div">
+                            <select id="baseCurrency-dropdown"
+                                    asp-for="BaseCurrency"
+                                    class="form-control currencyDropdown-rate">
+                                @foreach (var currency in Model.Currencies)
+                                {
+                                    if (Model.BaseCurrency == currency)
+                                    {
+                                        <option class="send-order-options" selected value="@currency">@currency</option>
+                                    }
+                                    else
+                                    {
+                                        <option class="send-order-options" value="@currency">@currency</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <span><i style="color: #695cfe;" class="fa-solid fa-arrow-right"></i></span>
+                        <div class="currency-dropdown-div">
+                            <select id="toCurrency-dropdown"
+                                    asp-for="ToCurrency"
+                                    class="form-control currencyDropdown-rate">
+                                @foreach (var currency in Model.Currencies)
+                                {
+                                    if (Model.ToCurrency == currency)
+                                    {
+                                        <option class="send-order-options" selected value="@currency">@currency</option>
+                                    }
+                                    else
+                                    {
+                                        <option class="send-order-options" value="@currency">@currency</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="current-rate-content mt-5">
+                        <div class="content-text">
+                            <span>Current Rate : 1 <span id="baseCurrency">@Model.BaseCurrency</span> = <span style="color: #695cfe;" id="rate">@Model.Rate</span> <span id="toCurrency">@Model.ToCurrency</span></span>
+                            <div class="d-flex">
+                                <img class="rate-loading-img" src="~/Images/load.gif" alt="load" /><span class="ms-2">Rate is 10 sec ago</span>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="form-content mt-5">
+                            <span class="pe-3">Notify me when rate is : </span><input type="number" id="customRate" asp-for="AskRate" class="rate-input" />
+                        </div>
+                        <div class="rate-email-div mt-4">
+                            <span class="">Send me Email On</span>
+                            <div class="form-check mt-2">
+                                <label class="form-check-label" for="flexRadioDefault1">
+                                    @Model.Email
+                                </label>
+                                <input class="form-check-input" type="radio" value="@Model.Email" asp-for="Email" id="flexRadioDefault1">
+
+                            </div>
+                        </div>
+                        <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
+                            <button class="btn btn-primary me-md-2 submit-btn" type="submit">
+                                Submit
+                            </button>
+                            <button class="btn btn-primary cancel-btn" data-bs-dismiss="modal" type="button">
+                                Cancel
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<div id="currencyOverlay" style="display: none;"></div>
+<div id="currencyLoader" style="display: none;">
+    <img src="~/Images/circle.gif" alt="gif" class="loader-img" />
+</div>
+
+
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<link href="~/summernote/summernote.css" rel="stylesheet" />
+<script src="~/summernote/summernote.js"></script>
+<script>
+
+    var intervalId;
+    $(document).ready(function () {
+        function showLoader() {
+            console.log("show");
+            $('#currencyOverlay').show();
+            $('#currencyLoader').show();
+        }
+
+        function hideLoader() {
+            console.log("hide");
+            $('#currencyOverlay').hide();
+            $('#currencyLoader').hide();
+        }
+
+        function getData() {
+            console.log("call");
+            var baseCurrency = $("#baseCurrency-dropdown").val();
+            var toCurrency = $("#toCurrency-dropdown").val();
+            console.log(baseCurrency);
+            console.log(toCurrency);
+
+            var currencyPair = baseCurrency + toCurrency;
+            console.log(currencyPair);
+            showLoader();
+
+            $.ajax({
+                url: 'GetPairCurrentRate',
+                type: 'GET',
+                data:
+                {
+                    currencyPair: currencyPair,
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                    $('#baseCurrency').text(response.baseCurrency);
+                    $('#rate').text(response.rate);
+                    //$("#customRate").val(response.rate);
+                    $('#toCurrency').text(response.toCurrency);
+                    $("#rate-input").val(response.rate);
+
+                    hideLoader();
+                    console.log(response);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    hideLoader();
+                    console.error("Error fetching data:", textStatus, errorThrown);
+                }
+            });
+        }
+        //setInterval(getData, 10000);
+        $("#baseCurrency-dropdown").on("change", function () {
+            getData();
+        });
+
+        $("#toCurrency-dropdown").on("change", function () {
+            getData();
+        });
+
+        function startInterval() {
+            if (!intervalId) {
+                intervalId = setInterval(getData, 10000);
+            }
+        }
+
+        function stopInterval() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+
+        $('#AddRateAlertModal').on('shown.bs.modal', function () {
+            startInterval();
+        });
+
+        $('#AddRateAlertModal').on('hidden.bs.modal', function () {
+            stopInterval();
+        });
+    });
+
+
+</script>

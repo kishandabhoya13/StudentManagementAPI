@@ -114,8 +114,8 @@
                 data: secondApiRequest,
                 dataType: "JSON",
                 dataSrc: function (response) {
-                    if (response == false) {
-                        window.location.href = '/Login/Logout';
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
                     }
                     TOTAL_ITEMS = response.totalItems;
                     return response.data;
@@ -221,8 +221,8 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
-                    if (response == false) {
-                        window.location.href = '/Login/Logout';
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
                     }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
@@ -249,8 +249,8 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
-                    if (response == false) {
-                        window.location.href = '/Login/Logout';
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
                     }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
@@ -283,8 +283,8 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
-                    if (response == false) {
-                        window.location.href = '/Login/Logout';
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
                     }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
@@ -315,8 +315,8 @@
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
-                    if (response == false) {
-                        window.location.href = '/Login/Logout';
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
                     }
                     console.log(response);
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
@@ -341,6 +341,9 @@
                 ScheduledEmailId: scheduledEmailId,
             },
             success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
                 $('#popups').html(response)
                 $('#SendEmailModal').modal("show");
             },
@@ -349,26 +352,6 @@
             }
         });
     }
-    //function OpenEmailModal(scheduledEmailId) {
-    //    $('#popups').empty();
-    //    $('#SendEmailModal').modal('hide');
-    //    $.ajax({
-    //        type: "get",
-    //        url: '@Url.Action("SendEmailModal","Home")',
-    //        data: {},
-    //        success: function (response) {
-    //            $('#popups').empty();
-    //            console.log($('#popups'));
-    //            $('#popups').html(response)
-    //            console.log($('#SendEmailModal'));
-
-    //            $('#SendEmailModal').modal("show");
-    //        },
-    //        error: function (xhr, status, error) {
-    //            console.error(error + "djsfhsdjkfhsdkjfh");
-    //        }
-    //    });
-    //};
 </script>
 
 <script>

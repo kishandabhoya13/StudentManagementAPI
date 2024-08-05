@@ -22,5 +22,7 @@ namespace StudentManagement.Models
         public int RoleId { get; set; } 
         
         public string? JwtToken { get; set; } = null;
+
+        public bool IsBlocked { get; set; }
     }
 }

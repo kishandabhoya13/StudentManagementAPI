@@ -1,4 +1,5 @@
 ﻿using StudentManagement_API.Models.Models;
+using StudentManagement_API.Models.Models.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,9 @@ namespace WindowServices.Services
         bool IsPDF(byte[] bytes);
 
         void UpdateAttachmentEmailLogId(IList<EmailLogs> attachments, int emailLogId);
+
+        IList<CurrencyPairDto> GetMatchedRateAlert();
+
+        void UpdateRateAlert(int RateAlertId);
     }
 }

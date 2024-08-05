@@ -13,6 +13,11 @@ using System.Net.Mail;
 using System.Text;
 using System.IO;
 using System.Web.Helpers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using StudentManagement_API.DataContext;
+using static DemoApiWithoutEF.Utilities.Enums;
+using System.Linq.Expressions;
 
 namespace StudentManagement_API.Controllers
 {
@@ -70,7 +75,7 @@ namespace StudentManagement_API.Controllers
         {
             try
             {
-                ProfessorHod professorHod = _studentServices.GetData<ProfessorHod>("Select Id from ProfessorHod where Id=" + updateJwtDTo.Id, "ProfessorHod");
+                ProfessorHod professorHod = _studentServices.GetData<ProfessorHod>("Select Id from ProfessorHod where Id=" + updateJwtDTo.Id);
                 if (professorHod.Id <= 0)
                 {
                     _response.IsSuccess = false;
@@ -81,6 +86,7 @@ namespace StudentManagement_API.Controllers
                 _professorHodServices.UpdateJwtToken(updateJwtDTo.token, updateJwtDTo.Id);
                 //_studentServices.UpdateStudent(studentUpdateDto);
                 _response.IsSuccess = true;
+                _response.result = new RoleBaseResponse<bool>() { data = true };
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;
 
@@ -120,7 +126,7 @@ namespace StudentManagement_API.Controllers
                     {
                         foreach (var attachment in emailLogs.FileNameWithAttachments)
                         {
-                            _studentServices.AddEmailAttachments(attachment.Value,attachment.Key, scheduledEmailId, "[dbo].[Add_DataIn_EmailAttachments]");
+                            _studentServices.AddEmailAttachments(attachment.Value, attachment.Key, scheduledEmailId, "[dbo].[Add_DataIn_EmailAttachments]");
                         }
                     }
 
@@ -148,7 +154,7 @@ namespace StudentManagement_API.Controllers
                             foreach (var attachmentByte in emailLogs.FileNameWithAttachments)
                             {
                                 string contentType;
-                                string fileName =attachmentByte.Key; // Default to JPEG extension
+                                string fileName = attachmentByte.Key; // Default to JPEG extension
 
                                 // Check if the byte array represents a PDF
                                 if (_studentServices.IsPDF(attachmentByte.Value))
@@ -195,6 +201,156 @@ namespace StudentManagement_API.Controllers
                 _response.IsSuccess = false;
                 _response.StatusCode = HttpStatusCode.BadRequest;
             }
+            return _response;
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("GetAllProfessors")]
+        public ActionResult<APIResponse> GetAllProfessors(PaginationDto paginationDto)
+        {
+            if (paginationDto.StartIndex < 0 || paginationDto.PageSize < 0)
+            {
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return _response;
+            }
+            var role = "";
+            if (_jwtService.ValidateToken(paginationDto.JwtToken, out JwtSecurityToken jwtSecurityToken))
+            {
+                role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
+            }
+
+            IList<ProfessorHod> professorHods = _studentServices.GetDataWithPagination<ProfessorHod>(paginationDto, "[dbo].[Get_Professors_list]");
+            int totalItems = professorHods.Count > 0 ? professorHods.FirstOrDefault(x => x.Id != 0)?.TotalRecords ?? 0 : 0;
+            int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
+            RoleBaseResponse<IList<ProfessorHod>> roleBaseResponse = new()
+            {
+                data = professorHods,
+                Role = role,
+                StartIndex = paginationDto.StartIndex,
+                PageSize = paginationDto.PageSize,
+                TotalItems = totalItems,
+                TotalPages = TotalPages,
+                CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize),
+                searchQuery = paginationDto.searchQuery,
+            };
+
+            _response.result = roleBaseResponse;
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.OK;
+
+
+
+            return _response;
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPut]
+        public ActionResult<APIResponse> BlockUnblockProfessor(ProfessorHod professorHod)
+        {
+            try
+            {
+                string sql = "";
+                if (professorHod.IsBlocked)
+                {
+                    sql = "Update ProfessorHod Set IsBlocked = 1 Where Id = " + professorHod.Id;
+
+                }
+                else
+                {
+                    sql  = "Update ProfessorHod Set IsBlocked = 0 Where Id = " + professorHod.Id;
+                }
+                DbClient.ExecuteProcedureWithQuery(sql, null, ExecuteType.ExecuteNonQuery);
+                _response.result = new RoleBaseResponse<bool>() { data = true }; ;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool>() { data = false }; ;
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+            }
+            return _response;
+
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPut("BlockUnblockStudent")]
+        public ActionResult<APIResponse> BlockUnblockStudent(Student student)
+        {
+            try
+            {
+                string sql = "";
+                if (student.IsBlocked)
+                {
+                    sql = "Update Students Set IsBlocked = 0 Where StudentId = " + student.StudentId;
+
+                }
+                else
+                {
+                    sql = "Update Students Set IsBlocked = 1 Where StudentId = " + student.StudentId;
+                }
+                DbClient.ExecuteProcedureWithQuery(sql, null, ExecuteType.ExecuteNonQuery);
+                _response.result = new RoleBaseResponse<bool>() { data = true }; ;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool>() { data = false }; ;
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+            }
+            return _response;
+
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("GetAllBlockedProfessors")]
+        public ActionResult<APIResponse> GetAllBlockedProfessors(PaginationDto paginationDto)
+        {
+            if (paginationDto.StartIndex < 0 || paginationDto.PageSize < 0)
+            {
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return _response;
+            }
+            var role = "";
+            if (_jwtService.ValidateToken(paginationDto.JwtToken, out JwtSecurityToken jwtSecurityToken))
+            {
+                role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
+            }
+
+            IList<ProfessorHod> professorHods = _studentServices.GetDataWithPagination<ProfessorHod>(paginationDto, "[dbo].[Get_blocked_Professors_list]");
+            int totalItems = professorHods.Count > 0 ? professorHods.FirstOrDefault(x => x.Id != 0)?.TotalRecords ?? 0 : 0;
+            int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
+            RoleBaseResponse<IList<ProfessorHod>> roleBaseResponse = new()
+            {
+                data = professorHods,
+                Role = role,
+                StartIndex = paginationDto.StartIndex,
+                PageSize = paginationDto.PageSize,
+                TotalItems = totalItems,
+                TotalPages = TotalPages,
+                CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize),
+                searchQuery = paginationDto.searchQuery,
+            };
+
+            _response.result = roleBaseResponse;
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.OK;
+
+
+
             return _response;
         }
 

@@ -1,0 +1,244 @@
+﻿@using StudentManagment.Models.DataModels;
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@{
+    ViewData["Title"] = "Exchange Rate";
+    var currentDate = DateTime.Now;
+    var currentMonth = currentDate.Month;
+}
+
+@model ExchangeRate
+
+<div class="container-fluid mt-3">
+    <form class="pt-4" id="currency-form">
+        <div class="row">
+            <div class="col-md-6 col-lg-6 col-sm-12 col-12 mb-5">
+                <div class="my-profile-input_box">
+                    <label for="baseCurrency-dropdown" class="currency-label">From Currency</label>
+                    <select id="baseCurrency-dropdown"
+                            asp-for="BaseCurrency"
+                            class="form-control currencyDropdown">
+                        <option class="send-order-options">USD</option>
+                        @foreach (var course in Model.Currencies)
+                        {
+                            <option class="send-order-options" value="@course">@course</option>
+                        }
+                    </select>
+                    <i class="fa fa-angle-down"
+                       id="currency-dropdownarrow"></i>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-6 col-sm-12 col-12 mb-5">
+                <div class="my-profile-input_box">
+                    <label for="toCurrency-dropdown">To Currency</label>
+                    <select id="toCurrency-dropdown"
+                            asp-for="ToCurrency"
+                            class="form-control currencyDropdown">
+                        <option class="send-order-options">USD</option>
+                        @foreach (var course in Model.Currencies)
+                        {
+                            <option class="send-order-options" value="@course">@course</option>
+                        }
+                    </select>
+                    <i class="fa fa-angle-down"
+                       id="currency-dropdownarrow"></i>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="date"
+                           class="form-control"
+                           id="startDate"
+                           asp-for="StartDate"
+                           placeholder="Start Date" />
+                    <label for="floatingsubject">Start Date</label>
+
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-12">
+                <div class="form-group form-floating mb-3">
+                    <input type="date"
+                           class="form-control"
+                           id="endDate"
+                           asp-for="EndDate"
+                           placeholder="EndDate" />
+                    <label for="floatingsubject">End Date</label>
+                    <span class="text-danger" asp-validation-for="EndDate"></span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button style="width:auto;" class="btn me-md-2 submit-btn" type="submit">
+                Search
+            </button>
+        </div>
+    </form>
+
+    <div class="d-flex justify-content-center align-items-center mt-5">
+        <canvas width="400" height="100" id="myChart"></canvas>
+
+    </div>
+</div>
+
+<div id="currencyOverlay" style="display: none;"></div>
+<div id="currencyLoader" style="display: none;">
+    <img src="~/Images/circle.gif" alt="gif" class="loader-img" />
+</div>
+
+
+<script>
+
+    $(document).ready(function () {
+        function showLoader() {
+            console.log("show");
+            $('#currencyOverlay').show();
+            $('#currencyLoader').show();
+        }
+
+        function hideLoader() {
+            console.log("hide");
+            $('#currencyOverlay').hide();
+            $('#currencyLoader').hide();
+        }
+        // Initialize the chart without data
+        var currentMonth = new Date().getMonth() + 1;
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                //labels: [],
+                datasets: [{
+                    label: '',
+                    data: [],
+                    borderWidth: 1,
+                    fill: false,
+                    borderColor: '#FF6384',
+                    backgroundColor: '#FFB1C1',
+                    tension: 0.1,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        ticks: {
+                            stepSize: 0.09,
+                        },
+                        //beginAtZero: true
+                    },
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        time: {
+                            unit: 'day',
+                        }
+                    },
+                }
+            },
+
+        }) ;
+
+
+        var from = document.getElementById("baseCurrency-dropdown").value;
+        var to = document.getElementById("toCurrency-dropdown").value;
+        var startDate = document.getElementById("startDate").value;
+        var endDate = document.getElementById("endDate").value;
+
+
+        GetChart(from, to, startDate, endDate);
+
+        function GetChart(from, to, startDate, endDate) {
+            var exchangeRate = {
+                StartDate: startDate,
+                EndDate: endDate,
+                BaseCurrency: from,
+                ToCurrency: to,
+            };
+            showLoader();
+            $.ajax({
+                url: 'GetExchangeRatesDetails',
+                type: 'GET',
+                dataType: 'json',
+                data: exchangeRate,
+                success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                    var labels = [];
+                    var dataPoints = [];
+
+                    Object.entries(response.data.ratesWithDate).forEach(([date, rate]) => {
+                        labels.push(date);
+                        dataPoints.push(rate);
+                    });
+                    const backgroundColors = [];
+
+                    for (let i = 0; i < dataPoints.length; i++) {
+                        if (i === 0 || i === dataPoints.length - 1) {
+                            backgroundColors.push('#FFB1C1'); // No comparison for first and last points
+                        } else {
+                            const prev = dataPoints[i - 1];
+                            const current = dataPoints[i];
+                            const next = dataPoints[i + 1];
+
+                            if (current < prev) {
+                                backgroundColors.push('#FFB1C1'); // Current value is lower than the previous value
+                            } else if (current > next) {
+                                backgroundColors.push('green'); // Current value is higher than the next value
+                            } else {
+                                backgroundColors.push('green'); // Default color
+                            }
+                        }
+                    }
+
+                    myChart.data.labels = labels;
+                    myChart.data.datasets[0].data = dataPoints;
+                    myChart.data.datasets[0].backgroundColor = backgroundColors;
+                    myChart.data.datasets[0].label = response.monthName + " / Exchange Rate 1 " + response.data.baseCurrency + " = " + response.data.toCurrency;
+
+                    myChart.update();
+                    hideLoader();
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    hideLoader();
+                    console.error("Error fetching data:", textStatus, errorThrown);
+                }
+            });
+        }
+
+
+        $('#currency-form').on('submit', function (event) {
+            event.preventDefault();
+            if (this.checkValidity()) {
+                var from = document.getElementById("baseCurrency-dropdown").value;
+                var to = document.getElementById("toCurrency-dropdown").value;
+                var startDate = document.getElementById("startDate").value;
+                var endDate = document.getElementById("endDate").value;
+
+                GetChart(from, to, startDate, endDate);
+            }
+
+        });
+    });
+
+    $('#startDate').change(function () {
+        var starttime = $(this).val();
+        $('#endDate').attr('min', starttime);
+    });
+
+    $('#endDate').change(function () {
+        var starttime = $("#startDate").val();
+        $('#endDate').attr('min', starttime);
+    });
+
+    const inputElements = document.getElementById('startDate');
+    const inputElements2 = document.getElementById('endDate');
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear());
+    inputElements.setAttribute('max', maxDate.toISOString().split('T')[0]);
+    inputElements2.setAttribute('max', maxDate.toISOString().split('T')[0]);
+</script>

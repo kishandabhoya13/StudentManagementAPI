@@ -10,7 +10,7 @@ using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StudentManagement.Models;
-using StudentManagement_API.Models.Models.DTO;
+using StudentManagement.Models.DTO;
 using StudentManagement_API.Services.CacheService;
 using StudentManagment.Models;
 using StudentManagment.Models.DataModels;
@@ -24,8 +24,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Web.Helpers;
 using System.Web.Razor.Tokenizer;
 
 namespace StudentManagment.Controllers
@@ -65,11 +67,17 @@ namespace StudentManagment.Controllers
             string token = HttpContext.Session.GetString("Jwt");
             SecondApiRequest secondApiRequest = new()
             {
-                RoleId = RoleId,
+                ControllerName = "Student",
+                MethodName = "GetStudent",
+                DataObject = JsonConvert.SerializeObject(StudentId.ToString()),
                 MethodType = "IsViewed",
-                PageName = "EditStudent"
+                PageName = "EditStudent",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2", "3" },
+                token = token,
             };
-            Student student = _baseServices.GetStudentByMaster(StudentId, token, secondApiRequest);
+            RoleBaseResponse<Student> roleBaseResponse = GetApiResponse<Student>(secondApiRequest);
+            Student student = roleBaseResponse.data;
             StudentViewModel studentViewModel = _mapper.Map<StudentViewModel>(student);
             return View(studentViewModel);
         }
@@ -117,7 +125,7 @@ namespace StudentManagment.Controllers
             };
             if (roleBaseResponse.IsAuthorize == false)
             {
-                return View("NotAuthorized");
+                return RedirectToAction("Logout", "Login");
             }
             return View(roleBaseResponse);
         }
@@ -150,7 +158,12 @@ namespace StudentManagment.Controllers
 
 
             };
+            int? role = HttpContext.Session.GetInt32("RoleId");
             RoleBaseResponse<IList<Student>> roleBaseResponse = GetApiResponse<IList<Student>>(newSecondApiRequest);
+            foreach (var data in roleBaseResponse.data)
+            {
+                data.currentUserRole = role;
+            }
             if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
             {
                 return Json(false);
@@ -177,7 +190,7 @@ namespace StudentManagment.Controllers
                 MethodType = "IsViewed",
                 PageName = "GetAllStudents",
                 RoleId = RoleId,
-                RoleIds = new List<string> { "1" },
+                RoleIds = new List<string> { "1", "2" },
                 token = token,
 
             };
@@ -258,11 +271,15 @@ namespace StudentManagment.Controllers
                 MethodType = "IsViewed",
                 PageName = "GetAllCourses",
                 RoleId = RoleId,
-                RoleIds = new List<string> { "1", "2" },
+                RoleIds = new List<string> { "1", "2", "3" },
                 token = token,
             };
 
             roleBaseResponse = GetApiResponse<IList<Course>>(CourseecondApiRequest);
+            if (roleBaseResponse.IsAuthorize == false)
+            {
+                return RedirectToAction("Logout", "Login");
+            }
             studentViewModel.Courses = roleBaseResponse.data;
             return View(studentViewModel);
         }
@@ -273,6 +290,8 @@ namespace StudentManagment.Controllers
             string token = HttpContext.Session.GetString("Jwt") ?? "";
             studentViewModel.RoleId = HttpContext.Session.GetInt32("RoleId");
             SecondApiRequest secondApiRequest = new();
+            studentViewModel.IsConfirmed = true;
+            studentViewModel.IsRejected = false;
             if (studentViewModel.StudentId != 0)
             {
                 secondApiRequest.ControllerName = "Student";
@@ -281,7 +300,7 @@ namespace StudentManagment.Controllers
                 secondApiRequest.PageName = "EditStudent";
                 secondApiRequest.MethodType = "IsManaged";
                 secondApiRequest.RoleId = studentViewModel.RoleId;
-                secondApiRequest.RoleIds = new List<string> { "1" };
+                secondApiRequest.RoleIds = new List<string> { "1", "2", "3" };
                 secondApiRequest.token = token;
 
             }
@@ -371,6 +390,10 @@ namespace StudentManagment.Controllers
                 token = token,
             };
             RoleBaseResponse<IList<Course>> roleBaseResponse1 = GetApiResponse<IList<Course>>(secondApiRequest);
+            if (roleBaseResponse1.IsAuthorize == false)
+            {
+                return RedirectToAction("Logout", "Login");
+            }
             RoleBaseResponse<Book> roleBaseResponse = new()
             {
                 Courses = roleBaseResponse1.data,
@@ -456,6 +479,10 @@ namespace StudentManagment.Controllers
                 };
                 //Book book = _baseServices.GetBook(BookId ?? 0, token, secondApiRequest);
                 RoleBaseResponse<Book> roleBaseResponse = GetApiResponse<Book>(secondApiRequest);
+                if (roleBaseResponse.IsAuthorize == false)
+                {
+                    return RedirectToAction("Logout", "Login");
+                }
                 bookViewModel = _mapper.Map<BookViewModel>(roleBaseResponse.data);
                 if (roleBaseResponse.data.Photo != null)
                 {
@@ -478,6 +505,10 @@ namespace StudentManagment.Controllers
                 token = token,
             };
             RoleBaseResponse<IList<Course>> roleBaseResponse1 = GetApiResponse<IList<Course>>(secondApiRequest1);
+            if (roleBaseResponse1.IsAuthorize == false)
+            {
+                return RedirectToAction("Logout", "Login");
+            }
             bookViewModel.Courses = roleBaseResponse1.data;
             return View(bookViewModel);
         }
@@ -492,8 +523,42 @@ namespace StudentManagment.Controllers
             }
             bookViewModel.JwtToken = HttpContext.Session.GetString("Jwt") ?? "";
             bookViewModel.RoleId = HttpContext.Session.GetInt32("RoleId");
-            bool isSuccess = await _baseServices.UpsertBook(bookViewModel);
-            if (isSuccess)
+            if (bookViewModel.PhotoFile != null)
+            {
+                IFormFile SingleFile = bookViewModel.PhotoFile;
+                string fileName = Guid.NewGuid().ToString() + Path.GetFileName(SingleFile.FileName);
+                bookViewModel.PhotoName = fileName;
+                using var memoryStream = new MemoryStream();
+                await SingleFile.CopyToAsync(memoryStream);
+                var imageData = memoryStream.ToArray();
+                bookViewModel.Photo = imageData;
+            }
+            SecondApiRequest secondApiRequest = new();
+            if (bookViewModel.BookId != 0)
+            {
+                secondApiRequest.ControllerName = "Book";
+                secondApiRequest.MethodName = "UpdateBook";
+                secondApiRequest.DataObject = JsonConvert.SerializeObject(bookViewModel);
+                secondApiRequest.PageName = "UpsertBook";
+                secondApiRequest.MethodType = "IsManaged";
+                secondApiRequest.RoleId = bookViewModel.RoleId;
+                secondApiRequest.RoleIds = new List<string> { "1" };
+                secondApiRequest.token = bookViewModel.JwtToken;
+            }
+            else
+            {
+                secondApiRequest.ControllerName = "Book";
+                secondApiRequest.MethodName = "CreateBook";
+                secondApiRequest.DataObject = JsonConvert.SerializeObject(bookViewModel);
+                secondApiRequest.PageName = "UpsertBook";
+                secondApiRequest.MethodType = "IsInsert";
+                secondApiRequest.RoleId = bookViewModel.RoleId;
+                secondApiRequest.RoleIds = new List<string> { "1" };
+                secondApiRequest.token = bookViewModel.JwtToken;
+            }
+
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(secondApiRequest);
+            if (roleBaseResponse.data)
             {
                 return RedirectToAction("AllBooks", "Home");
             }
@@ -528,8 +593,20 @@ namespace StudentManagment.Controllers
                 JwtToken = HttpContext.Session.GetString("Jwt") ?? "",
                 RoleId = HttpContext.Session.GetInt32("RoleId"),
             };
-            bool isSuccess = _baseServices.DeleteBook(bookViewModel);
-            if (isSuccess)
+
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Book",
+                MethodName = "DeleteBook",
+                DataObject = JsonConvert.SerializeObject(bookViewModel),
+                PageName = "DeleteBook",
+                MethodType = "IsManaged",
+                RoleId = bookViewModel.RoleId,
+                RoleIds = new List<string> { "1" },
+                token = bookViewModel.JwtToken,
+            };
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(secondApiRequest);
+            if (roleBaseResponse.data)
             {
                 return RedirectToAction("AllBooks");
             }
@@ -550,10 +627,25 @@ namespace StudentManagment.Controllers
                 BookViewModel bookViewModel = new()
                 {
                     BookId = BookId,
-                    JwtToken = HttpContext.Session.GetString("Jwt") ?? "",
                     RoleId = HttpContext.Session.GetInt32("RoleId"),
                 };
-                Book book = _baseServices.GetBookPhoto(bookViewModel);
+                SecondApiRequest secondApiRequest = new()
+                {
+                    ControllerName = "Book",
+                    MethodName = "GetBookPhoto",
+                    DataObject = JsonConvert.SerializeObject(bookViewModel),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllBooks",
+                    RoleId = bookViewModel.RoleId,
+                    RoleIds = new List<string> { "1", "2" },
+                    token = HttpContext.Session.GetString("Jwt") ?? ""
+                };
+                RoleBaseResponse<Book> roleBaseResponse = GetApiResponse<Book>(secondApiRequest);
+                if (roleBaseResponse.IsAuthorize == false)
+                {
+                    return RedirectToAction("Logout", "Login");
+                }
+                Book book = roleBaseResponse.data;
                 if (book.Photo != null)
                 {
                     return File(book.Photo, "image/jpeg");
@@ -581,11 +673,30 @@ namespace StudentManagment.Controllers
                 return View("NotAuthorized");
             }
             string token = HttpContext.Session.GetString("Jwt") ?? "";
-            EmailViewModel emailViewModel = new();
-            emailViewModel.StudentId = 0;
+            EmailViewModel emailViewModel = new()
+            {
+                StudentId = 0
+            };
             if (ScheduledEmailId != 0)
             {
-                emailViewModel = _baseServices.GetScheduledEmailById(RoleId, token, ScheduledEmailId);
+                SecondApiRequest secondApiRequest = new()
+                {
+                    ControllerName = "Email",
+                    MethodName = "GetScheduledEmailById",
+                    DataObject = JsonConvert.SerializeObject(ScheduledEmailId.ToString()),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllStudents",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "1" },
+                    token = token
+
+                };
+                RoleBaseResponse<EmailViewModel> roleBaseResponse = GetApiResponse<EmailViewModel>(secondApiRequest);
+                if (roleBaseResponse.IsAuthorize == false)
+                {
+                    return Json(false);
+                }
+                emailViewModel = roleBaseResponse.data;
                 //if (emailViewModel.AttachmentsByte != null && emailViewModel.AttachmentsByte.Count > 0)
                 //{
                 //    emailViewModel.AttachmentFiles = new();
@@ -609,16 +720,37 @@ namespace StudentManagment.Controllers
                 //    await Task.WhenAll(tasks);
                 //}
             }
-            emailViewModel.StudentsEmails = _baseServices.GetEmailsAndIds(RoleId, token);
-            string filePath = Path.Combine("wwwroot", "EmailTemplate", "EmailTemplate.html");
-            string Body = System.IO.File.ReadAllText(filePath);
-            Body = Body.Replace("{{ date }}", DateTime.Now.ToString());
-            emailViewModel.Body = Body;
+            else
+            {
+                string filePath = Path.Combine("wwwroot", "EmailTemplate", "EmailTemplate.html");
+                string Body = System.IO.File.ReadAllText(filePath);
+                Body = Body.Replace("{{ date }}", DateTime.Now.ToString());
+                emailViewModel.Body = Body;
+            }
+
+            SecondApiRequest secondApiRequest1 = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetEmailsAndStudentIds",
+                DataObject = JsonConvert.SerializeObject(null),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+
+            };
+            RoleBaseResponse<IList<StudentsEmailAndIds>> roleBaseResponse1 = GetApiResponse<IList<StudentsEmailAndIds>>(secondApiRequest1);
+            if (roleBaseResponse1.IsAuthorize == false)
+            {
+                return Json(false);
+            }
+            emailViewModel.StudentsEmails = roleBaseResponse1.data;
             return View(emailViewModel);
         }
 
         [HttpPost]
-        public IActionResult SendEmail(EmailViewModel emailViewModel)
+        public async Task<IActionResult> SendEmail(EmailViewModel emailViewModel)
         {
             int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
             if (RoleId != 1)
@@ -631,7 +763,44 @@ namespace StudentManagment.Controllers
             if (emailViewModel.ScheduledEmailId != 0)
             {
                 emailViewModel.SentBy = HttpContext.Session.GetInt32("UserId");
-                _baseServices.UpdateScheduledEmailLog(emailViewModel);
+
+                if (emailViewModel.AttachmentFiles != null && emailViewModel.AttachmentFiles.Count > 0)
+                {
+                    emailViewModel.AttachmentsByte = new();
+                    var tasks = emailViewModel.AttachmentFiles.Select(async attachment =>
+                    {
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            try
+                            {
+                                await attachment.CopyToAsync(memoryStream);
+                                var imageData = memoryStream.ToArray();
+                                emailViewModel.AttachmentsByte.Add(imageData);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Handle or log the exception as needed
+                                Console.WriteLine($"Error copying attachment: {ex.Message}");
+                            }
+                        }
+
+
+                    });
+                    await Task.WhenAll(tasks);
+                }
+                SecondApiRequest secondApiRequest = new()
+                {
+                    ControllerName = "Email",
+                    MethodName = "AddEditScheduledEmailLogs",
+                    DataObject = JsonConvert.SerializeObject(emailViewModel),
+                    PageName = "EmailLogs",
+                    MethodType = "IsManaged",
+                    RoleId = emailViewModel.RoleId,
+                    RoleIds = new List<string> { "1" },
+                    token = token,
+                };
+                RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(secondApiRequest);
+                //_baseServices.UpdateScheduledEmailLog(emailViewModel);
             }
             else
             {
@@ -641,7 +810,20 @@ namespace StudentManagment.Controllers
                 if (emailViewModel.StudentId == 0)
                 {
                     EmailViewModel newemailViewModel = new();
-                    newemailViewModel.StudentsEmails = _baseServices.GetEmailsAndIds(RoleId, token);
+                    SecondApiRequest secondApiRequest = new()
+                    {
+                        ControllerName = "Student",
+                        MethodName = "GetEmailsAndStudentIds",
+                        DataObject = JsonConvert.SerializeObject(null),
+                        MethodType = "IsViewed",
+                        PageName = "GetAllStudents",
+                        RoleId = RoleId,
+                        RoleIds = new List<string> { "1" },
+                        token = token,
+
+                    };
+                    RoleBaseResponse<List<StudentsEmailAndIds>> roleBaseResponse = GetApiResponse<List<StudentsEmailAndIds>>(secondApiRequest);
+                    newemailViewModel.StudentsEmails = roleBaseResponse.data;
                     if (newemailViewModel.StudentsEmails.Count > 0)
                     {
                         foreach (var studentEmailsIds in newemailViewModel.StudentsEmails)
@@ -652,7 +834,19 @@ namespace StudentManagment.Controllers
                 }
                 else
                 {
-                    emailViewModel.Email = _baseServices.GetEmailFromStudentId(emailViewModel);
+                    SecondApiRequest secondApiRequest = new()
+                    {
+                        ControllerName = "Student",
+                        MethodName = "GetEmailFromStudentId",
+                        DataObject = JsonConvert.SerializeObject(emailViewModel),
+                        MethodType = "IsViewed",
+                        PageName = "GetAllStudents",
+                        RoleId = emailViewModel.RoleId,
+                        RoleIds = new List<string> { "1" },
+                        token = token,
+                    };
+                    RoleBaseResponse<EmailViewModel> roleBaseResponse = GetApiResponse<EmailViewModel>(secondApiRequest);
+                    emailViewModel.Email = roleBaseResponse.data.Email;
                     emailViewModel.Emails.Add(emailViewModel.Email);
                 }
                 //string filePath = Path.Combine("wwwroot", "EmailTemplate", "EmailTemplate.html");
@@ -661,7 +855,45 @@ namespace StudentManagment.Controllers
                 //Body = Body.Replace("{{ Subject }}", emailViewModel.Subject);
                 //Body = Body.Replace("{{ date }}", DateTime.Now.ToString());
                 //emailViewModel.Body = Body;
-                _baseServices.SendEmail(emailViewModel);
+
+
+                if (emailViewModel.AttachmentFiles != null && emailViewModel.AttachmentFiles.Count > 0)
+                {
+                    emailViewModel.FileNameWithAttachments = new();
+                    var tasks = emailViewModel.AttachmentFiles.Select(async attachment =>
+                    {
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            try
+                            {
+                                await attachment.CopyToAsync(memoryStream);
+                                var imageData = memoryStream.ToArray();
+                                emailViewModel.FileNameWithAttachments.Add(attachment.FileName, imageData);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Handle or log the exception as needed
+                                Console.WriteLine($"Error copying attachment: {ex.Message}");
+                            }
+                        }
+
+
+                    });
+                    await Task.WhenAll(tasks);
+                }
+                SecondApiRequest secondApiRequest1 = new()
+                {
+                    ControllerName = "ProfessorHod",
+                    MethodName = "SendEmail",
+                    DataObject = JsonConvert.SerializeObject(emailViewModel),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllStudents",
+                    RoleId = emailViewModel.RoleId,
+                    RoleIds = new List<string> { "1" },
+                    token = token,
+                };
+                RoleBaseResponse<bool> roleBaseResponse1 = GetApiResponse<bool>(secondApiRequest1);
+                //_baseServices.SendEmail(emailViewModel);
             }
 
             return RedirectToAction("AllEmails");
@@ -699,7 +931,28 @@ namespace StudentManagment.Controllers
             }
             secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
             secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
-            RoleBaseResponse<ScheduledEmailViewModel> roleBaseResponse = _baseServices.GetAllScheduledEmail(secondApiRequest);
+
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApiRequest.PageSize,
+                StartIndex = secondApiRequest.StartIndex,
+                OrderBy = secondApiRequest.OrderBy,
+                OrderDirection = secondApiRequest.OrderDirection,
+                searchQuery = secondApiRequest.searchQuery,
+            };
+            SecondApiRequest secondApiRequest1 = new()
+            {
+                ControllerName = "Email",
+                MethodName = "GetScheduledEmails",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "EmailLogs",
+                RoleId = secondApiRequest.RoleId,
+                RoleIds = new List<string> { "1" },
+                token = secondApiRequest.token,
+
+            };
+            RoleBaseResponse<IList<ScheduledEmailViewModel>> roleBaseResponse = GetApiResponse<IList<ScheduledEmailViewModel>>(secondApiRequest1);
             if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
             {
                 return Json(false);
@@ -728,7 +981,24 @@ namespace StudentManagment.Controllers
         {
             int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
             string token = HttpContext.Session.GetString("Jwt") ?? "";
-            RoleBaseResponse<CountEmailViewModel> roleBaseResponse = _baseServices.GetDayWiseEmailCount(month, year, RoleId, token);
+            CountEmailViewModel countEmailViewModel1 = new()
+            {
+                month = month,
+                year = year,
+            };
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Email",
+                MethodName = "GetDayWiseEmailCount",
+                DataObject = JsonConvert.SerializeObject(countEmailViewModel1),
+                MethodType = "IsViewed",
+                PageName = "EmailLogs",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token
+
+            };
+            RoleBaseResponse<IList<CountEmailViewModel>> roleBaseResponse = GetApiResponse<IList<CountEmailViewModel>>(secondApiRequest);
 
             if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
             {
@@ -799,6 +1069,529 @@ namespace StudentManagment.Controllers
                 client.Disconnect(true);
             }
             return View(emailViewModels);
+        }
+
+        public IActionResult GetLastApiTime()
+        {
+            string apiDate = HttpContext.Session.GetString("ApiCallTime");
+            if (apiDate != null)
+            {
+                DateTime datetime = DateTime.Parse(apiDate);
+                DateTime currentDateTime = DateTime.Now;
+                double difference = (currentDateTime - datetime).TotalMilliseconds;
+                return Json(difference);
+            }
+            return Json(false);
+        }
+
+        public IActionResult AllPandingStudents()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            if (RoleId != 1)
+            {
+                return View("NotAuthorized");
+            }
+            return View();
+        }
+
+        public IActionResult GetAllPendingStudents(SecondApiRequest secondApiRequest)
+        {
+            secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApiRequest.PageSize,
+                StartIndex = secondApiRequest.StartIndex,
+                OrderBy = secondApiRequest.OrderBy,
+                OrderDirection = secondApiRequest.OrderDirection,
+                searchQuery = secondApiRequest.searchQuery,
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetAllPendingStudents",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = secondApiRequest.RoleId,
+                RoleIds = new List<string> { "1" },
+                token = secondApiRequest.token,
+
+
+            };
+            RoleBaseResponse<IList<Student>> roleBaseResponse = GetApiResponse<IList<Student>>(newSecondApiRequest);
+            if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
+            {
+                return Json(false);
+            }
+            return Json(roleBaseResponse);
+        }
+
+
+        public IActionResult ApproveRejectModal(int StudentId, bool ApproveOrReject, string Email)
+        {
+            SignUpViewModel signUpViewModel = new()
+            {
+                StudentId = StudentId,
+                ApproveReject = ApproveOrReject,
+                Email = Email
+            };
+            return View(signUpViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult ApproveRejectRequest(SignUpViewModel signUpViewModel)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+
+            string filePath = Path.Combine("wwwroot", "EmailTemplate", "EmailTemplate.html");
+            string Body = System.IO.File.ReadAllText(filePath);
+            Body = Body.Replace("{{ date }}", DateTime.Now.ToString());
+            if (signUpViewModel.ApproveReject)
+            {
+                Body = Body.Replace("{{ Body }}", "Your Request is Approved By Hod You can Login Now");
+                Body = Body.Replace("{{ Subject }}", "Approved Request");
+            }
+            else
+            {
+                Body = Body.Replace("{{ Body }}", "Sorry, Your Request is Rejected By Hod");
+                Body = Body.Replace("{{ Subject }}", "Reject Request");
+            }
+            signUpViewModel.Body = Body;
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "ApproveRejectStudentRequest",
+                DataObject = JsonConvert.SerializeObject(signUpViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+            };
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
+
+            return RedirectToAction("AllPandingStudents");
+        }
+
+        [HttpGet]
+        [Route("/Home/checkemail/{email}")]
+        public IActionResult checkemail(string? email)
+        {
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetStudentByEmail",
+                DataObject = JsonConvert.SerializeObject(email),
+            };
+            RoleBaseResponse<StudentViewModel> roleBaseResponse = CallApiWithoutToken<StudentViewModel>(newSecondApiRequest);
+            var ExistingEmail = roleBaseResponse.data.Email;
+            return Json(new { exists = ExistingEmail });
+        }
+
+        [HttpGet]
+        [Route("/Home/checkusername/{username}")]
+        public IActionResult checkusername(string? username)
+        {
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetStudentByUserName",
+                DataObject = JsonConvert.SerializeObject(username),
+            };
+            RoleBaseResponse<StudentViewModel> roleBaseResponse = CallApiWithoutToken<StudentViewModel>(newSecondApiRequest);
+            var ExistingEmail = roleBaseResponse.data.UserName;
+            return Json(new { exists = ExistingEmail });
+        }
+
+        public IActionResult AllProfessors()
+        {
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            if (RoleId != 1)
+            {
+                return View("NotAuthorized");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult GetAllProfessors(SecondApiRequest secondApiRequest)
+        {
+
+            secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApiRequest.PageSize,
+                StartIndex = secondApiRequest.StartIndex,
+                OrderBy = secondApiRequest.OrderBy,
+                OrderDirection = secondApiRequest.OrderDirection,
+                searchQuery = secondApiRequest.searchQuery,
+                JwtToken = secondApiRequest.token,
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetAllProfessors",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "AllProfessors",
+                RoleId = secondApiRequest.RoleId,
+                RoleIds = new List<string> { "1" },
+                token = secondApiRequest.token,
+
+
+            };
+            RoleBaseResponse<IList<ProfessorHod>> roleBaseResponse = GetApiResponse<IList<ProfessorHod>>(newSecondApiRequest);
+            if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
+            {
+                return Json(false);
+            }
+            return Json(roleBaseResponse);
+        }
+
+        public IActionResult BlockUnblockProfessorModal(int Id, bool IsBlocked)
+        {
+            ProfessorHod professorHod = new()
+            {
+                Id = Id,
+                IsBlocked = IsBlocked,
+
+            };
+            return View(professorHod);
+        }
+
+        [HttpPost]
+        public IActionResult BlockUnblockProfessor(ProfessorHod professorHod)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "BlockUnblockProfessor",
+                DataObject = JsonConvert.SerializeObject(professorHod),
+                MethodType = "IsViewed",
+                PageName = "AllProfessors",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+            };
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
+            if (professorHod.IsBlocked)
+            {
+
+                return RedirectToAction("AllProfessors");
+            }
+            else
+            {
+                return RedirectToAction("AllBlockedProfessors");
+
+            }
+        }
+
+        public IActionResult BlockUnblockStudentModal(int Id, bool IsBlocked)
+        {
+            Student student = new()
+            {
+                StudentId = Id,
+                IsBlocked = IsBlocked,
+
+            };
+            return View(student);
+        }
+
+
+        [HttpPost]
+        public IActionResult BlockUnblockStudent(Student student)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "BlockUnblockStudent",
+                DataObject = JsonConvert.SerializeObject(student),
+                MethodType = "IsViewed",
+                PageName = "AllProfessors",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+            };
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
+            return RedirectToAction("AdminIndex");
+        }
+
+        public IActionResult AllBlockedProfessors()
+        {
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            if (RoleId != 1)
+            {
+                return View("NotAuthorized");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult GetAllBlockedProfessors(SecondApiRequest secondApiRequest)
+        {
+
+            secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApiRequest.PageSize,
+                StartIndex = secondApiRequest.StartIndex,
+                OrderBy = secondApiRequest.OrderBy,
+                OrderDirection = secondApiRequest.OrderDirection,
+                searchQuery = secondApiRequest.searchQuery,
+                JwtToken = secondApiRequest.token,
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetAllBlockedProfessors",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "AllProfessors",
+                RoleId = secondApiRequest.RoleId,
+                RoleIds = new List<string> { "1" },
+                token = secondApiRequest.token,
+
+
+            };
+            RoleBaseResponse<IList<ProfessorHod>> roleBaseResponse = GetApiResponse<IList<ProfessorHod>>(newSecondApiRequest);
+            if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
+            {
+                return Json(false);
+            }
+            return Json(roleBaseResponse);
+        }
+
+        public IActionResult ExchangeRates()
+        {
+            List<string> currencies = new()
+            {
+                "AUD", "AED", "CAD" , "CHF" ,"CNH", "EUR", "GBP","HKD", "INR", "JPY", "KWD", "KYD", "KZT", "NZD" ,"LAK", "USD",
+            };
+            ExchangeRate exchangeRate = new()
+            {
+                Currencies = currencies,
+                StartDate = Convert.ToDateTime("2024-07-01"),
+                EndDate = Convert.ToDateTime("2024-08-01"),
+                BaseCurrency = "USD",
+                ToCurrency = "GBP"
+            };
+            return View(exchangeRate);
+        }
+
+        public IActionResult GetExchangeRatesDetails(ExchangeRate exchangeRate)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetExchangeRates",
+                DataObject = JsonConvert.SerializeObject(exchangeRate),
+                MethodType = "IsViewed",
+                PageName = "EmailLogs",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token
+
+            };
+            RoleBaseResponse<ExchangeRate> roleBaseResponse = GetApiResponse<ExchangeRate>(secondApiRequest);
+            roleBaseResponse.data.ratesWithDate = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(roleBaseResponse.data.Rate);
+            if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
+            {
+                return Json(false);
+            }
+
+            string abbreviatedMonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(Convert.ToDateTime(exchangeRate.StartDate).Month);
+            roleBaseResponse.MonthName = abbreviatedMonthName;
+            return Json(roleBaseResponse);
+        }
+
+        public IActionResult AddRateAlert()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            int UserId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Currency",
+                MethodName = "GetRateAlerts",
+                DataObject = JsonConvert.SerializeObject(UserId),
+                MethodType = "IsViewed",
+                PageName = "CurrencyPair",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+            RoleBaseResponse<IList<CurrencyRateViewModel>> roleBaseResponse = GetApiResponse<IList<CurrencyRateViewModel>>(newSecondApiRequest);
+            return View(roleBaseResponse);
+        }
+
+        public IActionResult AddRateAlertModal()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            string email = HttpContext.Session.GetString("Email") ?? "";
+            List<string> currencies = new()
+            {
+                "AUD", "AED", "CAD" , "EUR", "GBP","HKD", "INR", "JPY", "KWD", "NZD", "USD",
+            };
+
+            CurrencyRateViewModel currencyRateViewModel = new()
+            {
+                CurrencyPair = "USD" + "GBP",
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Currency",
+                MethodName = "GetCurrencyPairRate",
+                DataObject = JsonConvert.SerializeObject(currencyRateViewModel),
+                MethodType = "IsViewed",
+                PageName = "CurrencyPair",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+            RoleBaseResponse<CurrencyRateViewModel> roleBaseResponse = GetApiResponse<CurrencyRateViewModel>(newSecondApiRequest);
+            CurrencyRateViewModel currencyRateViewModel1 = roleBaseResponse.data;
+            currencyRateViewModel1.BaseCurrency = currencyRateViewModel1.CurrencyPair.Substring(0, 3);
+            currencyRateViewModel1.ToCurrency = currencyRateViewModel1.CurrencyPair.Substring(3);
+            currencyRateViewModel1.Email = email;
+            currencyRateViewModel1.Currencies = currencies;
+            return View(currencyRateViewModel1);
+        }
+
+
+        public IActionResult UpdateRateAlertModal(int RateAlertId)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            string email = HttpContext.Session.GetString("Email") ?? "";
+            List<string> currencies = new()
+            {
+                "AUD", "AED", "CAD" , "EUR", "GBP","HKD", "INR", "JPY", "KWD", "NZD", "USD",
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Currency",
+                MethodName = "GetRateAlertById",
+                DataObject = JsonConvert.SerializeObject(RateAlertId),
+                MethodType = "IsViewed",
+                PageName = "CurrencyPair",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+            RoleBaseResponse<CurrencyRateViewModel> roleBaseResponse = GetApiResponse<CurrencyRateViewModel>(newSecondApiRequest);
+            CurrencyRateViewModel currencyRateViewModel1 = roleBaseResponse.data;
+            currencyRateViewModel1.BaseCurrency = currencyRateViewModel1.CurrencyPair.Substring(0, 3);
+            currencyRateViewModel1.ToCurrency = currencyRateViewModel1.CurrencyPair.Substring(3);
+            currencyRateViewModel1.Email = email;
+            currencyRateViewModel1.AskRate = currencyRateViewModel1.ExpectedRate;
+            currencyRateViewModel1.Currencies = currencies;
+            return View("AddRateAlertModal", currencyRateViewModel1);
+        }
+
+        public IActionResult GetPairCurrentRate(string currencyPair)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            CurrencyRateViewModel currencyRateViewModel = new()
+            {
+                CurrencyPair = currencyPair,
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Currency",
+                MethodName = "GetCurrencyPairRate",
+                DataObject = JsonConvert.SerializeObject(currencyRateViewModel),
+                MethodType = "IsViewed",
+                PageName = "CurrencyPair",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+            RoleBaseResponse<CurrencyRateViewModel> roleBaseResponse = GetApiResponse<CurrencyRateViewModel>(newSecondApiRequest);
+            CurrencyRateViewModel currencyRateViewModel1 = new();
+            if (roleBaseResponse.data.Rate != 0)
+            {
+                currencyRateViewModel1 = roleBaseResponse.data;
+
+                currencyRateViewModel1.BaseCurrency = currencyRateViewModel1.CurrencyPair.Substring(0, 3);
+                currencyRateViewModel1.ToCurrency = currencyRateViewModel1.CurrencyPair.Substring(3);
+            }
+            return Json(currencyRateViewModel1);
+
+        }
+
+        public IActionResult UpsertRateAlert(CurrencyRateViewModel currencyRateViewModel)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            int UserId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            if (UserId != 0)
+            {
+                currencyRateViewModel.StudentId = UserId;
+                currencyRateViewModel.CurrencyPair = currencyRateViewModel.BaseCurrency + currencyRateViewModel.ToCurrency;
+                SecondApiRequest newSecondApiRequest = new()
+                {
+                    ControllerName = "Currency",
+                    MethodName = "UpsertRateAlert",
+                    DataObject = JsonConvert.SerializeObject(currencyRateViewModel),
+                    MethodType = "IsViewed",
+                    PageName = "CurrencyPair",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "3" },
+                    token = token,
+                };
+                RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
+            }
+            return RedirectToAction("AddRateAlert");
+        }
+
+        public IActionResult RemoveRateAlertModal(int RateAlertId)
+        {
+            CurrencyRateViewModel currencyRateViewModel = new()
+            {
+                RateAlertId = RateAlertId,
+            };
+            return View(currencyRateViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult RemoveRateAlert(CurrencyRateViewModel currencyRateViewModel)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Currency",
+                MethodName = "RemoveRateAlert",
+                DataObject = JsonConvert.SerializeObject(currencyRateViewModel.RateAlertId),
+                MethodType = "IsViewed",
+                PageName = "CurrencyPair",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
+            return RedirectToAction("AddRateAlert");
         }
     }
 }

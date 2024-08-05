@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using StudentManagement_API.DataContext;
 using StudentManagement_API.Models.Models;
+using StudentManagement_API.Models.Models.DTO;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -109,6 +110,18 @@ namespace WindowServices.Services
                 return true;
             }
             return false;
+        }
+
+        public IList<CurrencyPairDto> GetMatchedRateAlert()
+        {
+            string Sql = "[dbo].[Get_Matched_RateAlert]";
+            return DbClient.ExecuteProcedure<CurrencyPairDto>(Sql, null);
+        }
+
+        public void UpdateRateAlert(int RateAlertId)
+        {
+            string query = "UPDATE RateAlerts SET IsCompleted = 1 where RateAlertId =" + RateAlertId;
+            DbClient.ExecuteProcedureWithQuery(query, null, ExecuteType.ExecuteNonQuery);
         }
     }
 }

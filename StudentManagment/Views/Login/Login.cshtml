@@ -2,11 +2,11 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
 }
 @model StudentManagment.Models.AdminStudentViewModel
 
-<form asp-action="CheckLogin" asp-controller="Login" method="post">
+@*<form asp-action="CheckLogin" asp-controller="Login" method="post">
     <div class="container">
         <h2>Login Page</h2>
         <h4 class="text-danger">@TempData["error"]</h4>
@@ -22,3 +22,39 @@
         <button class="admin-submit-btn" type="submit">Login</button>
     </div>
 </form>
+*@
+
+<section class="sign-in">
+    <div class="container">
+        <h5 class="text-danger ms-3">@TempData["error"]</h5>
+        <div class="signin-content">
+            <div class="signin-image">
+                <figure><img src="~/Images/signin-image.jpg" alt="sing up image"></figure>
+            </div>
+
+            <div class="signin-form">
+                <h2 class="form-title">Login</h2>
+                <form method="POST" class="register-form" id="login-form" asp-action="CheckLogin" asp-controller="Login">
+                    <div class="register-form-row">
+                        <div class="form-group">
+                            <label for="your_pass"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                            <input type="text" asp-for="UserName" id="your_pass" placeholder="UserName" />
+                            <span class="text-danger" asp-validation-for="UserName"></span>
+
+                        </div>
+                        <div class="form-group">
+                            <label for="your_pass"><i class="zmdi zmdi-lock"></i></label>
+                            <input type="password" asp-for="Password" id="your_pass" placeholder="Password" />
+                            <span class="text-danger" asp-validation-for="Password"></span>
+
+                        </div>
+                        <div class="form-group form-button">
+                            <button type="submit" id="signin" class="form-submit">Log In</button>
+                        </div>
+                    </div>
+                </form>
+                <a asp-action="SignUp" asp-controller="Login" class="signup-image-link">Create an account</a>
+            </div>
+        </div>
+    </div>
+</section>

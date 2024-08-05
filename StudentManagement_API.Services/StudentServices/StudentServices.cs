@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
+using Microsoft.SqlServer.Server;
 using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StudentManagement_API.DataContext;
 using StudentManagement_API.Models.Models;
@@ -11,6 +14,7 @@ using StudentManagement_API.Services.CacheService;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlTypes;
+using System.Net.Mail;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
 using static DemoApiWithoutEF.Utilities.Enums;
@@ -25,46 +29,42 @@ namespace StudentManagement_API.Services
         private readonly IJwtServices _jwtService;
         private readonly IMapper _mapper;
         private readonly ICacheServices _cacheServices;
-        public StudentServices(IConfiguration configuration, IJwtServices jwtService, IMapper mapper, ICacheServices cacheServices)
+        private readonly HttpClient _httpClient;
+        public StudentServices(IConfiguration configuration,
+            IJwtServices jwtService, IMapper mapper, ICacheServices cacheServices, HttpClient httpClient)
         {
             _configuration = configuration;
             connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
             _jwtService = jwtService;
             _mapper = mapper;
             _cacheServices = cacheServices;
+            _httpClient = httpClient;
         }
 
-        public T GetData<T>(string query, string cacheKey)
+        public T GetData<T>(string query)
         {
-            T obj = _cacheServices.GetSingleCachedResponse<T>(cacheKey);
-            if (obj == null)
-            {
-                T newobj = DbClient.ExecuteOneRecordProcedureWithQuery<T>(query, null);
-                _cacheServices.SetSingleCachedResponse(cacheKey, newobj);
-                return newobj;
-            }
-            return obj;
+            T newobj = DbClient.ExecuteOneRecordProcedureWithQuery<T>(query, null);
+            return newobj;
         }
 
         public T GetStudent<T>(string Procedure, int Id)
         {
-                Collection<DbParameters> parameters = new();
-                parameters.Add(new DbParameters { Name = "@StudentId", Value = Id, DBType = DbType.Int64 });
-                T newobj = DbClient.ExecuteOneRecordProcedure<T>(Procedure, parameters);
-                _cacheServices.SetSingleCachedResponse("Student" + Id, newobj);
-                return newobj;
+            Collection<DbParameters> parameters = new();
+            parameters.Add(new DbParameters { Name = "@StudentId", Value = Id, DBType = DbType.Int64 });
+            T newobj = DbClient.ExecuteOneRecordProcedure<T>(Procedure, parameters);
+            _cacheServices.SetSingleCachedResponse("Student" + Id, newobj);
+            return newobj;
 
         }
 
 
-        public IList<T> GetRecordsWithoutPagination<T>(string ProcedureName, string cacheKey)
+        public IList<T> GetRecordsWithoutPagination<T>(string ProcedureName)
         {
             IList<T> list = DbClient.ExecuteProcedure<T>(ProcedureName, null);
-            _cacheServices.SetListCachedResponse<T>(cacheKey, list);
             return list;
         }
 
-        public IList<T> GetDataWithPagination<T>(PaginationDto paginationDto, string cacheKey, string sp)
+        public IList<T> GetDataWithPagination<T>(PaginationDto paginationDto, string sp)
         {
             try
             {
@@ -76,7 +76,6 @@ namespace StudentManagement_API.Services
                 //IList<Book> books = DbClient.ExecuteProcedure<Book>("[dbo].[Get_Books_List]", parameters);
                 IList<T> data = DbClient.ExecuteProcedure<T>(sp, parameters);
 
-                _cacheServices.SetListCachedResponse<T>(cacheKey, data);
                 return data;
             }
             catch (Exception ex)
@@ -98,6 +97,8 @@ namespace StudentManagement_API.Services
                 table.Columns.Add("UserName");
                 table.Columns.Add("Password");
                 table.Columns.Add("Email");
+                table.Columns.Add("IsConfirmed");
+                table.Columns.Add("IsRejected");
 
                 var row = table.NewRow();
                 row["FirstName"] = studentUpdateDto.FirstName;
@@ -107,6 +108,8 @@ namespace StudentManagement_API.Services
                 row["UserName"] = studentUpdateDto.UserName;
                 row["Password"] = studentUpdateDto.Password;
                 row["Email"] = studentUpdateDto.Email;
+                row["IsConfirmed"] = studentUpdateDto.IsConfirmed;
+                row["IsRejected"] = studentUpdateDto.IsRejected;
                 table.Rows.Add(row);
 
                 Collection<DbParameters> parameters = new Collection<DbParameters>();
@@ -124,6 +127,8 @@ namespace StudentManagement_API.Services
                 table.Columns.Add("UserName");
                 table.Columns.Add("Password");
                 table.Columns.Add("Email");
+                table.Columns.Add("IsConfirmed");
+                table.Columns.Add("IsRejected");
 
                 var row = table.NewRow();
                 row["FirstName"] = studentCreateDto.FirstName;
@@ -133,6 +138,8 @@ namespace StudentManagement_API.Services
                 row["UserName"] = studentCreateDto.UserName;
                 row["Password"] = studentCreateDto.Password;
                 row["Email"] = studentCreateDto.Email;
+                row["IsConfirmed"] = studentCreateDto.IsConfirmed;
+                row["IsRejected"] = studentCreateDto.IsRejected;
 
                 table.Rows.Add(row);
 
@@ -196,7 +203,7 @@ namespace StudentManagement_API.Services
             parameters.Add(new DbParameters() { Name = "@attachments", Value = table, DBType = DbType.Object, TypeName = "AttachmentsTableType" });
             DbClient.ExecuteProcedure(query, parameters, ExecuteType.ExecuteNonQuery);
         }
-        public void AddEmailAttachments(Byte[] attachment,string fileName, int scheduledEmailId, string query)
+        public void AddEmailAttachments(Byte[] attachment, string fileName, int scheduledEmailId, string query)
         {
             Collection<DbParameters> parameters = new Collection<DbParameters>();
             parameters.Add(new DbParameters() { Name = "@scheduledEmailid", Value = scheduledEmailId, DBType = DbType.Int64, });
@@ -252,6 +259,7 @@ namespace StudentManagement_API.Services
                 JwtClaimsDto jwtClaims = DbClient.ExecuteOneRecordProcedure<JwtClaimsDto>("[dbo].[Get_UserName_Password]", parameters);
                 if (jwtClaims.StudentId != 0)
                 {
+                    jwtClaims.RoleId = 3;
                     jwtClaims.JwtToken = _jwtService.GenerateToken(jwtClaims);
                     UpdateJwtToken(jwtClaims.JwtToken, jwtClaims.StudentId);
                 }
@@ -294,7 +302,7 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<StudentCreateDto>(dataObj);
             }
-            else if (controllerName == "Student" && methodName == "UpdateStudent")
+            else if ((controllerName == "Student" && methodName == "UpdateStudent") || (controllerName == "Student" && methodName == "ApproveRejectStudentRequest"))
             {
                 return GetDataModel<StudentUpdateDto>(dataObj);
             }
@@ -310,11 +318,11 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<EmailLogs>(dataObj);
             }
-            else if (controllerName == "Email" && methodName == "GetScheduledEmailById")
+            else if ((controllerName == "Login" && methodName == "ProfessorDetails") || (controllerName == "Email" && methodName == "GetScheduledEmailById"))
             {
                 return Convert.ToInt32(dataObj);
             }
-            else if (controllerName == "Student" && methodName == "DeleteStudent")
+            else if ((controllerName == "Student" && methodName == "DeleteStudent"))
             {
                 return Convert.ToInt32(dataObj);
             }
@@ -324,7 +332,10 @@ namespace StudentManagement_API.Services
             }
             else if ((controllerName == "Student" && methodName == "GetAllStudents")
                 || (controllerName == "Book" && methodName == "GetAllBooks")
-                || (controllerName == "Email" && methodName == "GetScheduledEmails"))
+                || (controllerName == "Email" && methodName == "GetScheduledEmails")
+                || (controllerName == "Student" && methodName == "GetAllPendingStudents")
+                || (controllerName == "ProfessorHod" && methodName == "GetAllProfessors")
+                || (controllerName == "ProfessorHod" && methodName == "GetAllBlockedProfessors"))
             {
                 return GetDataModel<PaginationDto>(dataObj);
             }
@@ -337,7 +348,10 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<Book>(dataObj);
             }
-            else if ((controllerName == "Book" && methodName == "GetBook"))
+            else if ((controllerName == "Book" && methodName == "GetBook") 
+                    || (controllerName == "Currency" && methodName == "GetRateAlerts")
+                    || (controllerName == "Currency" && methodName == "GetRateAlertById")
+                    || (controllerName == "Currency" && methodName == "RemoveRateAlert"))
             {
                 return Convert.ToInt32(dataObj);
             }
@@ -351,6 +365,26 @@ namespace StudentManagement_API.Services
             else if (controllerName == "Student" && methodName == "DayWiseCountStudentProf")
             {
                 return GetDataModel<CountStudentProfessorDto>(dataObj);
+            }
+            else if ((controllerName == "Student" && methodName == "GetStudentByEmail") || (controllerName == "Student" && methodName == "GetStudentByUserName"))
+            {
+                return Convert.ToString(dataObj);
+            }
+            else if ((controllerName == "ProfessorHod" && methodName == "BlockUnblockProfessor"))
+            {
+                return GetDataModel<ProfessorHod>(dataObj);
+            }
+            else if (controllerName == "ProfessorHod" && methodName == "BlockUnblockStudent")
+            {
+                return GetDataModel<Student>(dataObj);
+            }
+            else if (controllerName == "Student" && methodName == "GetExchangeRates")
+            {
+                return GetDataModel<ExchangeRate>(dataObj);
+            }
+            else if ((controllerName == "Currency" && methodName == "UpsertRateAlert") || (controllerName == "Currency" && methodName == "GetCurrencyPairRate"))
+            {
+                return GetDataModel<CurrencyPairDto>(dataObj);
             }
             else
             {
@@ -468,6 +502,159 @@ namespace StudentManagement_API.Services
         {
             string query = "SELECT SettingDescription FROM Settings Where SettingName = 'ApiVersion'";
             return DbClient.ExecuteOneRecordProcedureWithQuery<SettingDto>(query, null);
+        }
+
+        public ProfessorHod ProfessorBlockUnblockDetails(int userId)
+        {
+            string query = "SELECT IsBlocked FROM ProfessorHod Where Id = " + userId;
+            return DbClient.ExecuteOneRecordProcedureWithQuery<ProfessorHod>(query, null);
+        }
+
+        public Student StudentBlockUnblockDetails(int userId)
+        {
+            string query = "SELECT IsBlocked FROM Students Where StudentId = " + userId;
+            return DbClient.ExecuteOneRecordProcedureWithQuery<Student>(query, null);
+        }
+
+        public bool AprroveRejectRequest(StudentUpdateDto studentUpdateDto)
+        {
+            string Sql = "[dbo].[Approve_Reject_Student_Request]";
+            Collection<DbParameters> parameters = new Collection<DbParameters>();
+            parameters.Add(new DbParameters() { Name = "@StudentId", Value = studentUpdateDto.StudentId, DBType = DbType.Int64 });
+            parameters.Add(new DbParameters() { Name = "@ApproveReject", Value = studentUpdateDto.ApproveReject, DBType = DbType.Boolean });
+            DbClient.ExecuteProcedure(Sql, parameters, ExecuteType.ExecuteNonQuery);
+            return true;
+        }
+
+        public ExchangeRate getExchangeRate(ExchangeRate exchangeRate)
+        {
+            try
+            {
+                string startDate = exchangeRate.StartDate.ToString("yyyy-MM-dd");
+                string endDate = exchangeRate.EndDate.ToString("yyyy-MM-dd");
+                string url = $"https://api.apilayer.com/exchangerates_data/timeseries?start_date={startDate}&end_date={endDate}"
+                    + $"&base={exchangeRate.BaseCurrency}&symbols={exchangeRate.ToCurrency}";
+
+                _httpClient.DefaultRequestHeaders.Add("apikey", "AhKWUYzt9yX56mBnd6ZAQKFts0jgUzrS");
+                HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+                response.EnsureSuccessStatusCode();
+                string responseBody = response.Content.ReadAsStringAsync().Result;
+                var exchangeRatesResponse = JsonConvert.DeserializeObject<ExchangeRate>(responseBody);
+                return exchangeRatesResponse;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception();
+            }
+
+        }
+
+        public void AddExchangeRates(ExchangeRate exchangeRate)
+        {
+            try
+            {
+                var table = new DataTable();
+                table.Columns.Add("StartDate");
+                table.Columns.Add("EndDate");
+                table.Columns.Add("BaseCurrency");
+                table.Columns.Add("ToCurrency");
+                table.Columns.Add("Rate");
+
+                exchangeRate.ratesWithDate = new();
+                foreach (var entry in exchangeRate.Rates)
+                {
+                    var date = entry.Key;
+                    var dailyRates = entry.Value;
+                    if (dailyRates.TryGetValue(exchangeRate.ToCurrency, out var rate))
+                    {
+                        exchangeRate.ratesWithDate.Add(date, rate);
+                    }
+                }
+                string ratesWithDateJson = JsonConvert.SerializeObject(exchangeRate.ratesWithDate);
+
+                var row = table.NewRow();
+                row["StartDate"] = exchangeRate.StartDate.ToString("yyyy-MM-dd");
+                row["EndDate"] = exchangeRate.EndDate.ToString("yyyy-MM-dd");
+                row["BaseCurrency"] = exchangeRate.BaseCurrency;
+                row["ToCurrency"] = exchangeRate.ToCurrency;
+                row["Rate"] = ratesWithDateJson;
+
+                table.Rows.Add(row);
+                string query = "[dbo].[Add_ExchangeRates]";
+                Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@exchangeRate", Value = table, DBType = DbType.Object, TypeName = "[ExchangeRate]" }
+                };
+                DbClient.ExecuteProcedure(query, parameters, ExecuteType.ExecuteNonQuery);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception();
+            }
+        }
+
+        public ExchangeRate GetExchangeRateDetails(ExchangeRate exchangeRate)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@startDate", Value = exchangeRate.StartDate, DBType = DbType.Date },
+                    new DbParameters() { Name = "@endDate", Value = exchangeRate.EndDate, DBType = DbType.Date },
+                    new DbParameters() { Name = "@baseCurrency", Value = exchangeRate.BaseCurrency, DBType = DbType.String},
+                    new DbParameters() { Name = "@toCurrency", Value = exchangeRate.ToCurrency, DBType = DbType.String }
+
+                };
+            ExchangeRate newExchangeRate = DbClient.ExecuteOneRecordProcedure<ExchangeRate>("[dbo].[Get_ExchangeRates]", parameters);
+            return newExchangeRate;
+        }
+
+        public CurrencyPairDto GetCurrencyPairData(string currencyPair)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@currencyPair", Value = currencyPair, DBType = DbType.String},
+                };
+            CurrencyPairDto currencyPairDto = DbClient.ExecuteOneRecordProcedure<CurrencyPairDto>("[dbo].[Get_Currency_pair]", parameters);
+            return currencyPairDto;
+        }
+
+        public void UpsertRateAlert(CurrencyPairDto currencyPairDto)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@rateAlertId", Value = currencyPairDto.RateAlertId , DBType = DbType.Int32},
+                    new DbParameters() { Name = "@rate", Value = currencyPairDto.Rate , DBType = DbType.Decimal},
+                    new DbParameters() { Name = "@expectedRate", Value = currencyPairDto.AskRate , DBType = DbType.Decimal},
+                    new DbParameters() { Name = "@email", Value = currencyPairDto.Email, DBType = DbType.String},
+                    new DbParameters() { Name = "@currencyPair", Value = currencyPairDto.CurrencyPair , DBType = DbType.String},
+                    new DbParameters() { Name = "@studentId", Value = currencyPairDto.StudentId , DBType = DbType.Int32},
+                };
+            DbClient.ExecuteProcedure("[dbo].[Upsert_RateAlert]", parameters, ExecuteType.ExecuteNonQuery);
+        }
+
+        public IList<CurrencyPairDto> GetRateAlerts(int StudentId)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@studentId", Value = StudentId, DBType = DbType.Int32},
+                };
+            IList<CurrencyPairDto> currencyPairDto = DbClient.ExecuteProcedure<CurrencyPairDto>("[dbo].[Get_Rate_Alerts]", parameters);
+            return currencyPairDto;
+        }
+
+        public CurrencyPairDto GetRateAlertById(int RateAlertId)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@rateAlertId", Value = RateAlertId, DBType = DbType.Int32},
+                };
+            CurrencyPairDto currencyPairDto = DbClient.ExecuteOneRecordProcedure<CurrencyPairDto>("[dbo].[Get_RateAlert_ById]", parameters);
+            return currencyPairDto;
+        }
+
+        public void RemoveRateAlert(int RateAlertId)
+        {
+            string query = "UPDATE RateAlerts SET IsCompleted = 1 where RateAlertId =" + RateAlertId;
+            DbClient.ExecuteProcedureWithQuery(query, null,ExecuteType.ExecuteNonQuery);
         }
     }
 }

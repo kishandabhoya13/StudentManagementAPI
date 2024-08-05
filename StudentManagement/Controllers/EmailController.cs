@@ -26,7 +26,7 @@ namespace StudentManagement_API.Controllers
 
 
 
-        public EmailController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices, 
+        public EmailController(IStudentServices studentServices, IJwtServices jwtService, IProfessorHodServices professorHodServices,
             IConfiguration configuration, IMapper mapper)
         {
             this._response = new();
@@ -53,9 +53,8 @@ namespace StudentManagement_API.Controllers
                     role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
                 }
 
-                string cacheKey = "EmailList" + paginationDto.PageSize + paginationDto.StartIndex + paginationDto.searchQuery;
 
-                IList<EmailLogs> emailLogs = _studentServices.GetDataWithPagination<EmailLogs>(paginationDto,cacheKey ,"[dbo].[Get_ScheduledEmail_All_Details]");
+                IList<EmailLogs> emailLogs = _studentServices.GetDataWithPagination<EmailLogs>(paginationDto, "[dbo].[Get_ScheduledEmail_All_Details]");
                 int totalItems = emailLogs.Count > 0 ? emailLogs.FirstOrDefault(x => x.ScheduledEmailId != 0)?.TotalRecords ?? 0 : 0;
                 int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
                 RoleBaseResponse<IList<EmailLogs>> roleBaseResponse = new()
@@ -98,22 +97,26 @@ namespace StudentManagement_API.Controllers
                     return _response;
                 }
                 EmailLogs emailLogs = _studentServices.GetScheduledEmailById<EmailLogs>("[dbo].[get_scheduledEmail_by_Id]", ScheduledEmailId);
-                if (emailLogs.ScheduledEmailId> 0)
+                if (emailLogs.ScheduledEmailId > 0)
                 {
-                    if(emailLogs.StudentId == null)
+                    if (emailLogs.StudentId == null)
                     {
                         emailLogs.StudentId = 0;
                     }
-                    IList<EmailLogs> attachments = _studentServices.GetAttachementsFromScheduledId(emailLogs.ScheduledEmailId); 
-                    if(attachments.Count > 0)
+                    IList<EmailLogs> attachments = _studentServices.GetAttachementsFromScheduledId(emailLogs.ScheduledEmailId);
+                    if (attachments.Count > 0)
                     {
                         emailLogs.AttachmentsByte = new();
-                        foreach(var attachment in attachments)
+                        foreach (var attachment in attachments)
                         {
                             emailLogs.AttachmentsByte.Add(attachment.AttachmentFile);
                         }
                     }
-                    _response.result = emailLogs;
+                    RoleBaseResponse<EmailLogs> roleBaseResponse = new()
+                    {
+                        data = emailLogs
+                    };
+                    _response.result = roleBaseResponse;
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                 }
@@ -149,7 +152,11 @@ namespace StudentManagement_API.Controllers
                 //     " VALUES (@FirstName, @LastName, @BirthDate, @CourseId,@UserName,@Password)";
                 string sql = "[dbo].[Add_ScheduledEmail_Details]";
                 _studentServices.AddEditScheduledEmailLogs(emailLogs, sql);
-                _studentServices.UpdateAttachments(emailLogs, "[dbo].[Update_Attachments_ById]");
+                if (emailLogs.AttachmentsByte != null && emailLogs.AttachmentsByte.Count > 0)
+                {
+                    _studentServices.UpdateAttachments(emailLogs, "[dbo].[Update_Attachments_ById]");
+                }
+                _response.result = new RoleBaseResponse<bool>() { data = true };
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return _response;

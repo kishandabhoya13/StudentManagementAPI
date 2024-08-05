@@ -73,8 +73,32 @@
       "PackagePath": "staticwebassets\\EmailTemplate\\EmailTemplate.html"
     },
     {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\circle.gif",
+      "PackagePath": "staticwebassets\\Images\\circle.gif"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\classroom-png-33243.png",
+      "PackagePath": "staticwebassets\\Images\\classroom-png-33243.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\load.gif",
+      "PackagePath": "staticwebassets\\Images\\load.gif"
+    },
+    {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\pdf_image.jfif",
       "PackagePath": "staticwebassets\\Images\\pdf_image.jfif"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\school_logo.png",
+      "PackagePath": "staticwebassets\\Images\\school_logo.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\signin-image.jpg",
+      "PackagePath": "staticwebassets\\Images\\signin-image.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\signup-image.jpg",
+      "PackagePath": "staticwebassets\\Images\\signup-image.jpg"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\css\\picker.css",

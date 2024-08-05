@@ -36,5 +36,12 @@ namespace StudentManagment.Models.DataModels
         [Required]
         public string Email { get; set; }
 
+        public bool? IsConfirmed { get; set; } = null;
+
+        public bool? IsRejected { get; set; } = null;
+
+        public int? currentUserRole { get; set; } = 0;
+
+        public bool IsBlocked { get; set; }
     }
 }

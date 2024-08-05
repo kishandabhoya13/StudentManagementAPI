@@ -1,0 +1,55 @@
+﻿@using StudentManagement.Models;
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+@model ProfessorHod
+<div id="BlockUnblockProfessorModal" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (Model.IsBlocked)
+                {
+
+                    <h5 class="modal-title">Block Professor</h5>
+                }
+                else
+                {
+                    <h5 class="modal-title">UnBlock Professor</h5>
+
+                }
+                <button type="button"
+                        class="btn-close btn-close-custom"
+                        data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @if (Model.IsBlocked)
+                {
+
+                    <p class="mt-3">Are you Sure You want to block this Professor?</p>
+
+                }
+                else
+                {
+                    <p class="mt-3">Are you Sure You want to Unblock this Professor?</p>
+
+
+                }
+                <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
+                    <form class="w-100" asp-action="BlockUnblockProfessor" asp-controller="Home" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="IsBlocked" />
+                        <button class="btn btn-primary me-md-2 submit-btn" type="submit">
+                            Submit
+                        </button>
+                    </form>
+                    <button class="btn btn-primary cancel-btn" data-bs-dismiss="modal" type="button">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

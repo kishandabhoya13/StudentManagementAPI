@@ -52,7 +52,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             };
         });
 
-
+builder.Services.AddHttpClient();
 builder.Services.AddApiVersioning(setup =>
 {
     setup.DefaultApiVersion = new ApiVersion(1, 0);
@@ -62,7 +62,6 @@ builder.Services.AddApiVersioning(setup =>
 }).AddMvc();
 
 var app = builder.Build();
-
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<CustomHeaderMiddleWare>();

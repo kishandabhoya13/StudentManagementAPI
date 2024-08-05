@@ -10,3 +10,30 @@ Time: 17-07-2024 14:36:56, Controller: Home, Action: AdminIndex, Exception: One 
 Time: 18-07-2024 12:25:13, Controller: Home, Action: CreateUpdateStudent, Exception: Object reference not set to an instance of an object.
 Time: 18-07-2024 12:26:05, Controller: Home, Action: CreateUpdateStudent, Exception: Object reference not set to an instance of an object.
 Time: 18-07-2024 14:07:08, Controller: Home, Action: AddEditBook, Exception: Object reference not set to an instance of an object.
+Time: 18-07-2024 17:49:26, Controller: Home, Action: SendEmail, Exception: Cannot deserialize the current JSON object (e.g. {"name":"value"}) into type 'System.Collections.Generic.List`1[StudentsEmailAndIds]' because the type requires a JSON array (e.g. [1,2,3]) to deserialize correctly.
+To fix this error either change the JSON to a JSON array (e.g. [1,2,3]) or change the deserialized type so that it is a normal .NET type (e.g. not a primitive type like integer, not a collection type like an array or List<T>) that can be deserialized from a JSON object. JsonObjectAttribute can also be added to the type to force it to deserialize from a JSON object.
+Path 'result.data', line 1, position 88.
+Time: 18-07-2024 17:50:06, Controller: Home, Action: SendEmail, Exception: Cannot deserialize the current JSON object (e.g. {"name":"value"}) into type 'System.Collections.Generic.List`1[StudentsEmailAndIds]' because the type requires a JSON array (e.g. [1,2,3]) to deserialize correctly.
+To fix this error either change the JSON to a JSON array (e.g. [1,2,3]) or change the deserialized type so that it is a normal .NET type (e.g. not a primitive type like integer, not a collection type like an array or List<T>) that can be deserialized from a JSON object. JsonObjectAttribute can also be added to the type to force it to deserialize from a JSON object.
+Path 'result.data', line 1, position 88.
+Time: 18-07-2024 17:50:29, Controller: Home, Action: SendEmail, Exception: Cannot deserialize the current JSON object (e.g. {"name":"value"}) into type 'System.Collections.Generic.List`1[StudentsEmailAndIds]' because the type requires a JSON array (e.g. [1,2,3]) to deserialize correctly.
+To fix this error either change the JSON to a JSON array (e.g. [1,2,3]) or change the deserialized type so that it is a normal .NET type (e.g. not a primitive type like integer, not a collection type like an array or List<T>) that can be deserialized from a JSON object. JsonObjectAttribute can also be added to the type to force it to deserialize from a JSON object.
+Path 'result.data', line 1, position 88.
+Time: 23-07-2024 10:13:33, Controller: Home, Action: AdminIndexTableView, Exception: One or more errors occurred. (A task was canceled.)
+Time: 23-07-2024 10:14:09, Controller: Home, Action: GetStudentProfessorChartDetails, Exception: One or more errors occurred. (A task was canceled.)
+Time: 25-07-2024 15:06:39, Controller: Home, Action: checkusername, Exception: Object reference not set to an instance of an object.
+Time: 25-07-2024 15:06:40, Controller: Home, Action: checkusername, Exception: Object reference not set to an instance of an object.
+Time: 25-07-2024 15:09:26, Controller: Home, Action: checkusername, Exception: Object reference not set to an instance of an object.
+Time: 25-07-2024 16:44:36, Controller: Login, Action: CheckLogin, Exception: Object reference not set to an instance of an object.
+Time: 25-07-2024 16:50:46, Controller: Login, Action: CheckLogin, Exception: Object reference not set to an instance of an object.
+Time: 25-07-2024 16:50:49, Controller: Login, Action: SignUp, Exception: One or more errors occurred. (A task was canceled.)
+Time: 25-07-2024 17:01:52, Controller: Login, Action: SignUp, Exception: One or more errors occurred. (A task was canceled.)
+Time: 29-07-2024 15:20:09, Controller: Home, Action: CreateUpdateStudent, Exception: Object reference not set to an instance of an object.
+Time: 01-08-2024 14:57:18, Controller: Home, Action: GetExchangeRatesDetails, Exception: Value cannot be null. (Parameter 'value')
+Time: 01-08-2024 16:26:27, Controller: Home, Action: GetExchangeRatesDetails, Exception: One or more errors occurred. (A task was canceled.)
+Time: 02-08-2024 17:12:25, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
+Time: 02-08-2024 17:12:53, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
+Time: 02-08-2024 17:13:36, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
+Time: 02-08-2024 17:13:57, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
+Time: 02-08-2024 17:13:58, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
+Time: 02-08-2024 17:14:02, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.

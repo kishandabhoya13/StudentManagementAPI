@@ -19,5 +19,7 @@ namespace StudentManagement_API.Models.Models.DTO
         public string SettingName { get; set; }
 
         public string SettingDescription { get; set; }
+
+        public bool IsBlocked { get; set; }
     }
 }

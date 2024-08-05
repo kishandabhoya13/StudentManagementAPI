@@ -17,10 +17,18 @@ namespace StudentManagement_API.Models.Models.DTO
 
         public string UserName { get; set; } = null!;
 
+        public string Email { get; set; }
+
         public int RoleId { get; set; }
 
         public string? JwtToken { get; set; } = null;
 
         public string? SettingDescription { get; set; } = "1.0";
+
+        public bool IsConfirmed { get; set; }
+
+        public bool IsRejected { get; set; }
+
+        public bool IsBlocked { get; set; }
     }
 }

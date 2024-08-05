@@ -7,7 +7,14 @@
 @model StudentManagment.Models.StudentViewModel
 <h2 class="text-danger">@TempData["ErrorMsg"]</h2>
 <div class="container main-container">
-    <h1 class="mb-3">Create/Update Student</h1>
+    @if (Model.StudentId != 0)
+    {
+        <h1 class="mb-3">Update Student</h1>
+    }
+    else
+    {
+        <h1 class="mb-3">Create Student</h1>
+    }
     <form method="post" asp-action="UpsertStudent" asp-controller="Home">
         <input type="hidden" asp-for="StudentId" />
         <div class="row">

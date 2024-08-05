@@ -1,0 +1,234 @@
+﻿@using StudentManagement.Models.DTO;
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+}
+
+<!-- Sign up form -->
+@model SignUpViewModel
+<section class="signup">
+    <div class="container">
+        <div class="signup-content">
+            <div class="signup-form">
+                <h2 class="form-title">Sign up</h2>
+                <form method="POST" asp-action="SignUp" asp-controller="Login" class="register-form" id="register-form">
+                    <div class="row register-form-row">
+                        <div class="form-group col-lg-6 col-md-6 col-12">
+                            <label for="firstname"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                            <input type="text" asp-for="FirstName" id="firstname" placeholder="First Name" />
+                            <span class="text-danger" asp-validation-for="FirstName"></span>
+                        </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12">
+                            <label for="lastname"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                            <input type="text" asp-for="LastName" id="lastname" placeholder="Last Name" />
+                            <span class="text-danger" asp-validation-for="LastName"></span>
+                        </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12 pt-2">
+                            <label for="email"><i class="zmdi zmdi-email"></i></label>
+                            <input type="email" onblur="checkEmail()" asp-for="Email" id="email" placeholder="Your Email" />
+                            <span class="text-danger" asp-validation-for="Email"></span>
+                            <span id="email-varify-span" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group col-lg-6 col-md-6 col-12 pt-2">
+                            <label for="birthdate"><i class="zmdi zmdi-calendar"></i></label>
+                            <input type="date" asp-for="BirthDate" id="birthdate" placeholder="BirthDate" />
+                            <span class="text-danger" asp-validation-for="BirthDate"></span>
+                            <div class="text-danger" id="error-message"></div>
+                        </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12 pt-2">
+                            <label for="course"><i class="zmdi zmdi-book"></i></label>
+                            <select asp-for="CourseId" id="course" class="register-select">
+                                <option class="select-option" value="">Select Course</option>
+                                @foreach (var course in Model.Courses)
+                                {
+                                    <option value="@course.CourseId">@course.CourseName</option>
+                                }
+                            </select>
+                            <span class="text-danger" asp-validation-for="CourseId"></span>
+                        </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12">
+                            <label for="username"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                            <input type="text" onblur="checkUserName()" asp-for="UserName" id="username" placeholder="User Name" />
+                            <span class="text-danger" asp-validation-for="UserName"></span>
+                            <span id="username-varify-span" class="text-danger"></span>
+
+
+                        </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12">
+                            <label for="pass"><i class="zmdi zmdi-lock"></i></label>
+                            <input type="password" asp-for="Password" id="pass" placeholder="Password" />
+                            <span id="pass-span" class="text-danger"></span>
+                            <span id="pass-span2" class="text-danger" asp-validation-for="Password"></span>
+                            <i onclick="chng(this)" class="zmdi zmdi-eye"></i>
+
+                        </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12">
+                            <label for="re-pass"><i class="zmdi zmdi-lock"></i></label>
+                            <input type="password" asp-for="ConfirmPassword" id="re-pass" placeholder="Confirm Password" />
+                            <span class="text-danger" asp-validation-for="ConfirmPassword"></span>
+                            <i onclick="chng2(this)" class="zmdi zmdi-eye"></i>
+
+
+                        </div>
+                    </div>
+
+                    <div class="form-group form-button">
+                        <button type="submit" id="signup" class="form-submit">Register</button>
+                    </div>
+                </form>
+                <a asp-action="Login" asp-controller="Login" class="signup-image-link pt-3">I am already member</a>
+
+            </div>
+            <div class="signup-image">
+                <figure><img src="~/Images/signup-image.jpg" alt="sing up image"></figure>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Attach an event listener to the password input field
+        var passwordInput = document.getElementById('pass'); // Replace with actual ID
+        var flag = true;
+        passwordInput.addEventListener('keyup', function () {
+            var password = passwordInput.value;
+
+            var containsUppercase = /[A-Z]/.test(password);
+            var containsLowercase = /[a-z]/.test(password);
+            var containsDigit = /\d/.test(password);
+            var containsSpecial = /[!@@#$%^&*?]/.test(password);
+            var isLengthValid = password.length >= 8;
+            var errorSpan = document.getElementById('pass-span'); // Replace with actual ID for error message span
+
+            var errors = [];
+
+            if (!containsUppercase) {
+                errors.push('Password must include at least one uppercase letter,');
+            }
+
+            if (!containsLowercase) {
+                errors.push('at least one lowercase letter,');
+            }
+
+            if (!containsDigit) {
+                errors.push('at least one digit,');
+            }
+
+            if (!containsSpecial) {
+                errors.push(' at least one special character,');
+            }
+
+            if (!isLengthValid) {
+                errors.push(' at least 8 characters long.');
+            }
+            console.log(errors);
+            if (errors.length > 0) {
+                errorSpan.textContent = errors.join('\n');
+            } else {
+                errorSpan.textContent = '';
+            }
+            if (flag) {
+                var span2 = document.getElementById("pass-span2");
+                span2.style.display = "none";
+                flag = false;
+            }
+        });
+    });
+
+    function chng(x) {
+        var input = document.getElementById("pass");
+        if (input.type === "password") {
+            input.type = "text";
+        } else {
+            input.type = "password";
+        }
+    }
+    function chng2(x) {
+        var input = document.getElementById("re-pass");
+        if (input.type === "password") {
+            input.type = "text";
+        } else {
+            input.type = "password";
+        }
+    }
+</script>
+<script>
+    const inputElements = document.querySelectorAll('input#birthdate');
+    if (inputElements != null) {
+        const maxDate = new Date();
+        maxDate.setFullYear(maxDate.getFullYear());
+
+        for (const inputElement of inputElements) {
+            inputElement.setAttribute('max', maxDate.toISOString().split('T')[0]);
+        }
+    }
+    var isEmaildisable = false;
+    var isUserNameDiable = false;
+
+    function checkEmail() {
+        var email = document.getElementById("email").value;
+        if (email.trim() !== '') {
+            fetch('/Home/checkemail/' + email)
+                .then(response => response.json())
+                .then(data => {
+                    var submitBtn = document.getElementById('signup');
+                    var span = document.getElementById('email-varify-span');
+                    if (data.exists) {
+                        submitBtn.disabled = true;
+                        span.textContent = "Email Already Exist";
+                        isEmaildisable = true;
+                    }
+                    else {
+                        if (isUserNameDiable == false) {
+                            submitBtn.disabled = false;
+                        }
+                        isEmaildisable = false;
+
+                        span.textContent = "";
+                    }
+                })
+                .catch(error => console.error('error:', error));
+        }
+
+    }
+
+    function checkUserName() {
+        var username = document.getElementById("username").value;
+        if (username.trim() !== '') {
+            fetch('/Home/checkusername/' + username)
+                .then(response => response.json())
+                .then(data => {
+                    var submitBtn = document.getElementById('signup');
+                    var span = document.getElementById('username-varify-span');
+                    if (data.exists) {
+                        submitBtn.disabled = true;
+                        span.textContent = "Username already exists";
+                        isUserNameDiable = true;
+                    } else {
+                        if (isEmaildisable == false) {
+                            submitBtn.disabled = false;
+                        }
+                        isUserNameDiable = false;
+                        span.textContent = "";
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+
+
+    $("#birthdate").change(function () {
+        var currentYear = (new Date()).getFullYear();
+
+        var minBirthYear = currentYear - 10;
+
+        var minDate = new Date(minBirthYear, 0, 1);
+
+        var formattedMinDate = minDate.toISOString().split('T')[0];
+        $('#birthdate').attr('max', formattedMinDate);
+    });
+</script>
