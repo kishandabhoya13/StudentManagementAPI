@@ -1,0 +1,59 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model QueriesViewModel
+
+
+<div class="container-fluid mt-3">
+    <input type="hidden" id="queryIdInput" asp-for="@Model.QueryId" value="@Model.QueryId" />
+    <div id="popup"></div>
+    <div id="popups"></div>
+
+</div>
+<div id="currencyOverlay" style="display: none;"></div>
+<div id="currencyLoader" style="display: none;">
+    <img src="~/Images/circle.gif" alt="gif" class="loader-img" />
+</div>
+<script>
+
+    function showLoader() {
+        console.log("show");
+        $('#currencyOverlay').show();
+        $('#currencyLoader').show();
+    }
+
+    function hideLoader() {
+        console.log("hide");
+        $('#currencyOverlay').hide();
+        $('#currencyLoader').hide();
+    }
+
+    function getQueryDetails() {
+        var queryId = $("#queryIdInput").val();
+        showLoader();
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("QueryAllReplies","Home")',
+            data: {
+                QueryId: queryId
+            },
+            success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
+                $('#popup').html(response);
+                hideLoader();
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+                hideLoader();
+            }
+        });
+    };
+
+    $(document).ready(function () {
+        getQueryDetails();
+    });
+</script>

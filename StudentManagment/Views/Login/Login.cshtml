@@ -6,23 +6,6 @@
 }
 @model StudentManagment.Models.AdminStudentViewModel
 
-@*<form asp-action="CheckLogin" asp-controller="Login" method="post">
-    <div class="container">
-        <h2>Login Page</h2>
-        <h4 class="text-danger">@TempData["error"]</h4>
-
-        <label for="uname"><b>Username</b></label>
-        <input type="text" asp-for="UserName" placeholder="Enter Username">
-        <span class="text-danger" asp-validation-for="UserName"></span><br />
-
-        <label for="psw"><b>Password</b></label>
-        <input type="password" asp-for="Password" placeholder="Enter Password">
-        <span class="text-danger" asp-validation-for="Password"></span>
-
-        <button class="admin-submit-btn" type="submit">Login</button>
-    </div>
-</form>
-*@
 
 <section class="sign-in">
     <div class="container">
@@ -38,7 +21,7 @@
                     <div class="register-form-row">
                         <div class="form-group">
                             <label for="your_pass"><i class="zmdi zmdi-account material-icons-name"></i></label>
-                            <input type="text" asp-for="UserName" id="your_pass" placeholder="UserName" />
+                            <input type="text" asp-for="UserName" id="your_username" placeholder="UserName" />
                             <span class="text-danger" asp-validation-for="UserName"></span>
 
                         </div>

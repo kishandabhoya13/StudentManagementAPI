@@ -69,6 +69,10 @@
       "PackagePath": "staticwebassets\\BookPhotos\\fe5b3568-2726-4f4f-bdd3-0b50164e9af7spinner.gif"
     },
     {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Data\\Counted_Records 6ee97826-2e38-4d77-9403-abec855ddb61.csv",
+      "PackagePath": "staticwebassets\\Data\\Counted_Records 6ee97826-2e38-4d77-9403-abec855ddb61.csv"
+    },
+    {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\EmailTemplate\\EmailTemplate.html",
       "PackagePath": "staticwebassets\\EmailTemplate\\EmailTemplate.html"
     },

@@ -14,12 +14,14 @@
             <div class="signup-form">
                 <h2 class="form-title">Sign up</h2>
                 <form method="POST" asp-action="SignUp" asp-controller="Login" class="register-form" id="register-form">
+
                     <div class="row register-form-row">
                         <div class="form-group col-lg-6 col-md-6 col-12">
                             <label for="firstname"><i class="zmdi zmdi-account material-icons-name"></i></label>
                             <input type="text" asp-for="FirstName" id="firstname" placeholder="First Name" />
                             <span class="text-danger" asp-validation-for="FirstName"></span>
                         </div>
+                        @*<input type="text" style="display:none;" asp-for="IsConfirmed" id="isconfimed" placeholder="Name" />*@
                         <div class="form-group col-lg-6 col-md-6 col-12">
                             <label for="lastname"><i class="zmdi zmdi-account material-icons-name"></i></label>
                             <input type="text" asp-for="LastName" id="lastname" placeholder="Last Name" />
@@ -31,7 +33,22 @@
                             <span class="text-danger" asp-validation-for="Email"></span>
                             <span id="email-varify-span" class="text-danger"></span>
                         </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12">
+                            <label for="mobilenumber"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                            <input type="number" asp-for="MobileNumber" id="mobilenumber" placeholder="Mobile Number" maxlength="10" />
+                            <span class="text-danger" asp-validation-for="MobileNumber"></span>
+                            <span id="username-varify-span" class="text-danger"></span>
 
+
+                        </div>
+                        <div class="form-group col-lg-6 col-md-6 col-12">
+                            <label for="username"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                            <input type="text" onblur="checkUserName()" asp-for="UserName" id="username" placeholder="User Name" />
+                            <span class="text-danger" asp-validation-for="UserName"></span>
+                            <span id="username-varify-span" class="text-danger"></span>
+
+
+                        </div>
                         <div class="form-group col-lg-6 col-md-6 col-12 pt-2">
                             <label for="birthdate"><i class="zmdi zmdi-calendar"></i></label>
                             <input type="date" asp-for="BirthDate" id="birthdate" placeholder="BirthDate" />
@@ -49,14 +66,7 @@
                             </select>
                             <span class="text-danger" asp-validation-for="CourseId"></span>
                         </div>
-                        <div class="form-group col-lg-6 col-md-6 col-12">
-                            <label for="username"><i class="zmdi zmdi-account material-icons-name"></i></label>
-                            <input type="text" onblur="checkUserName()" asp-for="UserName" id="username" placeholder="User Name" />
-                            <span class="text-danger" asp-validation-for="UserName"></span>
-                            <span id="username-varify-span" class="text-danger"></span>
 
-
-                        </div>
                         <div class="form-group col-lg-6 col-md-6 col-12">
                             <label for="pass"><i class="zmdi zmdi-lock"></i></label>
                             <input type="password" asp-for="Password" id="pass" placeholder="Password" />
@@ -231,4 +241,54 @@
         var formattedMinDate = minDate.toISOString().split('T')[0];
         $('#birthdate').attr('max', formattedMinDate);
     });
+
+    //function focusNextInput() {
+
+    //    const inputs = document.querySelectorAll('input');
+    //    const focusedElement = document.activeElement;
+
+    //    const index = Array.from(inputs).indexOf(focusedElement);
+
+    //    if (index > -1 && index < inputs.length - 1) {
+    //        inputs[index + 1].focus();
+    //    }
+    //}
+
+    $("input").keydown(function (event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            console.log("call this function");
+            var inputs = $('input:enabled:visible');
+
+            var focusedElement = $(document.activeElement);
+
+            var index = inputs.index(focusedElement);
+
+            if (index > -1 && index < inputs.length - 1) {
+                console.log("input ::::: ", inputs.eq(index + 1));
+                inputs.eq(index + 1).focus();
+            }
+        }
+    });
+
+
+    $("#mobilenumber").keydown(function (even) {
+        if (event.keyCode != 8) 
+        {
+            if (this.value.length >= ($(this).attr("maxlength") - 1)) {
+                var inputs = $('input:enabled:visible');
+
+                var focusedElement = $(document.activeElement);
+
+                var index = inputs.index(focusedElement);
+
+                if (index > -1 && index < inputs.length - 1) {
+                    setTimeout(function () {
+                        console.log("Focusing next input:", inputs.eq(index + 1));
+                        inputs.eq(index + 1).focus();
+                    }, 10);
+                }
+            }
+        }
+    })
 </script>

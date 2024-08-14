@@ -1,0 +1,180 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model QueriesViewModel
+<div class="container top-container">
+    <div class="row content">
+        <h3 class="">For : @Model.TicketNumber</h3>
+        <div class="content">
+            @if (Model.QueriesReply.Count > 0)
+            {
+                @foreach (var data in Model.QueriesReply)
+                {
+                    string HeaderClass = "";
+                    @if (data.Subject.Contains("Re:"))
+                    {
+                        if (data.IsSentMe)
+                        {
+                            HeaderClass = "fromMail";
+                        }
+                        else
+                        {
+                            HeaderClass = "toMail";
+                        }
+                    }
+                    else
+                    {
+                        HeaderClass = "fromMail";
+                    }
+                    <div class="col-12 col-md-12 col-lg-12 col-sm-12 column @HeaderClass">
+                        <div class="card rate-alert-card query-card">
+                            <div class="query-card-header" id="cardHeader">
+                                @if (data.Subject.Contains("Re:"))
+                                {
+                                    if (data.IsSentMe)
+                                    {
+                                        <img src="~/Images/school_logo.png" alt="Avatar" class="querieslogo">
+                                    }
+                                    else
+                                    {
+                                        <div class="querieslogo" id="logo">
+                                            <span class="logo-text">@Model.FirstName@Model.LastName</span>
+                                        </div>
+                                    }
+                                   
+                                }
+                                else
+                                {
+                                    <img src="~/Images/school_logo.png" alt="Avatar" class="querieslogo">
+                                }
+                                <div class="query-down-arrow">
+                                    <i class="fa fa-angle-down"></i>
+                                </div>
+                                <div class="mt-1 d-flex card-text-div">
+                                    <p>Email: </p><span class="card-text">&nbsp;&nbsp;@data.Email</span>
+                                </div>
+                                <div class="mt-1 d-flex card-text-div">
+                                    <p>Subject:</p> <span class="card-text">&nbsp;&nbsp;@data.Subject</span>
+                                </div>
+                            </div>
+                            <div class="query-card-body mt-3" id="cardBody">
+                                <div id="query-body">
+                                    @Html.Raw(data.Body)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+            }
+        </div>
+
+    </div>
+</div>
+<div class="send-email-div">
+    <button type="button" onclick="OpenReplyModal(@Model.QueryId)" class="btn send-email-btn mb-3">
+        Send Reply
+    </button>
+</div>
+<script>
+
+    function OpenReplyModal(queryId) {
+        $.ajax({
+            type: "get",
+            data: {
+                QueryId: queryId,
+            },
+            url: '@Url.Action("AddReplyModal","Home")',
+            success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
+                $('#popups').html(response)
+                $('#AddReplyModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+
+    const cardHeaders = document.querySelectorAll('.query-card-header');
+
+    cardHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const card = header.closest('.card');
+
+            const cardBody = card.querySelector('.query-card-body');
+
+            if (cardBody.classList.contains('open')) {
+                cardBody.classList.remove('open');
+            } else {
+                cardBody.classList.add('open');
+            }
+
+
+        });
+    });
+
+    const queryBody = document.getElementById('query-body');
+    queryBody.contentEditable = 'false';
+    //document.addEventListener('DOMContentLoaded', () => {
+
+    //});
+
+
+    //document.addEventListener('DOMContentLoaded', () => {
+
+    //});
+
+
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    // Function to calculate the luminance of a color
+    function getLuminance(hex) {
+        // Remove the hash at the start if it's there
+        hex = hex.replace(/^#/, '');
+
+        // Convert to RGB
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+        // Use the luminance formula
+        const a = [r, g, b].map(function (v) {
+            v = v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+            return v;
+        });
+
+        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    }
+
+    // Function to determine if the text should be light or dark
+    function getTextColor(backgroundColor) {
+        return getLuminance(backgroundColor) > 0.5 ? 'black' : 'white';
+    }
+
+    // Apply random background color and appropriate text color
+    function applyRandomColors() {
+        const logos = document.querySelectorAll('.querieslogo');
+        const randomColor = getRandomColor();
+        const textColor = getTextColor(randomColor);
+        logos.forEach(logo => {
+            logo.style.backgroundColor = randomColor;
+            logo.style.color = getTextColor(randomColor);
+            logo.style.borderColor = textColor;
+        });
+    }
+
+    // Call the function to set the colors when the page loads
+    applyRandomColors();
+</script>

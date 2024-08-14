@@ -1,0 +1,341 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@using StudentManagment.Models.DataModels;
+@{
+    ViewData["Title"] = "All Email";
+}
+<div class="container-fluid mt-4">
+    <div class="send-email-div">
+        <button onclick="OpenEditModal()" type="button" class="btn send-email-btn">
+            Send Queries
+        </button>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="search-div row">
+        <div class="col-md-5 col-lg-5 col-12 col-sm-12">
+            <div class="form-group pb-4">
+                <div class="input_box">
+                    <input id="inputsearch"
+                           class="form-control"
+                           type="search"
+                           placeholder="Search Query" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid table-responsive">
+        <table id="StudentTable" class="table table-borderless">
+        </table>
+    </div>
+</div>
+<div id="popups"></div>
+<script>
+
+    function loadDataTable(startIndex) {
+        var TOTAL_ITEMS = 0;
+        var searchQuery = $("#inputsearch").val();
+        var pageSize = $("#dt-length-0").val();
+        var secondApiRequest = {
+            searchQuery: searchQuery,
+            StartIndex: startIndex,
+            PageSize: pageSize,
+        };
+        sessionStorage.setItem("currentPageIndex", startIndex);
+        var table = new DataTable('#StudentTable', {
+            searching: false,
+            "infoCallback": function (settings, start, end, max, total, pre) {
+
+                var pageInfo = this.api().page.info(); // Get the current page info
+                var pageSize1 = $("#dt-length-0").val();
+
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
+
+                var startIndex = (currentPageIndex * pageSize1) + 1;
+
+                var endIndex = Math.min(parseInt(startIndex, 10) + parseInt(pageSize1, 10) - 1, parseInt(TOTAL_ITEMS, 10));
+                if (parseInt(endIndex, 10) === parseInt(TOTAL_ITEMS, 10)) {
+                    $(".page-link.next").addClass("disabled");
+                }
+                else {
+                    $(".page-link.next").removeClass("disabled");
+                }
+
+                if (startIndex == 1) {
+                    $(".page-link.previous").addClass("disabled");
+                }
+                else {
+                    $(".page-link.previous").removeClass("disabled");
+
+                }
+               
+
+                return "Showing " + startIndex + " to " + endIndex + " of " + TOTAL_ITEMS + " entries";
+            },
+            drawCallback: function () {
+
+                $(".dt-paging-button").removeClass("disabled");
+            },
+            "initComplete": function (settings, json) {
+                $(".dt-paging-button").removeClass("disabled");
+                var pageSize1 = $("#dt-length-0").val();
+
+                if (TOTAL_ITEMS <= pageSize1) {
+                    console.log("total items", TOTAL_ITEMS);
+                    console.log("page size", pageSize1);
+                    $(".page-link.next").addClass("disabled");
+                }
+                else {
+                    console.log("total items else", TOTAL_ITEMS);
+                    console.log("page size else", pageSize1);
+                    $(".page-link.next").removeClass("disabled");
+                }
+                
+            },
+            "lengthMenu": [[5, 10, 15], [5, 10, 15]],
+            "pageLength": pageSize,
+            "language": {
+                oPaginate: {
+                    sNext: '<i class="bi bi-caret-right-fill text-info"></i>',
+                    sPrevious: '<i class="bi bi-caret-left-fill text-info"></i>'
+
+                }
+            },
+            "stateSave": true,
+            "pagingType": "simple",
+
+            ajax: {
+                method: "POST",
+                url: "/Home/GetAllQueries",
+                data: secondApiRequest,
+                dataType: "JSON",
+                dataSrc: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                    TOTAL_ITEMS = response.totalItems;
+                    return response.data;
+                },
+                error: function () {
+                    console.log("Function Fail")
+                }
+            },
+            columns: [
+                {
+                    "title": "QueryId",
+                    "data": "queryId",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return data1;
+                    }
+                },
+                {
+                    "title": "TicketNumber",
+                    "data": "ticketNumber",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<a class='input-values-" + row.queryId + "' href='/Home/QueryEmailDetails?QueryId=" + row.queryId + "'>" + data1 + "</a>";
+                    }
+                },
+                {
+                    "title": "StudentId",
+                    "data": "studentId",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<span class='input-values-" + row.queryId + "'>" + data1 + "</span>";
+                    }
+                },
+                {
+                    "title": "Email",
+                    "data": "email",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<span class='input-values-" + row.queryId + "'>" + data1 + "</span>";
+
+                    }
+                },
+                {
+                    "title": "Subject",
+                    "data": "subject",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<span class='input-values-" + row.queryId + "'>" + data1 + "</span>";
+
+                    }
+                },
+                {
+                    "title": "CreatedDate",
+                    "data": "createdDate",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        var date = new Date(data1);
+                        var localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+                        var formattedDate = localDate.toISOString().split('T')[0];
+                        return "<span class='input-values-" + row.queryId + "'>" + formattedDate + "</span>";
+
+                    }
+                },
+            ]
+        });
+        return table;
+
+    };
+
+
+
+    $(document).ready(function () {
+        sessionStorage.setItem("currentPageIndex", 0);
+        var table = loadDataTable(0);
+        $("#dt-length-0").val(5);
+        $(".dt-paging-button").removeClass("disabled");
+        $(document).on('change', '.form-select', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            event.preventDefault();
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllQueries",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('keyup', '#inputsearch', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                searchQuery: this.value,
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllQueries",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        let currentPageIndex = 0;
+        let totalPages = table.page.info().pages;
+        $(document).on('click', '.page-link.next', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) + 1;
+            }
+            let startIndex = currentPageIndex * pageSize;
+
+            event.preventDefault();
+            var secondApiRequest = {
+                StartIndex: startIndex,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllQueries",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('click', '.page-link.previous', function (event) {
+            event.preventDefault();
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
+                if (parseInt(currentPageIndex, 10) < 0) {
+
+                    currentPageIndex = 0;
+                }
+            }
+            let startIndex1 = currentPageIndex * pageSize;
+
+            var secondApiRequest = {
+                StartIndex: startIndex1,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetAllQueries",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                    console.log(response);
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+    });
+
+
+    function OpenEditModal() {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("AddQueryModal","Home")',
+            success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
+                $('#popups').html(response)
+                $('#AddQueryModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+</script>

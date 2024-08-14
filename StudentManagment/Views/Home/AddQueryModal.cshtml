@@ -1,0 +1,108 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+@model StudentManagment.Models.QueriesViewModel
+
+<div id="AddQueryModal" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                    <h5 class="modal-title">Raise Query</h5>
+                <button type="button"
+                        class="btn-close btn-close-custom"
+                        data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form style="border:none !important;" method="post" asp-action="AddQuery" asp-controller="Home">
+                    <div class="row">
+                        <div class="col-md-12 col-6 col-sm-6 mb-4" id="dropdown-div">
+                            <div class="my-profile-input_box">
+                                <select id="email-dropdown"
+                                        asp-for="StudentId"
+                                        class="form-control change2">
+                                    <option value="">Select Student</option>
+                                    @foreach (var email in Model.StudentsEmails)
+                                    {
+                                        if (!string.IsNullOrEmpty(email.Email))
+                                        {
+                                            <option value="@email.StudentId">@email.FirstName @email.LastName</option>
+                                        }
+                                    }
+                                </select>
+                                <i class="fa fa-angle-down"
+                                   id="send-order-dropdownarrow"></i>
+                            </div>
+                            <span class="text-danger" asp-validation-for="StudentId"></span>
+                        </div>
+                        <div class="col-md-12 col-sm-12 col-12">
+                            <div class="form-group form-floating input-subject mb-3">
+                                <input type="text"
+                                       class="form-control input-lg"
+                                       id="floatingSubject"
+                                       asp-for="Subject"
+                                       placeholder="Subject" />
+                                <label for="floatingSubject">Subject</label>
+                                <span asp-validation-for="Subject" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group form-floating pb-3">
+                                <textarea class="form-control"
+                                          id="summernote"
+                                          asp-for="Body"
+                                          placeholder="Multiple Line"></textarea>
+                                <span asp-validation-for="Body" class="text-danger"></span>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
+                        <button class="btn btn-primary me-md-2 submit-btn" type="submit">
+                            Submit
+                        </button>
+                        <button class="btn btn-primary cancel-btn" data-bs-dismiss="modal" type="button">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<link href="~/summernote/summernote.css" rel="stylesheet" />
+<script src="~/summernote/summernote.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#summernote').summernote({
+            tabsize: 2,
+            height: 300,
+            minHeight: null,
+            maxHeight: null,
+            focus: true,
+            callbacks: {
+                onInit: function () {
+                    // Disable editing for header and footer
+                    $('#header, #footer').attr('contenteditable', false);
+                }
+            }
+        });
+
+        var selectedOption = $('#email-dropdown').find(':selected');
+        var firstName = selectedOption.text();
+        $('#to-email').text(firstName);
+    });
+
+    $("#email-dropdown").on("change", function () {
+        var selectedOption = $('#email-dropdown').find(':selected');
+        var firstName = selectedOption.text();
+        $('#to-email').text(firstName);
+    });
+</script>

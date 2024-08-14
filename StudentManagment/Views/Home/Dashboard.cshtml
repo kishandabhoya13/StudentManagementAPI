@@ -1,0 +1,136 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model StudentManagement.Models.RoleBaseResponse<RecordsCountViewModel>
+<div class="boxes-main-div mt-5">
+    <div class="boxes-inner-div">
+        <button class="btns btn1">
+            <div class="tringle tringle1"></div>
+            <div class="btn-inner-div">
+                <span>
+                    Added Students
+                </span><i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <h3 class="pt-2">
+                0
+            </h3>
+        </button>
+        <button class="btns btn2">
+            <div class="tringle tringle2"></div>
+            <div class="btn-inner-div">
+                <span>
+                    Added Course
+                </span>
+                <i class="fa-solid fa-clipboard"></i>
+            </div>
+            <h3 class="pt-2">
+                0
+            </h3>
+        </button>
+        <button class="btns btn4">
+            <div class="tringle tringle4"></div>
+            <div class="btn-inner-div">
+                <span>
+                    Added Books
+                </span>
+                <i class="fa-solid fa-book-open-reader"></i>
+            </div>
+            <h3 class="pt-2">
+                0
+            </h3>
+        </button>
+    </div>
+
+</div>
+<div class="boxes-main-div">
+    <div class="boxes-inner-div">
+        <button class="btns btn6">
+            <div class="tringle tringle6"></div>
+            <div class="btn-inner-div">
+                <span>
+                    Scheduled Email
+                </span>
+                <i class="fa fa-clock-o" aria-hidden="true"></i>
+
+            </div>
+            <h3 class="pt-2">
+                0
+            </h3>
+        </button>
+        <button class="btns btn3">
+            <div class="tringle tringle3"></div>
+            <div class="btn-inner-div">
+                <span>
+                    Sent Email
+                </span>
+                <i class="fa fa-envelope" aria-hidden="true"></i>
+
+            </div>
+            <h3 class="pt-2">
+                0
+            </h3>
+        </button>
+        <button class="btns btn9">
+            <div class="tringle tringle9"></div>
+            <div class="btn-inner-div">
+                <span>
+                    Raise Queries
+                </span>
+                <i class="fas fa-exclamation-circle"></i>
+
+            </div>
+            <h3 class="pt-2">
+                0
+            </h3>
+        </button>
+    </div>
+</div>
+<div class="send-email-div me-3 mt-3">
+    <button onclick="location.href='@Url.Action("ExportAllCount","Home")'" type="button" class="btn send-email-btn">
+        Download Counts
+    </button>
+</div>
+<div id="currencyOverlay" style="display: none;"></div>
+<div id="currencyLoader" style="display: none;">
+    <img src="~/Images/circle.gif" alt="gif" class="loader-img" />
+</div>
+
+<script>
+    function showLoader() {
+        $('#currencyOverlay').show();
+        $('#currencyLoader').show();
+    }
+
+    function hideLoader() {
+        $('#currencyOverlay').hide();
+        $('#currencyLoader').hide();
+    }
+    $(document).ready(function () {
+
+        showLoader();
+        $.ajax({
+            method: "GET",
+            url: "/Home/GetDashboardRecordsCount",
+            success: function (response) {
+                if (response == false) {
+                    window.location.href = '/Login/Logout';
+                }
+
+                const data = response;
+                $('.btn1 h3').text(data.studentCount);
+                $('.btn2 h3').text(data.courseCount);
+                $('.btn4 h3').text(data.bookCount);
+                $('.btn6 h3').text(data.scheduledCount);
+                $('.btn3 h3').text(data.emailCount);
+                $('.btn9 h3').text(data.queriesCount);
+                hideLoader();
+
+            },
+            error: function (xhr, status, error) {
+                hideLoader();
+
+                console.error(error);
+            }
+        });
+    });
+</script>

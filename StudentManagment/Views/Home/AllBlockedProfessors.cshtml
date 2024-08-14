@@ -89,6 +89,18 @@
             },
             "initComplete": function (settings, json) {
                 $(".dt-paging-button").removeClass("disabled");
+                var pageSize1 = $("#dt-length-0").val();
+
+                if (TOTAL_ITEMS <= pageSize1) {
+                    console.log("total items", TOTAL_ITEMS);
+                    console.log("page size", pageSize1);
+                    $(".page-link.next").addClass("disabled");
+                }
+                else {
+                    console.log("total items else", TOTAL_ITEMS);
+                    console.log("page size else", pageSize1);
+                    $(".page-link.next").removeClass("disabled");
+                }
             },
             "lengthMenu": [[5, 10, 15], [5, 10, 15]],
             "pageLength": pageSize,
@@ -303,6 +315,10 @@
             var pageSize = $("#dt-length-0").val();
             if (sessionStorage.getItem("currentPageIndex") != null) {
                 currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
+                if (parseInt(currentPageIndex, 10) < 0) {
+
+                    currentPageIndex = 0;
+                }
             }
             let startIndex1 = currentPageIndex * pageSize;
             var secondApiRequest = {

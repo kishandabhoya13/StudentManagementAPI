@@ -125,6 +125,14 @@
             },
             "initComplete": function (settings, json) {
                 $(".dt-paging-button").removeClass("disabled");
+                var pageSize1 = $("#dt-length-0").val();
+
+                if (TOTAL_ITEMS <= pageSize1) {
+                    $(".page-link.next").addClass("disabled");
+                }
+                else {
+                    $(".page-link.next").removeClass("disabled");
+                }
             },
             "lengthMenu": [[5, 10, 15], [5, 10, 15]],
             "pageLength": pageSize,
@@ -280,7 +288,6 @@
 
 
     $(document).ready(function () {
-        console.log(localStorage.getItem("currentCount"));
 
         var currentCounts = {};
         sessionStorage.setItem("currentPageIndex", 0);
@@ -396,6 +403,10 @@
             var pageSize = $("#dt-length-0").val();
             if (sessionStorage.getItem("currentPageIndex") != null) {
                 currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
+                if (parseInt(currentPageIndex, 10) < 0) {
+
+                    currentPageIndex = 0;
+                }
             }
             let startIndex1 = currentPageIndex * pageSize;
             var secondApiRequest = {
@@ -426,7 +437,6 @@
                 },
                 error: function (xhr, status, error) {
                     if (xhr.status === 401) {
-                        console.log('Unauthorized - Logout user');
                         // Perform logout action (e.g., redirect to logout page)
                         window.location.href = '/Login/Logout'; // Adjust URL as per your project's logout route
                     } else {
@@ -501,14 +511,12 @@
 
                 if (!currentCounts.hasOwnProperty(rowId)) {
                     currentCounts["currentCount"] = newCount.toFixed(2);
-                    console.log("current count", currentCounts["currentCount"]);
                 }
             });
             for (var key in currentCounts) {
                 if (key !== "currentCount") {
                     var currentValue = parseFloat(currentCounts[key]);
                     currentCounts[key] = (currentValue + 0.20).toFixed(2);
-                    console.log("current counts key value ", currentCounts[key]);
 
                 }
             }
@@ -529,7 +537,6 @@
 
 
         $(document).on('click', '#plus-icon', function (event) {
-            console.log("plus");
             incrementCountColumn1();
         });
 
@@ -684,7 +691,6 @@
                     console.error(error);
                 }
             });
-            console.log(studentViewModel);
         }
     }
 </script>

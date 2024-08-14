@@ -74,6 +74,10 @@
               "target": "Package",
               "version": "[7.0.0, )"
             },
+            "MimeKit": {
+              "target": "Package",
+              "version": "[4.7.1, )"
+            },
             "NetCore.AutoRegisterDi": {
               "target": "Package",
               "version": "[2.2.1, )"

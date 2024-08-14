@@ -65,38 +65,42 @@ namespace StudentManagment.Controllers
             string JwtToken = HttpContext.Session.GetString("Jwt") ?? "";
             int Id = HttpContext.Session.GetInt32("UserId") ?? 0;
             int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
-            UpdateJwtViewModel updateJwtViewModel = new()
+            if (Id != 0)
             {
-                Id = Id,
-                token = "",
-            };
-            if (RoleId != 3)
-            {
-
-                SecondApiRequest secondApiRequest = new()
+                UpdateJwtViewModel updateJwtViewModel = new()
                 {
-                    ControllerName = "ProfessorHod",
-                    MethodName = "UpdateProfessorHodJwtToken",
-                    DataObject = JsonConvert.SerializeObject(updateJwtViewModel),
-                    RoleIds = new List<string> { "1", "2" },
-                    token = JwtToken,
-
+                    Id = Id,
+                    token = "",
                 };
-                _ = GetApiResponse<bool>(secondApiRequest);
-            }
-            else
-            {
-                SecondApiRequest secondApiRequest = new()
+                if (RoleId != 3)
                 {
-                    ControllerName = "Student",
-                    MethodName = "UpdateStudentJwtToken",
-                    DataObject = JsonConvert.SerializeObject(updateJwtViewModel),
-                    RoleIds = new List<string> { "1", "2", "3" },
-                    token = JwtToken,
 
-                };
-                _ = GetApiResponse<bool>(secondApiRequest);
+                    SecondApiRequest secondApiRequest = new()
+                    {
+                        ControllerName = "ProfessorHod",
+                        MethodName = "UpdateProfessorHodJwtToken",
+                        DataObject = JsonConvert.SerializeObject(updateJwtViewModel),
+                        RoleIds = new List<string> { "1", "2" },
+                        token = JwtToken,
+
+                    };
+                    _ = GetApiResponse<bool>(secondApiRequest);
+                }
+                else
+                {
+                    SecondApiRequest secondApiRequest = new()
+                    {
+                        ControllerName = "Student",
+                        MethodName = "UpdateStudentJwtToken",
+                        DataObject = JsonConvert.SerializeObject(updateJwtViewModel),
+                        RoleIds = new List<string> { "1", "2", "3" },
+                        token = JwtToken,
+
+                    };
+                    _ = GetApiResponse<bool>(secondApiRequest);
+                }
             }
+
             HttpContext.Session.Clear();
             HttpContext.Response.Cookies.Delete("jwt");
             HttpContext.Request.Headers.Remove("Api-Version");
@@ -155,7 +159,7 @@ namespace StudentManagment.Controllers
                     if (jwtClaimsViewModel.Id != 0)
                     {
                         HttpContext.Session.SetInt32("UserId", jwtClaimsViewModel.Id);
-                        return RedirectToAction("AdminIndex", "Home");
+                        return RedirectToAction("Dashboard", "Home");
                     }
                     else
                     {

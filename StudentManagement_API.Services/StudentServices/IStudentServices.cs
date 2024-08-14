@@ -86,5 +86,11 @@ namespace StudentManagement_API.Services
         CurrencyPairDto GetRateAlertById(int RateAlertId);
 
         void RemoveRateAlert(int RateAlertId);
+
+        void AddQueries(QueriesDto queriesDto);
+
+        QueriesDto GetQueryDetails(int QueryId);
+
+        RecordsCountDto GetRecordsCounts(int Id);
     }
 }

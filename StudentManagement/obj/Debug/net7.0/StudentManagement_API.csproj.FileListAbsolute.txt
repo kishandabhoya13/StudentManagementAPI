@@ -101,3 +101,8 @@ D:\StudentManagement\StudentManagement\bin\Debug\net7.0\NetCore.AutoRegisterDi.d
 D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Asp.Versioning.Abstractions.dll
 D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Asp.Versioning.Http.dll
 D:\StudentManagement\StudentManagement\bin\Debug\net7.0\Asp.Versioning.Mvc.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\BouncyCastle.Cryptography.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\MimeKit.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\System.Formats.Asn1.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\System.Security.Cryptography.Pkcs.dll
+D:\StudentManagement\StudentManagement\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Security.Cryptography.Pkcs.dll

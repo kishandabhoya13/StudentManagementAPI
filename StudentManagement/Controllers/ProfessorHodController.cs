@@ -18,6 +18,8 @@ using System.Security.Claims;
 using StudentManagement_API.DataContext;
 using static DemoApiWithoutEF.Utilities.Enums;
 using System.Linq.Expressions;
+using MimeKit;
+using System.Globalization;
 
 namespace StudentManagement_API.Controllers
 {
@@ -171,10 +173,10 @@ namespace StudentManagement_API.Controllers
 
                         try
                         {
-                            string id = "123456789"; //Save the id in your database 
-                            message.Headers.Add("Message-Id", String.Format("<{0}@{1}>", id.ToString(), "mail.example.com"));
+                            //string id = "123456789"; //Save the id in your database 
+                            //message.Headers.Add("Message-Id", String.Format("<{0}@{1}>", id.ToString(), "mail.example.com"));
                             client.Send(message);
-                            string messageId = message.Headers["Message-ID"] ?? "";
+                            //string messageId = message.Headers["Message-ID"] ?? "";
                         }
                         catch (Exception)
                         {
@@ -261,7 +263,7 @@ namespace StudentManagement_API.Controllers
                 }
                 else
                 {
-                    sql  = "Update ProfessorHod Set IsBlocked = 0 Where Id = " + professorHod.Id;
+                    sql = "Update ProfessorHod Set IsBlocked = 0 Where Id = " + professorHod.Id;
                 }
                 DbClient.ExecuteProcedureWithQuery(sql, null, ExecuteType.ExecuteNonQuery);
                 _response.result = new RoleBaseResponse<bool>() { data = true }; ;
@@ -354,5 +356,208 @@ namespace StudentManagement_API.Controllers
             return _response;
         }
 
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPost("AddQueries")]
+        public ActionResult<APIResponse> AddQueries(QueriesDto queriesDto)
+        {
+            try
+            {
+                _studentServices.AddQueries(queriesDto);
+                MailMessage message = new MailMessage(_configuration["EmailCredential:From"], queriesDto.Email);
+                SmtpClient client = new SmtpClient(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]));
+                System.Net.NetworkCredential basicCredential1 = new
+                System.Net.NetworkCredential(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = basicCredential1;
+                string mailbody = queriesDto.Body;
+                message.Subject = queriesDto.Subject;
+                message.Body = mailbody;
+                message.BodyEncoding = Encoding.UTF8;
+                message.IsBodyHtml = true;
+
+                EmailLogs emailLogs = new()
+                {
+                    Email = queriesDto.Email,
+                    SentBy = 1,
+                    Body = queriesDto.Body,
+                    Subject = queriesDto.Subject,
+                };
+                try
+                {
+                    client.Send(message);
+                }
+                catch (Exception)
+                {
+                    string EmailLogSql = "[dbo].[Add_EmailLog_Details]";
+                    emailLogs.IsSent = false;
+                    _studentServices.AddEmailLogs(emailLogs, EmailLogSql);
+                }
+                string sql = "[dbo].[Add_EmailLog_Details]";
+                emailLogs.IsSent = true;
+                _studentServices.AddEmailLogs(emailLogs, sql);
+
+
+                _response.result = new RoleBaseResponse<bool>() { data = true };
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool>() { data = false }; ;
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+            }
+            return _response;
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("GetAllQueries")]
+        public ActionResult<APIResponse> GetAllQueries(PaginationDto paginationDto)
+        {
+            try
+            {
+                if (paginationDto.StartIndex < 0 || paginationDto.PageSize < 0)
+                {
+                    return _response;
+                }
+                var role = "";
+                if (_jwtService.ValidateToken(paginationDto.JwtToken, out JwtSecurityToken jwtSecurityToken))
+                {
+                    role = jwtSecurityToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
+                }
+
+                IList<QueriesDto> queries = _studentServices.GetDataWithPagination<QueriesDto>(paginationDto, "[dbo].[Get_All_Queries]");
+                int totalItems = queries.Count > 0 ? queries.FirstOrDefault(x => x.QueryId != 0)?.TotalRecords ?? 0 : 0;
+                int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
+                RoleBaseResponse<IList<QueriesDto>> roleBaseResponse = new()
+                {
+                    data = queries,
+                    Role = role,
+                    StartIndex = paginationDto.StartIndex,
+                    PageSize = paginationDto.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = TotalPages,
+                    CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize),
+                    searchQuery = paginationDto.searchQuery,
+                };
+
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+            }
+
+            return _response;
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("GetQueryDetail")]
+        public ActionResult<APIResponse> GetQueryDetail(int QueryId)
+        {
+            try
+            {
+                QueriesDto queriesDto = _studentServices.GetQueryDetails(QueryId);
+                _response.result = new RoleBaseResponse<QueriesDto>() { data = queriesDto };
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool>() { data = false }; ;
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+            }
+            return _response;
+
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("SendReplyEmail")]
+        public ActionResult<APIResponse> SendReplyEmail(QueriesDto queriesDto)
+        {
+            SmtpClient client = new SmtpClient(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]));
+            System.Net.NetworkCredential basicCredential1 = new
+            System.Net.NetworkCredential(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+            client.EnableSsl = true;
+            client.UseDefaultCredentials = false;
+            client.Credentials = basicCredential1;
+
+            var message = new MailMessage
+            {
+                From = new MailAddress(_configuration["EmailCredential:From"], "Kishan Dabhoya"),
+                Subject = queriesDto.Subject,
+                Body = queriesDto.Body,
+                IsBodyHtml = true, 
+            };
+
+            message.To.Add(new MailAddress(queriesDto.Email));
+            message.Headers.Add("In-Reply-To", queriesDto.MessageId);
+            EmailLogs emailLogs = new()
+            {
+                Email = queriesDto.Email,
+                Subject = queriesDto.Subject,
+                Body = queriesDto.Body,
+                SentBy = 1,
+            };
+            try
+            {
+                client.Send(message);
+            }
+            catch (Exception)
+            {
+                string EmailLogSql = "[dbo].[Add_EmailLog_Details]";
+                emailLogs.IsSent = false;
+                _studentServices.AddEmailLogs(emailLogs, EmailLogSql);
+            }
+            string sql = "[dbo].[Add_EmailLog_Details]";
+            emailLogs.IsSent = true;
+            _studentServices.AddEmailLogs(emailLogs, sql);
+
+            _response.result = new RoleBaseResponse<bool>() { data = true };
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            return _response;
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("GetRecordsCount")]
+        public ActionResult<APIResponse> GetRecordsCount(int id)
+        {
+            try
+            {
+                RecordsCountDto recordsCountDto = _studentServices.GetRecordsCounts(id);
+                _response.result = new RoleBaseResponse<RecordsCountDto>() { data = recordsCountDto};
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool>() { data = false };
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+            }
+            return _response;
+        }
     }
 }

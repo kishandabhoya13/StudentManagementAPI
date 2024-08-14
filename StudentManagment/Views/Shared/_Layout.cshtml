@@ -27,6 +27,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
     <link href="~/summernote/summernote.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/2.1.3/css/dataTables.jqueryui.css" rel="stylesheet" />
+    <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet" />
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
@@ -88,12 +91,13 @@
             <div class="menu">
                 <ul class="menu-links">
                     <li class="nav-link">
-                        @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
+                        @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") != 3)
                         {
-                            <a aria-current="page" asp-area="" asp-controller="Home" asp-action="AdminIndex">
+                            <a aria-current="page" asp-area="" asp-controller="Home" asp-action="Dashboard">
                                 <i class='bx bx-home-alt icon'></i>
                                 <span class="text nav-text">Home</span>
                             </a>
+
                         }
                         else
                         {
@@ -103,17 +107,24 @@
                             </a>
                         }
                     </li>
+                    <li class="nav-link">
+                        <a aria-current="page" asp-area="" asp-controller="Home" asp-action="AdminIndex">
+                            <i class="fa-solid fa-user-graduate icon"></i>
+                            <span class="text nav-text">All Students</span>
+                        </a>
+                    </li>
+                    @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 3)
+                    {
                         <li class="nav-link">
-                        @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 3)
-                        {
 
                             <a asp-action="AddRateAlert" asp-controller="Home">
                                 <i class="zmdi zmdi-money icon"></i>
                                 <span class="text nav-text">Add Rate Alert</span>
                             </a>
 
-                        }
-                    </li>
+                        </li>
+
+                    }
 
                     <li class="nav-link">
                         @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1 || HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 2)
@@ -129,12 +140,12 @@
 
                     @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
                     {
-                       @* <li class="nav-link">
-                            <a asp-area="" asp-controller="Home" asp-action="CreateUpdateStudent">
-                                <i class="fa-solid fa-user-graduate icon"></i>
-                                <span class="text nav-text">Create Student</span>
-                            </a>
-                        </li>*@
+                        @* <li class="nav-link">
+                    <a asp-area="" asp-controller="Home" asp-action="CreateUpdateStudent">
+                    <i class="fa-solid fa-user-graduate icon"></i>
+                    <span class="text nav-text">Create Student</span>
+                    </a>
+                    </li>*@
 
                         <li class="nav-link">
                             <a asp-area="" asp-controller="Home" asp-action="AllBooks">
@@ -144,12 +155,12 @@
                         </li>
 
                         @*<li class="nav-link">
-                            <a asp-area="" asp-controller="Home" asp-action="AddEditBook">
-                                <i class='bx bx-heart icon'></i>
-                                <span class="text nav-text">Add New Book</span>
-                            </a>
-                        </li>
-*@
+                    <a asp-area="" asp-controller="Home" asp-action="AddEditBook">
+                    <i class='bx bx-heart icon'></i>
+                    <span class="text nav-text">Add New Book</span>
+                    </a>
+                    </li>
+                    *@
                         <li class="nav-link">
                             <a asp-area="" asp-controller="Home" asp-action="AllEmails">
                                 <i class='bx bx-envelope icon'></i>
@@ -178,6 +189,13 @@
                             </a>
                         </li>
 
+                        <li class="nav-link">
+                            <a asp-area="" asp-controller="Home" asp-action="AllQueries">
+                                <i class="zmdi zmdi-pin-help icon"></i>
+                                <span class="text nav-text">All Queries</span>
+                            </a>
+                        </li>
+
                     }
 
                 </ul>
@@ -198,65 +216,8 @@
         </div>
 
     </nav>
-    @* <nav class="navbar navbar-expand-lg">
-    <img src="~/Images/school_logo.png" alt="Avatar" class="avatar">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-    <div class="navbar-nav">
-    @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
-    {
-    <a class="nav-link" active aria-current="page" asp-area="" asp-controller="Home" asp-action="AdminIndex">Home</a>
-    }
-    else
-    {
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-    }
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-    @if (HttpContextAccessor.HttpContext.Session.GetInt32("UserId") != null)
-    {
-    <a class="nav-link " asp-area="" asp-controller="Login" asp-action="LogOut">Log Out</a>
-    if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1 || HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 2)
-    {
 
-    <a class="nav-link " onclick="CreateCourse()">Create Course</a>
-
-    }
-    if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
-    {
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="CreateUpdateStudent">Create Student</a>
-
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="AllBooks">Books</a>
-
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="AddEditBook">Add New Book</a>
-
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="AllEmails">All Emails</a>
-
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="GetAllMailReplies">Reply Emails</a>
-
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="AllPandingStudents">Pending Students List</a>
-
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="AllProfessors">All Professors</a>
-
-
-    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="AllBlockedProfessors">All Blocked Professors</a>
-
-    }
-
-    }
-    </div>
-    </div>
-    </nav>*@
-
-    <main role="main" class="pb-3 p-2" style="margin-left:80px;">
+    <main role="main" class="p-0 main" style="margin-left:80px;">
         @RenderBody()
     </main>
     <div id="popup"></div>
@@ -271,6 +232,9 @@
     <script type="text/javascript" src="/js/picker.min.js"></script>
     <script src="~/summernote/summernote.js"></script>
 
+
+
+
     <script>
         var inactivityTime = 10 * 60 * 1000;
         var modalTriggered = false;
@@ -283,7 +247,6 @@
 
 
         function showModal() {
-            console.log("showModal");
             $('#confirmationModal').modal('show');
 
             $("#confirmationModal").modal({
@@ -312,7 +275,6 @@
             });
 
             $(document).on('mousedown mouseup keydown scroll', function () {
-                console.log("in mouse move");
                 if (modalTriggered) return;
                 resetModalTimeout();
             });
@@ -341,7 +303,6 @@
         }
 
         function apiResetModalTimeout() {
-            console.log("apiresettimeout");
             clearTimeout(apiModalTimeout);
             apiModalTimeout = setTimeout(apiShowModal, apiInactivityTime);
         }
@@ -359,8 +320,6 @@
                         apiResetModalTimeout();
                     }
                     else if (response > apiCheckTime) {
-                        console.log(response);
-                        console.log(apiCheckTime);
                         $('#confirmationModal').modal('show');
                         $("#confirmationModal").modal({
                             backdrop: "static",
@@ -381,12 +340,11 @@
                         countDown = 60;
                         countdownInterval = setInterval(function () {
                             countDown--;
-                            console.log("countdown", countDown);
 
                             if (countDown <= 0) {
 
                                 clearInterval(countdownInterval);
-                                console.log("time is over");
+
                                 window.location.href = "/Login/Logout";
                             }
 
@@ -415,13 +373,6 @@
                 }
             });
 
-
-
-            //$(document).on('mousedown mouseup keydown scroll', function () {
-            //    console.log("in mouse move");
-            //    if (apiModalTriggered) return;
-            //    apiResetModalTimeout();
-            //});
 
 
             $('#stayLoggedInBtn').click(function () {
@@ -462,11 +413,9 @@
 
             // Optional: Set the initial active link based on the current URL
             const currentUrl = window.location.href;
-            console.log(currentUrl);
             navLinks.forEach(link => {
                 if (link.href === currentUrl) {
-                    console.log(currentUrl);
-                    link.parentElement.classList.add('active'); 
+                    link.parentElement.classList.add('active');
                 }
             });
         });

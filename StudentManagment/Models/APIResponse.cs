@@ -45,6 +45,7 @@ namespace StudentManagement.Models
         public string? MonthName { get; set; } = null;
 
         public int? year { get; set; } = 0;
+
     }
 
 

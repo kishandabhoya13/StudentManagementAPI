@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "DLMP1DvGbqemEKLAgHte81ll7w+Fq8XQMh0r06rli0o=",
+  "Hash": "ZGDIgj4O75SMX609KczEYw9I3JEBPvPlFovgxPV7YKM=",
   "Source": "StudentManagment",
   "BasePath": "_content/StudentManagment",
   "Mode": "Default",
@@ -372,6 +372,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\site.css"
+    },
+    {
+      "Identity": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Data\\Counted_Records 6ee97826-2e38-4d77-9403-abec855ddb61.csv",
+      "SourceId": "StudentManagment",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\StudentManagement\\StudentManagment\\wwwroot\\",
+      "BasePath": "_content/StudentManagment",
+      "RelativePath": "Data/Counted_Records 6ee97826-2e38-4d77-9403-abec855ddb61.csv",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\Data\\Counted_Records 6ee97826-2e38-4d77-9403-abec855ddb61.csv"
     },
     {
       "Identity": "D:\\StudentManagement\\StudentManagment\\wwwroot\\EmailTemplate\\EmailTemplate.html",

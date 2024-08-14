@@ -37,3 +37,4 @@ Time: 02-08-2024 17:13:36, Controller: Home, Action: GetPairCurrentRate, Excepti
 Time: 02-08-2024 17:13:57, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
 Time: 02-08-2024 17:13:58, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
 Time: 02-08-2024 17:14:02, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
+Time: 09-08-2024 15:56:29, Controller: Home, Action: QueryAllReplies, Exception: Object reference not set to an instance of an object.

@@ -33,6 +33,12 @@ namespace StudentManagement.Models.DTO
         [Required(ErrorMessage = "UserName is Required")]
         public string UserName { get; set; } = null!;
 
+
+        [StringLength(10)]
+        [Required()]
+        public string MobileNumber { get; set; }
+
+
         [StringLength(50)]
         [Required(ErrorMessage = "Password is Required")]
         [RegularExpression(pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")]

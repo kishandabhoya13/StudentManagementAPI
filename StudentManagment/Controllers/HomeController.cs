@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.Internal;
+using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
@@ -9,8 +10,12 @@ using Microsoft.AspNetCore.Mvc;
 using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using Org.BouncyCastle.Crypto.Modes;
 using StudentManagement.Models;
 using StudentManagement.Models.DTO;
+using StudentManagement_API.Models.Models.DTO;
 using StudentManagement_API.Services.CacheService;
 using StudentManagment.Models;
 using StudentManagment.Models.DataModels;
@@ -23,12 +28,15 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Mail;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Helpers;
 using System.Web.Razor.Tokenizer;
+using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace StudentManagment.Controllers
 {
@@ -40,14 +48,19 @@ namespace StudentManagment.Controllers
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly ICacheServices _cacheServices;
+        private static readonly Random _random = new Random();
+
+        private readonly Microsoft.AspNetCore.Hosting.IHostingEnvironment _hostingEnvironment;
+
         public HomeController(ILogger<HomeController> logger, IBaseServices baseServices,
-            IMapper mapper, IConfiguration configuration, ICacheServices cacheServices)
+            IMapper mapper, IConfiguration configuration, ICacheServices cacheServices, Microsoft.AspNetCore.Hosting.IHostingEnvironment hostingEnvironment)
         {
             _logger = logger;
             _baseServices = baseServices;
             _mapper = mapper;
             _cacheServices = cacheServices;
             _configuration = configuration;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         public IActionResult Index()
@@ -1592,6 +1605,417 @@ namespace StudentManagment.Controllers
             };
             RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
             return RedirectToAction("AddRateAlert");
+        }
+
+        public IActionResult AllQueries()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            //if (RoleId != 1)
+            //{
+            //    return View("NotAuthorized");
+            //}
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult GetAllQueries(SecondApiRequest secondApiRequest)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApiRequest.PageSize,
+                StartIndex = secondApiRequest.StartIndex,
+                OrderBy = secondApiRequest.OrderBy,
+                OrderDirection = secondApiRequest.OrderDirection,
+                searchQuery = secondApiRequest.searchQuery,
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetAllQueries",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = token,
+
+
+            };
+            RoleBaseResponse<IList<QueriesViewModel>> roleBaseResponse = GetApiResponse<IList<QueriesViewModel>>(newSecondApiRequest);
+            return Json(roleBaseResponse);
+        }
+
+        public IActionResult AddQueryModal()
+        {
+            QueriesViewModel queriesViewModel = new();
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+
+            string filePath = Path.Combine("wwwroot", "EmailTemplate", "EmailTemplate.html");
+            string Body = System.IO.File.ReadAllText(filePath);
+            Body = Body.Replace("{{ date }}", DateTime.Now.ToString());
+            queriesViewModel.Body = Body;
+
+            SecondApiRequest secondApiRequest1 = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetEmailsAndStudentIds",
+                DataObject = JsonConvert.SerializeObject(null),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+
+            };
+            RoleBaseResponse<IList<StudentsEmailAndIds>> roleBaseResponse1 = GetApiResponse<IList<StudentsEmailAndIds>>(secondApiRequest1);
+            if (roleBaseResponse1.IsAuthorize == false)
+            {
+                return Json(false);
+            }
+            queriesViewModel.StudentsEmails = roleBaseResponse1.data;
+            return View(queriesViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult AddQuery(QueriesViewModel queriesViewModel)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+
+            int randomNumber = _random.Next(1000, 10000);
+            queriesViewModel.TicketNumber = "#" + randomNumber.ToString();
+            queriesViewModel.Subject = queriesViewModel.Subject + " " + queriesViewModel.TicketNumber;
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetEmailFromStudentId",
+                DataObject = JsonConvert.SerializeObject(queriesViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+            };
+            RoleBaseResponse<EmailViewModel> roleBaseResponse = GetApiResponse<EmailViewModel>(secondApiRequest);
+            queriesViewModel.Email = roleBaseResponse.data.Email;
+            if (queriesViewModel.Email != null)
+            {
+                SecondApiRequest newSecondApiRequest = new()
+                {
+                    ControllerName = "ProfessorHod",
+                    MethodName = "AddQueries",
+                    DataObject = JsonConvert.SerializeObject(queriesViewModel),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllStudents",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "1" },
+                    token = token,
+                };
+                RoleBaseResponse<bool> newRoleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
+            }
+            return RedirectToAction("AllQueries");
+        }
+
+        public IActionResult QueryEmailDetails(int QueryId)
+        {
+            QueriesViewModel queriesViewModel = new()
+            {
+                QueryId = QueryId,
+            };
+            return View(queriesViewModel);
+        }
+
+        public IActionResult QueryAllReplies(int QueryId)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetQueryDetail",
+                DataObject = JsonConvert.SerializeObject(QueryId),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+            };
+            RoleBaseResponse<QueriesViewModel> roleBaseResponse = GetApiResponse<QueriesViewModel>(newSecondApiRequest);
+            QueriesViewModel queriesViewModel = roleBaseResponse.data;
+
+            List<QueriesViewModel> queriesReply = new();
+            using (var client = new ImapClient())
+            {
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                client.Connect(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]), SecureSocketOptions.SslOnConnect);
+                client.Authenticate(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+
+                var sentFolder = client.GetFolder(SpecialFolder.Sent);
+                sentFolder.Open(MailKit.FolderAccess.ReadOnly);
+
+                var query1 = SearchQuery.SubjectContains(queriesViewModel.Subject);
+
+                var sentUids = sentFolder.Search(query1);
+                foreach (var uid in sentUids)
+                {
+                    var message = sentFolder.GetMessage(uid);
+                    string subject = message.Subject;
+                    string textBody = message.TextBody;
+                    string htmlBody = message.HtmlBody;
+                    QueriesViewModel queriesViewModel1 = new()
+                    {
+                        Subject = subject,
+                        Body = htmlBody,
+                        Email = queriesViewModel.Email,
+                        IsSentMe = true,
+                        CreatedDate = DateTime.Parse(message.Date.Date.ToString("yyyy-MMM-dd"), CultureInfo.InvariantCulture),
+                    };
+                    queriesReply.Add(queriesViewModel1);
+                }
+
+                var inbox = client.Inbox;
+                inbox.Open(MailKit.FolderAccess.ReadOnly);
+
+                var query2 = SearchQuery.SubjectContains(queriesViewModel.Subject);
+
+                var uids = inbox.Search(query2);
+                foreach (var uid in uids)
+                {
+                    var message = inbox.GetMessage(uid);
+                    string subject = message.Subject;
+
+                    string textBody = message.TextBody;
+                    string htmlBody = message.HtmlBody;
+                    QueriesViewModel queriesViewModel1 = new()
+                    {
+                        Subject = subject,
+                        Body = htmlBody,
+                        Email = queriesViewModel.Email,
+                        CreatedDate = DateTime.Parse(message.Date.ToString(), CultureInfo.InvariantCulture)
+                    };
+                    queriesReply.Add(queriesViewModel1);
+                }
+
+
+
+                client.Disconnect(true);
+            }
+            queriesViewModel.FirstName = queriesViewModel.FirstName.Substring(0, 1);
+            queriesViewModel.LastName = queriesViewModel.LastName.Substring(0, 1);
+            queriesReply.Sort((x, y) => DateTime.Compare(x.CreatedDate, y.CreatedDate));
+            queriesViewModel.QueriesReply = queriesReply;
+            //queriesViewModel.QueriesReply.OrderBy(q=> q.CreatedDate).ThenBy(q=> q.CreatedDate).ToList();
+            return PartialView("QueryAllReplies", queriesViewModel);
+        }
+
+
+        public IActionResult AddReplyModal(int QueryId)
+        {
+            QueriesViewModel queriesViewModel = new();
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetQueryDetail",
+                DataObject = JsonConvert.SerializeObject(QueryId),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+            };
+            RoleBaseResponse<QueriesViewModel> roleBaseResponse = GetApiResponse<QueriesViewModel>(newSecondApiRequest);
+            queriesViewModel = roleBaseResponse.data;
+            string filePath = Path.Combine("wwwroot", "EmailTemplate", "EmailTemplate.html");
+            string Body = System.IO.File.ReadAllText(filePath);
+            Body = Body.Replace("{{ date }}", DateTime.Now.ToString());
+            queriesViewModel.Body = Body;
+            return View(queriesViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult SendReplyEmail(QueriesViewModel queriesViewModel)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            using (var client = new ImapClient())
+            {
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                client.Connect(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]), SecureSocketOptions.SslOnConnect);
+                client.Authenticate(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+                var inbox = client.Inbox;
+                inbox.Open(MailKit.FolderAccess.ReadOnly);
+
+                var query1 = SearchQuery.SubjectContains(queriesViewModel.Subject);
+
+                var uids = inbox.Search(query1);
+                var sentFolder = client.GetFolder(SpecialFolder.Sent);
+                if (uids.Count == 0)
+                {
+                    sentFolder.Open(MailKit.FolderAccess.ReadOnly);
+                    var newUids = sentFolder.Search(query1);
+                    var message = sentFolder.GetMessage(newUids.First());
+                    queriesViewModel.Subject = message.Subject;
+                    queriesViewModel.MessageId = message.MessageId;
+                }
+                else
+                {
+
+                    var message = inbox.GetMessage(uids.First());
+                    queriesViewModel.Subject = message.Subject;
+                    queriesViewModel.MessageId = message.MessageId;
+                }
+
+                SecondApiRequest newSecondApiRequest = new()
+                {
+                    ControllerName = "ProfessorHod",
+                    MethodName = "SendReplyEmail",
+                    DataObject = JsonConvert.SerializeObject(queriesViewModel),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllStudents",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "1" },
+                    token = token,
+                };
+                RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(newSecondApiRequest);
+                client.Disconnect(true);
+            }
+            return RedirectToAction("QueryEmailDetails", new { QueryId = queriesViewModel.QueryId });
+        }
+
+        public IActionResult Dashboard()
+        {
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            if (RoleId != 1 && RoleId != 2)
+            {
+                return View("NotAuthorized");
+            }
+            if (RoleId == 2)
+            {
+                HttpContext.Session.SetString("Role", "Professor");
+            }
+            else if (RoleId == 1)
+            {
+                HttpContext.Session.SetString("Role", "Hod");
+            }
+            return View();
+        }
+
+        public IActionResult GetDashboardRecordsCount()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            int UserId = HttpContext.Session.GetInt32("UserId") ?? 1;
+
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetRecordsCount",
+                DataObject = JsonConvert.SerializeObject(UserId),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = token,
+            };
+            RoleBaseResponse<RecordsCountViewModel> roleBaseResponse = GetApiResponse<RecordsCountViewModel>(newSecondApiRequest);
+            return Json(roleBaseResponse.data);
+        }
+
+        public IActionResult ExportAllCount()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            int UserId = HttpContext.Session.GetInt32("UserId") ?? 1;
+
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetRecordsCount",
+                DataObject = JsonConvert.SerializeObject(UserId),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = token,
+            };
+            RoleBaseResponse<RecordsCountViewModel> roleBaseResponse = GetApiResponse<RecordsCountViewModel>(newSecondApiRequest);
+            var todayDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            List<RecordsCountViewModel> list = new()
+            {
+                roleBaseResponse.data,
+            };
+            //using (var memoryStream = new MemoryStream())
+            //using (var writer = new StreamWriter(memoryStream))
+            //using (var csvWriter = new CsvHelper.CsvWriter(writer, CultureInfo.InvariantCulture))
+            //{
+            //    csvWriter.WriteField("School Management System"); 
+
+            //    csvWriter.NextRecord();
+            //    csvWriter.NextRecord();
+            //    csvWriter.NextRecord();
+
+            //    csvWriter.WriteField("Date"); 
+            //    csvWriter.WriteField(todayDate);
+            //    csvWriter.NextRecord();
+            //    csvWriter.NextRecord();
+
+            //    csvWriter.WriteRecords(list);
+            //    writer.Flush();
+            //    var result = memoryStream.ToArray();
+            //    var fileName = "Counted_Records_" + Guid.NewGuid().ToString() + ".csv";
+
+            //    return File(result, "text/csv", fileName);
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("School Management System");
+
+                var titleCell = worksheet.Cells["A1"];
+                titleCell.Value = "School Management System";
+                titleCell.Style.Font.Size = 16; 
+                titleCell.Style.Font.Color.SetColor(System.Drawing.Color.MediumPurple);
+                titleCell.Style.Font.Bold = true;
+
+                var gradientFill = titleCell.Style.Fill.Gradient;
+
+                titleCell.Style.Border.Top.Style = ExcelBorderStyle.Thick;
+                titleCell.Style.Border.Top.Color.SetColor(System.Drawing.Color.Black);
+                titleCell.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
+                titleCell.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.Black);
+
+
+                worksheet.Cells["A2"].Value = string.Empty;
+                worksheet.Cells["A3"].Value = string.Empty;
+
+                worksheet.Cells["A4"].Value = "Date";
+                var date = worksheet.Cells["B4"];
+                date.Value = todayDate;
+                date.Style.Font.Size = 16; 
+                date.Style.Font.Color.SetColor(System.Drawing.Color.MediumPurple);
+                date.Style.Font.Bold = true;
+
+                date.Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                worksheet.Cells["B6"].LoadFromCollection(list, true);
+
+                worksheet.Cells.AutoFitColumns(5);
+
+                var result = package.GetAsByteArray();
+                var fileName = "Counted_Records_" + todayDate + ".xlsx";
+
+                return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+
+            }
         }
     }
 }

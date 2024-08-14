@@ -282,6 +282,18 @@
               "target": "Package",
               "version": "[13.0.1, )"
             },
+            "CsvHelper": {
+              "target": "Package",
+              "version": "[31.0.4, )"
+            },
+            "EPPlus": {
+              "target": "Package",
+              "version": "[7.2.2, )"
+            },
+            "EPPlus.System.Drawing": {
+              "target": "Package",
+              "version": "[6.1.1, )"
+            },
             "MailKit": {
               "target": "Package",
               "version": "[4.7.1, )"

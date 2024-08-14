@@ -20,12 +20,20 @@ build_property._RazorSourceGeneratorDebug =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRFZGl0Qm9vay5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/StudentManagement/StudentManagment/Views/Home/AddQueryModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRRdWVyeU1vZGFsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/StudentManagement/StudentManagment/Views/Home/AddRateAlert.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRSYXRlQWxlcnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/StudentManagement/StudentManagment/Views/Home/AddRateAlertModal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRSYXRlQWxlcnRNb2RhbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/StudentManagement/StudentManagment/Views/Home/AddReplyModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBZGRSZXBseU1vZGFsLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/StudentManagement/StudentManagment/Views/Home/AdminIndex.cshtml]
@@ -52,6 +60,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBbGxQcm9mZXNzb3JzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/StudentManagement/StudentManagment/Views/Home/AllQueries.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBbGxRdWVyaWVzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/StudentManagement/StudentManagment/Views/Home/ApproveRejectModal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBcHByb3ZlUmVqZWN0TW9kYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -76,6 +88,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDcmVhdGVVcGRhdGVTdHVkZW50LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/StudentManagement/StudentManagment/Views/Home/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEYXNoYm9hcmQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/StudentManagement/StudentManagment/Views/Home/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxFcnJvci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -98,6 +114,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/StudentManagement/StudentManagment/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/StudentManagement/StudentManagment/Views/Home/QueryAllReplies.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxRdWVyeUFsbFJlcGxpZXMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/StudentManagement/StudentManagment/Views/Home/QueryEmailDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxRdWVyeUVtYWlsRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/StudentManagement/StudentManagment/Views/Home/RemoveRateAlertModal.cshtml]

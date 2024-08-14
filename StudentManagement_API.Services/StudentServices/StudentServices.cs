@@ -322,7 +322,7 @@ namespace StudentManagement_API.Services
             {
                 return Convert.ToInt32(dataObj);
             }
-            else if ((controllerName == "Student" && methodName == "DeleteStudent"))
+            else if ((controllerName == "Student" && methodName == "DeleteStudent") || (controllerName == "ProfessorHod" && methodName == "GetRecordsCount"))
             {
                 return Convert.ToInt32(dataObj);
             }
@@ -335,7 +335,8 @@ namespace StudentManagement_API.Services
                 || (controllerName == "Email" && methodName == "GetScheduledEmails")
                 || (controllerName == "Student" && methodName == "GetAllPendingStudents")
                 || (controllerName == "ProfessorHod" && methodName == "GetAllProfessors")
-                || (controllerName == "ProfessorHod" && methodName == "GetAllBlockedProfessors"))
+                || (controllerName == "ProfessorHod" && methodName == "GetAllBlockedProfessors")
+                || (controllerName == "ProfessorHod" && methodName == "GetAllQueries"))
             {
                 return GetDataModel<PaginationDto>(dataObj);
             }
@@ -351,7 +352,8 @@ namespace StudentManagement_API.Services
             else if ((controllerName == "Book" && methodName == "GetBook") 
                     || (controllerName == "Currency" && methodName == "GetRateAlerts")
                     || (controllerName == "Currency" && methodName == "GetRateAlertById")
-                    || (controllerName == "Currency" && methodName == "RemoveRateAlert"))
+                    || (controllerName == "Currency" && methodName == "RemoveRateAlert")
+                    || (controllerName == "ProfessorHod") && methodName == "GetQueryDetail")
             {
                 return Convert.ToInt32(dataObj);
             }
@@ -385,6 +387,10 @@ namespace StudentManagement_API.Services
             else if ((controllerName == "Currency" && methodName == "UpsertRateAlert") || (controllerName == "Currency" && methodName == "GetCurrencyPairRate"))
             {
                 return GetDataModel<CurrencyPairDto>(dataObj);
+            }
+            else if((controllerName == "ProfessorHod" && methodName == "AddQueries") || (controllerName == "ProfessorHod" && methodName == "SendReplyEmail"))
+            {
+                return GetDataModel<QueriesDto>(dataObj);
             }
             else
             {
@@ -655,6 +661,50 @@ namespace StudentManagement_API.Services
         {
             string query = "UPDATE RateAlerts SET IsCompleted = 1 where RateAlertId =" + RateAlertId;
             DbClient.ExecuteProcedureWithQuery(query, null,ExecuteType.ExecuteNonQuery);
+        }
+
+        public void AddQueries(QueriesDto queriesDto)
+        {
+            var table = new DataTable();
+            table.Columns.Add("TicketNumber");
+            table.Columns.Add("StudentId");
+            table.Columns.Add("Subject");
+            table.Columns.Add("Body");
+
+            var row = table.NewRow();
+            row["TicketNumber"] = queriesDto.TicketNumber;
+            row["StudentId"] = queriesDto.StudentId;
+            row["Subject"] = queriesDto.Subject;
+            row["Body"] = queriesDto.Body;
+
+            table.Rows.Add(row);
+            string query = "[dbo].[Add_Query]";
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@query", Value = table , DBType = DbType.Object, TypeName = "[dbo].[Query_table_type]"},
+                };
+            DbClient.ExecuteProcedure(query, parameters, ExecuteType.ExecuteNonQuery);
+        }
+
+        public QueriesDto GetQueryDetails(int QueryId)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@queryId", Value = QueryId, DBType = DbType.Int32},
+                };
+            QueriesDto queriesDto = DbClient.ExecuteOneRecordProcedure<QueriesDto>("[dbo].[Query_Detail_ById]", parameters);
+            return queriesDto;
+        }
+
+        public RecordsCountDto GetRecordsCounts(int id)
+        {
+
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@id", Value = id, DBType = DbType.Int32},
+                };
+            RecordsCountDto recordsCountDto = DbClient.ExecuteOneRecordProcedure<RecordsCountDto>("[dbo].[Get_Todays_Records_Count]", parameters);
+            return recordsCountDto;
         }
     }
 }

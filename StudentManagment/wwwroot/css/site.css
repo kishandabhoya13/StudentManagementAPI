@@ -1,3 +1,23 @@
+body {
+    --text-color: #222;
+    --bkg-color: #fafafa;
+    --input-border: #adadad;
+    --second-bkg-color: #f9f9f9;
+    --patient-header-span-color: #203f9a;
+    --tab-color: #686b69;
+    --btn1-color: #e9eaef;
+    --btn2-color: #e5f2f8;
+    --btn3-color: #e9f0e8;
+    --btn4-color: #f7e6ee;
+    --btn5-color: #e5eef5;
+    --btn6-color: #efeef4;
+    --light-bkg-color: #fff;
+    --h5-color: #434144;
+    --disable-input-color: rgba(75,75,75,0.2);
+    --profile-bkg-color: #f5f5f5;
+    --grey-text-color: grey;
+}
+
 html {
     font-size: 14px;
 }
@@ -509,8 +529,8 @@ input:checked + .slider:before {
     }
 
 
-#SendEmailModal {
-    --bs-modal-width: 1000px;
+#SendEmailModal, #AddQueryModal, .Email-Modal {
+    --bs-modal-width: 1000px !important;
 }
 
 
@@ -831,7 +851,6 @@ element.style {
 }
 
 body {
-    min-height: 100vh;
     background-color: var(--body-color);
     transition: var(--tran-05);
 }
@@ -1246,20 +1265,23 @@ body.dark .home .text {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    min-height: 100vh;
+    margin-bottom: 0px !important;
 }
 
-.card-container .row{
-    width : 90%;
-}
-
-    .card-container .row .column{
-        margin-bottom : 25px;
+    .card-container .row {
+        width: 90%;
     }
 
+        .card-container .row .column {
+            margin-bottom: 25px;
+        }
 
-.card{
-    padding:15px;
-    border-radius:15px !important;
+
+.rate-alert-card {
+    padding: 15px;
+    border-radius: 15px !important;
 }
 
 
@@ -1270,3 +1292,298 @@ body.dark .home .text {
     }
 }
 
+
+
+
+.query-card-header {
+    padding: 15px;
+}
+
+.query-card-body {
+    padding: 15px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.03s ease, opacity 0.3s ease;
+}
+
+    .query-card-body.open {
+        max-height: fit-content;
+        opacity: 1;
+    }
+
+.query-down-arrow {
+    position: absolute;
+    bottom: 0;
+    margin-bottom: 54px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+#StudentTable {
+    --bs-table-bg: white;
+}
+
+    #StudentTable thead {
+        background-color: gray !important;
+    }
+
+.query-card-header h5, .query-card-body {
+    word-wrap: break-word;
+}
+
+
+/*.toMail .query-card {
+    margin-right : 20px;
+}
+
+.fromMail .query-card {
+    margin-left: 20px;
+}*/
+
+
+.fromMail {
+    display: flex;
+    justify-content: end;
+    align-items: center;
+}
+
+.query-card {
+    width: 70%;
+    overflow: hidden;
+}
+
+.card-text-div {
+    font-size: 20px;
+}
+
+.card-text {
+    color: var(--primary-color);
+    word-break: break-all;
+}
+
+
+.querieslogo {
+    vertical-align: middle;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid black;
+}
+
+
+.querieslogo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid black;
+    /*background-color: #007bff;*/
+    /*color: white;*/ /* Text color */
+    font-size: 20px; /* Font size of the letters */
+    font-weight: bold; /* Font weight of the letters */
+}
+
+.logo-text {
+    text-align: center;
+}
+
+
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+}
+
+@media screen and (max-width: 800px) {
+    .card-text-div {
+        font-size: 15px;
+    }
+
+        .card-text-div p {
+            display: none
+        }
+}
+
+
+.boxes-main-div {
+    display: flex;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+.boxes-inner-div {
+    display: flex;
+    width: 100%;
+}
+
+
+.btns {
+    width: 100%;
+    background-color: #e0e0e0;
+    box-sizing: border-box;
+    margin: 10px;
+    height: 100px;
+    border-radius: 7px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding-left: 1vw;
+}
+
+    .btn1.active, .btn2.active, .btn3.active, .btn4.active, .btn9.active, .btn6.active,
+    .btns:hover {
+        color: white;
+    }
+
+.btn1.active,
+.btn1:hover {
+    background-color: #203f9a;
+}
+
+.btn2.active,
+.btn2:hover {
+    background-color: #00adef;
+}
+
+.btn4.active,
+.btn4:hover {
+    background-color: #5cb769;
+}
+
+.btn6.active,
+.btn6:hover {
+    background-color: #da0f82;
+}
+
+.btn3.active,
+.btn3:hover {
+    background-color: #0370d7;
+}
+
+.btn9.active,
+.btn9:hover {
+    background-color: #8e69aa;
+}
+
+.btn1, .btn2, .btn4, .btn4, .btn6, .btn3, .btn9 span {
+    font-weight: bold;
+}
+
+
+
+.btn1 {
+    border: 1px solid #203f9a;
+    background-color: var(--btn1-color);
+    color: #203f9a;
+}
+
+.dashboard-icon-div{
+    width:30px;
+    height:30px;
+    padding-bottom:2px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid;
+}
+
+/*.btn1 .btn-inner-div .dashboard-icon-div {
+    border: 1px solid #203f9a;
+}
+
+.btn2 .btn-inner-div .dashboard-icon-div {
+    background-color: var(--btn2-color);
+}
+
+.btn4 .btn-inner-div .dashboard-icon-div {
+    background-color: var(--btn3-color);
+}
+
+.btn6 .btn-inner-div .dashboard-icon-div {
+    background-color: var(--btn4-color);
+}
+
+.btn3 .btn-inner-div .dashboard-icon-div {
+    background-color: var(--btn5-color);
+}
+
+.btn9 .btn-inner-div .dashboard-icon-div {
+    background-color: var(--btn6-color);
+}
+*/
+.btn2 {
+    background-color: var(--btn2-color);
+    color: #00adef;
+    border: 1px solid #00adef;
+}
+
+.btn4 {
+    background-color: var(--btn3-color);
+    color: #5cb769;
+    border: 1px solid #5cb769;
+}
+
+.btn6 {
+    background-color: var(--btn4-color);
+    color: #da0f82;
+    border: 1px solid #da0f82;
+}
+
+.btn3 {
+    background-color: var(--btn5-color);
+    color: #0370d7;
+    border: 1px solid #0370d7;
+}
+
+.btn9 {
+    background-color: var(--btn6-color);
+    color: #8e69aa;
+    border: 1px solid #8e69aa;
+}
+
+h5 {
+    font-weight: bold;
+}
+
+.btn-inner-div{
+    padding-top:15px;
+    display:flex;
+    justify-content: space-between;
+    width:100%;
+    gap:10px;
+}
+
+.btn-inner-div i{
+    font-size:24px;
+}
+
+@media screen and (max-width: 800px) {
+    .boxes-main-div{
+        width:75%;
+    }
+    .boxes-inner-div {
+        flex-direction: column;
+    }
+
+        .boxes-inner-div button {
+            align-items: center;
+            justify-content: center;
+        }
+
+    .main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
