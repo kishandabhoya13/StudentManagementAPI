@@ -38,3 +38,9 @@ Time: 02-08-2024 17:13:57, Controller: Home, Action: GetPairCurrentRate, Excepti
 Time: 02-08-2024 17:13:58, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
 Time: 02-08-2024 17:14:02, Controller: Home, Action: GetPairCurrentRate, Exception: Object reference not set to an instance of an object.
 Time: 09-08-2024 15:56:29, Controller: Home, Action: QueryAllReplies, Exception: Object reference not set to an instance of an object.
+Time: 14-08-2024 17:58:05, Controller: Home, Action: ExportStudentList, Exception: Error converting value False to type 'StudentManagement.Models.RoleBaseResponse`1[StudentManagment.Models.RecordsCountViewModel]'. Path 'result', line 1, position 2663.
+Time: 21-08-2024 14:44:49, Controller: Home, Action: Dashboard, Exception: Unable to resolve service for type 'DinkToPdf.Contracts.IConverter' while attempting to activate 'StudentManagment.Controllers.HomeController'.
+Time: 21-08-2024 14:45:06, Controller: Home, Action: Dashboard, Exception: Unable to resolve service for type 'DinkToPdf.Contracts.IConverter' while attempting to activate 'StudentManagment.Controllers.HomeController'.
+Time: 21-08-2024 14:45:33, Controller: Home, Action: Dashboard, Exception: Unable to resolve service for type 'DinkToPdf.Contracts.IConverter' while attempting to activate 'StudentManagment.Controllers.HomeController'.
+Time: 21-08-2024 16:11:13, Controller: Home, Action: DownloadPDF, Exception: Cannot return null from an action method with a return type of 'Microsoft.AspNetCore.Mvc.IActionResult'.
+Time: 21-08-2024 17:11:43, Controller: Home, Action: DownloadPDF, Exception: Conversion error: Could not open url.

@@ -1,0 +1,43 @@
+﻿<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    @page {
+        size: A4;
+        margin: 1in;
+    }
+
+    @page :left {
+        @bottom-left {
+            content: "Page " counter(page);
+        }
+    }
+
+    @page :right {
+        @bottom-right {
+            content: "Page " counter(page);
+        }
+    }
+
+    footer {
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+    }
+</style>
+<footer>
+    <div id="pageNumberDiv" style="text-align: end; margin-bottom: 20px;display:flex; flex-direction: column; justify-content: end; width: 100%;">
+        <span style="color: #0a1de7;">Continued</span>
+    </div>
+    <!-- The two header rows are divided by an blue line, we use the HR element for this. -->
+    <div style="font-size:12px;">
+        The balance on your statement may vary from the balance shown in your app. This statement only reflects completed transactions.
+    </div>
+    <hr style="border: 2px solid #0a1de7 " />
+    <div style="width:100%">
+        <p style="font-size:12px;">
+            Nexdi Ltd is registered in England and Wales.Registered no 09205404. We are registered with the Financial Conduct Authority(FCA) FRN: 670352.RegisteredOffice: Level 30, The Leadenhall Building, 122 Leadenhall
+            Street, London, EC3V4AB.Nexdi is not a Bank; The Jahan MoneyCurrencyAccount is an e-moneyaccount provided byThe Currencycloud Limited-an electronic moneyinstitution authorised bythe FCAfor issuing of
+            electronic money. FCAreference number 900199
+        </p>
+    </div>
+</footer>

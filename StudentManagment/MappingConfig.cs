@@ -10,6 +10,8 @@ namespace StudentManagment
         {
             CreateMap<StudentViewModel, Student>().ReverseMap();
             CreateMap<BookViewModel, Book>().ReverseMap();
+            CreateMap<ExportStudentList, Student>().ReverseMap();
+
         }
     }
 }

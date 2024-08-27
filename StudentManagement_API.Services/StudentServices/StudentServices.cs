@@ -73,8 +73,36 @@ namespace StudentManagement_API.Services
                 parameters.Add(new DbParameters { Name = "@Sort_Column_Name", Value = paginationDto.OrderBy ?? "", DBType = DbType.String });
                 parameters.Add(new DbParameters { Name = "@Start_index", Value = paginationDto.StartIndex, DBType = DbType.Int64 });
                 parameters.Add(new DbParameters { Name = "@Page_Size", Value = paginationDto.PageSize, DBType = DbType.Int64 });
+                if(paginationDto.FromDate != null && paginationDto.ToDate != null)
+                {
+                    parameters.Add(new DbParameters { Name = "@FromDate", Value = paginationDto.FromDate, DBType = DbType.Date });
+                    parameters.Add(new DbParameters { Name = "@ToDate", Value = paginationDto.ToDate , DBType = DbType.Date });
+
+                }
                 //IList<Book> books = DbClient.ExecuteProcedure<Book>("[dbo].[Get_Books_List]", parameters);
                 IList<T> data = DbClient.ExecuteProcedure<T>(sp, parameters);
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public IList<Student> GetFromToDateStudents<Student>(PaginationDto paginationDto, string sp)
+        {
+            try
+            {
+                Collection<DbParameters> parameters = new();
+                if (paginationDto.FromDate != null && paginationDto.ToDate != null)
+                {
+                    parameters.Add(new DbParameters { Name = "@FromDate", Value = paginationDto.FromDate, DBType = DbType.Date });
+                    parameters.Add(new DbParameters { Name = "@ToDate", Value = paginationDto.ToDate, DBType = DbType.Date });
+
+                }
+                //IList<Book> books = DbClient.ExecuteProcedure<Book>("[dbo].[Get_Books_List]", parameters);
+                IList<Student> data = DbClient.ExecuteProcedure<Student>(sp, parameters);
 
                 return data;
             }
@@ -336,7 +364,8 @@ namespace StudentManagement_API.Services
                 || (controllerName == "Student" && methodName == "GetAllPendingStudents")
                 || (controllerName == "ProfessorHod" && methodName == "GetAllProfessors")
                 || (controllerName == "ProfessorHod" && methodName == "GetAllBlockedProfessors")
-                || (controllerName == "ProfessorHod" && methodName == "GetAllQueries"))
+                || (controllerName == "ProfessorHod" && methodName == "GetAllQueries")
+                || (controllerName == "Student" && methodName == "ExportStudentList"))
             {
                 return GetDataModel<PaginationDto>(dataObj);
             }
@@ -391,6 +420,10 @@ namespace StudentManagement_API.Services
             else if((controllerName == "ProfessorHod" && methodName == "AddQueries") || (controllerName == "ProfessorHod" && methodName == "SendReplyEmail"))
             {
                 return GetDataModel<QueriesDto>(dataObj);
+            }
+            else if(controllerName == "Student" && methodName == "GetStudentsCountFromDates")
+            {
+                return GetDataModel<StudentListCountFromDateDto>(dataObj);
             }
             else
             {
@@ -705,6 +738,18 @@ namespace StudentManagement_API.Services
                 };
             RecordsCountDto recordsCountDto = DbClient.ExecuteOneRecordProcedure<RecordsCountDto>("[dbo].[Get_Todays_Records_Count]", parameters);
             return recordsCountDto;
+        }
+
+        public IList<StudentListCountFromDateDto> GetStudentsCountFromDates(StudentListCountFromDateDto studentListCountFromDateDto)
+        {
+
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@FromDate", Value = studentListCountFromDateDto.FromDate, DBType = DbType.Date},
+                    new DbParameters() { Name = "@ToDate", Value = studentListCountFromDateDto.ToDate, DBType = DbType.Date},
+                };
+            IList<StudentListCountFromDateDto> studentsCount = DbClient.ExecuteProcedure<StudentListCountFromDateDto>("[dbo].[Get_StudentList_Count]", parameters);
+            return studentsCount;
         }
     }
 }

@@ -4,15 +4,21 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
+using OfficeOpenXml.Drawing.Chart;
+using OfficeOpenXml.Drawing.Chart.Style;
 using OfficeOpenXml.Style;
 using Org.BouncyCastle.Crypto.Modes;
+using SelectPdf;
 using StudentManagement.Models;
 using StudentManagement.Models.DTO;
 using StudentManagement_API.Models.Models.DTO;
@@ -26,6 +32,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -36,6 +43,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Helpers;
 using System.Web.Razor.Tokenizer;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace StudentManagment.Controllers
@@ -49,6 +57,7 @@ namespace StudentManagment.Controllers
         private readonly IConfiguration _configuration;
         private readonly ICacheServices _cacheServices;
         private static readonly Random _random = new Random();
+
 
         private readonly Microsoft.AspNetCore.Hosting.IHostingEnvironment _hostingEnvironment;
 
@@ -156,6 +165,8 @@ namespace StudentManagment.Controllers
                 OrderDirection = secondApiRequest.OrderDirection,
                 searchQuery = secondApiRequest.searchQuery,
                 JwtToken = secondApiRequest.token,
+                FromDate = secondApiRequest.FromDate,
+                ToDate = secondApiRequest.ToDate
             };
 
             SecondApiRequest newSecondApiRequest = new()
@@ -1952,27 +1963,6 @@ namespace StudentManagment.Controllers
             {
                 roleBaseResponse.data,
             };
-            //using (var memoryStream = new MemoryStream())
-            //using (var writer = new StreamWriter(memoryStream))
-            //using (var csvWriter = new CsvHelper.CsvWriter(writer, CultureInfo.InvariantCulture))
-            //{
-            //    csvWriter.WriteField("School Management System"); 
-
-            //    csvWriter.NextRecord();
-            //    csvWriter.NextRecord();
-            //    csvWriter.NextRecord();
-
-            //    csvWriter.WriteField("Date"); 
-            //    csvWriter.WriteField(todayDate);
-            //    csvWriter.NextRecord();
-            //    csvWriter.NextRecord();
-
-            //    csvWriter.WriteRecords(list);
-            //    writer.Flush();
-            //    var result = memoryStream.ToArray();
-            //    var fileName = "Counted_Records_" + Guid.NewGuid().ToString() + ".csv";
-
-            //    return File(result, "text/csv", fileName);
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -1980,35 +1970,49 @@ namespace StudentManagment.Controllers
             {
                 var worksheet = package.Workbook.Worksheets.Add("School Management System");
 
-                var titleCell = worksheet.Cells["A1"];
+                worksheet.Cells[1, 1, 1, 5].Merge = true;
+
+                // Set title cell value and styles
+                var titleCell = worksheet.Cells[1, 1];
                 titleCell.Value = "School Management System";
-                titleCell.Style.Font.Size = 16; 
-                titleCell.Style.Font.Color.SetColor(System.Drawing.Color.MediumPurple);
+                titleCell.Style.Font.Size = 16;
+                titleCell.Style.Font.Color.SetColor(Color.White);
                 titleCell.Style.Font.Bold = true;
+                titleCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                titleCell.Style.Fill.BackgroundColor.SetColor(Color.Blue);
+                titleCell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                titleCell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
-                var gradientFill = titleCell.Style.Fill.Gradient;
-
-                titleCell.Style.Border.Top.Style = ExcelBorderStyle.Thick;
-                titleCell.Style.Border.Top.Color.SetColor(System.Drawing.Color.Black);
-                titleCell.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
-                titleCell.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.Black);
-
-
+                // Adjust row height to fit title
+                worksheet.Row(1).Height = 30; // Set to an appropriate value
                 worksheet.Cells["A2"].Value = string.Empty;
                 worksheet.Cells["A3"].Value = string.Empty;
 
-                worksheet.Cells["A4"].Value = "Date";
-                var date = worksheet.Cells["B4"];
+                worksheet.Cells["A5"].Value = "Date";
+
+                worksheet.Cells["A5"].Style.Font.Size = 16;
+                var date = worksheet.Cells["B5"];
                 date.Value = todayDate;
-                date.Style.Font.Size = 16; 
+                date.Style.Font.Size = 16;
                 date.Style.Font.Color.SetColor(System.Drawing.Color.MediumPurple);
                 date.Style.Font.Bold = true;
 
-                date.Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                date.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
-                worksheet.Cells["B6"].LoadFromCollection(list, true);
+                worksheet.Cells["A7"].LoadFromCollection(list, true);
 
-                worksheet.Cells.AutoFitColumns(5);
+                var headerRow = worksheet.Cells[7, 1, 7, list[0].GetType().GetProperties().Length];
+
+                headerRow.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                headerRow.Style.Font.Bold = true;
+
+                headerRow.Style.Font.Size = 12;
+                headerRow.Style.Font.Color.SetColor(Color.White);
+                headerRow.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                headerRow.Style.Fill.BackgroundColor.SetColor(Color.Blue);
+                headerRow.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                worksheet.Cells.AutoFitColumns();
 
                 var result = package.GetAsByteArray();
                 var fileName = "Counted_Records_" + todayDate + ".xlsx";
@@ -2016,6 +2020,352 @@ namespace StudentManagment.Controllers
                 return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
 
             }
+        }
+
+
+        public IActionResult ExportStudentList(DateOnly? FromDate, DateOnly? ToDate)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            int UserId = HttpContext.Session.GetInt32("UserId") ?? 1;
+            PaginationViewModel paginationViewModel = new()
+            {
+                FromDate = FromDate,
+                ToDate = ToDate,
+            };
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "ExportStudentList",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = token,
+            };
+            RoleBaseResponse<IList<Student>> roleBaseResponse = GetApiResponse<IList<Student>>(newSecondApiRequest);
+            var todayDate = DateTime.Now.ToString("yyyy-MM-dd");
+            List<ExportStudentList> students = new();
+            foreach (var data in roleBaseResponse.data)
+            {
+                ExportStudentList exportStudentList = _mapper.Map<ExportStudentList>(data);
+                exportStudentList.CreatedDate = data.CreatedDate.ToString("yyyy-MMM-dd");
+                DateTime birthdate = data.BirthDate ?? DateTime.Now;
+                exportStudentList.BirthDate = birthdate.ToString("yyyy-MMM-dd");
+                students.Add(exportStudentList);
+            }
+            var countList = new List<StudentsCountFromDateViewModel>();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("School Management System");
+
+                worksheet.Cells[1, 1, 1, 8].Merge = true;
+                worksheet.View.ShowGridLines = false;
+                // Set title cell value and styles
+                var titleCell = worksheet.Cells[1, 1];
+                titleCell.Value = "School Management System";
+                titleCell.Style.Font.Size = 16;
+                titleCell.Style.Font.Color.SetColor(Color.White);
+                titleCell.Style.Font.Bold = true;
+                titleCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                titleCell.Style.Fill.BackgroundColor.SetColor(Color.Blue);
+                titleCell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                titleCell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                // Adjust row height to fit title
+                worksheet.Row(1).Height = 30; // Set to an appropriate value
+                worksheet.Cells["A2"].Value = string.Empty;
+                worksheet.Cells["A3"].Value = string.Empty;
+                if (FromDate != null)
+                {
+                    worksheet.Cells["A5"].Value = "From";
+                    worksheet.Cells["D5"].Value = "To";
+
+                    worksheet.Cells["A5"].Style.Font.Size = 16;
+                    worksheet.Cells["D5"].Style.Font.Size = 16;
+
+                    var date = worksheet.Cells["B5"];
+                    date.Value = FromDate.ToString();
+                    date.Style.Font.Size = 16;
+                    date.Style.Font.Color.SetColor(Color.MediumPurple);
+                    date.Style.Font.Bold = true;
+                    date.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                    var date2 = worksheet.Cells["E5"];
+                    date2.Value = ToDate.ToString();
+                    date2.Style.Font.Size = 16;
+                    date2.Style.Font.Color.SetColor(Color.MediumPurple);
+                    date2.Style.Font.Bold = true;
+                    date2.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                    StudentsCountFromDateViewModel studentsCountFromDateViewModel = new()
+                    {
+                        FromDate = FromDate,
+                        ToDate = ToDate,
+                    };
+
+                    SecondApiRequest newSecondApiRequest1 = new()
+                    {
+                        ControllerName = "Student",
+                        MethodName = "GetStudentsCountFromDates",
+                        DataObject = JsonConvert.SerializeObject(studentsCountFromDateViewModel),
+                        MethodType = "IsViewed",
+                        PageName = "GetAllStudents",
+                        RoleId = RoleId,
+                        RoleIds = new List<string> { "1", "2" },
+                        token = token,
+                    };
+
+                    RoleBaseResponse<IList<StudentsCountFromDateViewModel>> roleBaseResponse1 = GetApiResponse<IList<StudentsCountFromDateViewModel>>(newSecondApiRequest1);
+                    countList = roleBaseResponse1.data.ToList();
+                }
+                else
+                {
+                    worksheet.Cells["A5"].Value = "Date";
+
+                    worksheet.Cells["A5"].Style.Font.Size = 16;
+                    var date = worksheet.Cells["B5"];
+                    date.Value = todayDate;
+                    date.Style.Font.Size = 16;
+                    date.Style.Font.Color.SetColor(System.Drawing.Color.MediumPurple);
+                    date.Style.Font.Bold = true;
+
+                    date.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                }
+
+
+                worksheet.Cells[7, 1, 7, 8].Merge = true;
+
+                var headerCell = worksheet.Cells[7, 1];
+                headerCell.Value = "FromDate to ToDate All Students";
+                headerCell.Style.Font.Size = 16;
+                headerCell.Style.Font.Color.SetColor(Color.White);
+                headerCell.Style.Font.Bold = true;
+                headerCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                headerCell.Style.Fill.BackgroundColor.SetColor(Color.Blue);
+                headerCell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                headerCell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                worksheet.Cells["A8"].LoadFromCollection(students, true);
+
+                if (FromDate != null && countList.Count > 0)
+                {
+                    var worksheet2 = package.Workbook.Worksheets.Add("Sheet2");
+                    worksheet2.Hidden = OfficeOpenXml.eWorkSheetHidden.Hidden;
+                    int row = worksheet.Dimension.End.Row + 2;
+
+                    worksheet2.Cells[row, 1].Value = "Date";
+                    worksheet2.Cells[row, 2].Value = "Student Count";
+
+                    row++;
+
+                    foreach (var item in countList)
+                    {
+                        worksheet2.Cells[row, 1].Value = item.CreatedDate?.ToString("yyyy-MM-dd") ?? "N/A";
+                        worksheet2.Cells[row, 2].Value = item.StudentsCount;
+                        row++;
+                    }
+
+
+                    var chart = (ExcelBarChart)worksheet.Drawings.AddChart("StaticChart", eChartType.ColumnClustered3D);
+                    chart.Title.Text = "Student Count ";
+                    chart.SetPosition(6, 0, 9, 0);
+                    int numberOfRecords = countList.Count;
+                    int baseWidth = 600;
+                    int baseHeight = 400;
+                    int widthPerRecord = 30;
+                    int heightPerRecord = 20;
+
+                    int chartWidth = baseWidth + (widthPerRecord * numberOfRecords);
+                    int chartHeight = baseHeight + (heightPerRecord * numberOfRecords);
+
+                    int minWidth = 600;
+                    int minHeight = 400;
+                    int maxWidth = 1200;
+                    int maxHeight = 800;
+
+                    chartWidth = Math.Max(minWidth, Math.Min(chartWidth, maxWidth));
+                    chartHeight = Math.Max(minHeight, Math.Min(chartHeight, maxHeight));
+                    chart.SetSize(chartWidth, chartHeight);
+                    var dataRange = worksheet2.Cells[$"B{row - countList.Count}:B{row - 1}"];
+                    var categoryRange = worksheet2.Cells[$"A{row - countList.Count}:A{row - 1}"];
+
+                    var series = chart.Series.Add(dataRange, categoryRange);
+                    chart.StyleManager.SetChartStyle(ePresetChartStyle.Bar3dChartStyle9, ePresetChartColors.ColorfulPalette3);
+                    chart.DataLabel.ShowCategory = false;
+                    chart.DataLabel.Font.Bold = true;
+                    chart.DataLabel.Font.Color = Color.White;
+                    chart.DataLabel.ShowValue = true;
+                    worksheet.Calculate();
+                }
+
+
+                var headerRow = worksheet.Cells[8, 1, 8, worksheet.Dimension.End.Column];
+
+                headerRow.Style.Font.Bold = true;
+                worksheet.Cells.AutoFitColumns();
+
+                var rowCount = worksheet.Dimension.Rows;
+                var colCount = worksheet.Dimension.Columns;
+
+                for (int row = 1; row <= rowCount; row++)
+                {
+                    for (int col = 1; col <= colCount; col++)
+                    {
+                        var cell = worksheet.Cells[row, col];
+                        if (cell.Value != null && !string.IsNullOrWhiteSpace(cell.Text))
+                        {
+                            cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                            cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                            cell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                            cell.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        }
+                    }
+                }
+
+                var result = package.GetAsByteArray();
+                var fileName = "Students_List" + todayDate + ".xlsx";
+
+                return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+
+            }
+
+
+        }
+
+        public IActionResult DownloadPDF(DateOnly? FromDate, DateOnly? ToDate)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            PaginationViewModel paginationViewModel = new()
+            {
+                FromDate = FromDate,
+                ToDate = ToDate,
+            };
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "ExportStudentList",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = token,
+            };
+            RoleBaseResponse<IList<Student>> roleBaseResponse = GetApiResponse<IList<Student>>(newSecondApiRequest);
+            var todayDate = DateTime.Now.ToString("dd MMM yyyy");
+            List<ExportStudentList> students = new();
+            foreach (var data in roleBaseResponse.data)
+            {
+                ExportStudentList exportStudentList = _mapper.Map<ExportStudentList>(data);
+                exportStudentList.CreatedDate = data.CreatedDate.ToString("yyyy-MMM-dd");
+                DateTime birthdate = data.BirthDate ?? DateTime.Now;
+                exportStudentList.BirthDate = birthdate.ToString("yyyy-MMM-dd");
+                students.Add(exportStudentList);
+            }
+
+            string filePath = Path.Combine("wwwroot", "EmailTemplate", "PdfTemplate.html");
+            string template = System.IO.File.ReadAllText(filePath);
+
+            string tableRows = string.Join("\n", students.Select(d => $@"
+            <tr>
+                <td>{d.CreatedDate}</td>
+                <td>{d.FirstName}</td>
+                <td>{d.LastName}</td>
+                <td>{d.BirthDate}</td>
+                <td>{d.CourseName}</td>
+                <td>{d.UserName}</td>
+                <td>{d.Email}</td>
+                <td>{d.StudentId}</td>
+            </tr>
+<tr>
+                <td>{d.CreatedDate}</td>
+                <td>{d.FirstName}</td>
+                <td>{d.LastName}</td>
+                <td>{d.BirthDate}</td>
+                <td>{d.CourseName}</td>
+                <td>{d.UserName}</td>
+                <td>{d.Email}</td>
+                <td>{d.StudentId}</td>
+            </tr>"));
+
+            string htmlContent = template.Replace("{{tableRows}}", tableRows);
+            //if (FromDate != null)
+            //{
+            //    htmlContent = htmlContent.Replace("{{FromDate}}", FromDate.ToString());
+            //    htmlContent = htmlContent.Replace("{{ToDate}}", ToDate.ToString());
+            //}
+            //else
+            //{
+            //    htmlContent = htmlContent.Replace("{{FromDate}}", "");
+
+            //    htmlContent = htmlContent.Replace("{{ToDate}}", todayDate.ToString());
+            //}
+            var converter = new HtmlToPdf();
+            converter.Options.PdfPageSize = PdfPageSize.A4;
+            converter.Options.PdfPageOrientation = PdfPageOrientation.Portrait;
+            converter.Options.MarginTop = 10;
+            converter.Options.MarginBottom = 0;
+            converter.Options.DisplayHeader = true;
+            converter.Options.DisplayFooter = true;
+            converter.Header.DisplayOnFirstPage = true;
+            converter.Header.DisplayOnOddPages = true;
+            converter.Header.DisplayOnEvenPages = true;
+            converter.Header.Height = 230;
+            converter.Footer.Height = 100;  
+
+            string headerHtmlPath = Path.Combine("wwwroot", "EmailTemplate", "PdfHeader.html");
+            string headerHtmlContent = System.IO.File.ReadAllText(headerHtmlPath);
+
+            string updatedHeaderHtmlContent = headerHtmlContent
+                .Replace("{{FromDate}}", FromDate != null ? FromDate.Value.ToString("dd MMM") : "")
+                .Replace("{{ToDate}}", FromDate != null ? ToDate?.ToString("dd MMM yyyy") : todayDate)
+                 .Replace("{{HodName}}", "Kishan Dabhoya")
+                .Replace("{{Email}}", "dabhoyakishan12@gmail.com")
+                .Replace("{{todayDate}}", DateTime.Now.ToString("dd MMM, yyyy"));
+
+            PdfHtmlSection headerHtmlSection = new PdfHtmlSection(updatedHeaderHtmlContent,string.Empty)
+            {
+                AutoFitHeight = HtmlToPdfPageFitMode.AutoFit
+            };
+
+            converter.Header.Add(headerHtmlSection);
+            PdfImageSection imageSection = new PdfImageSection(30, 23, 35,"wwwroot/EmailTemplate/school_logo.png");
+            imageSection.Width = 35;
+            imageSection.Height = 35;
+
+            // Add the image to the header
+            converter.Header.Add(imageSection);
+
+            string footerHtmlPath = Path.Combine("wwwroot", "EmailTemplate", "PdfFooter.html");
+            string footerHtmlContent = System.IO.File.ReadAllText(footerHtmlPath);
+
+            PdfHtmlSection footerHtmlSection = new PdfHtmlSection(footerHtmlContent, string.Empty)
+            {
+                AutoFitHeight = HtmlToPdfPageFitMode.AutoFit
+            };
+            PdfTextSection text = new PdfTextSection(-35, 20, "Page: {page_number} ", new System.Drawing.Font("Arial", 12));
+            text.HorizontalAlign = PdfTextHorizontalAlign.Right;
+            converter.Footer.Add(text);
+            converter.Footer.Add(footerHtmlSection); 
+
+            var document = converter.ConvertHtmlString(htmlContent);
+            if (document.Pages.Count > 1)
+            {
+                // Remove the last page if it is blank
+                PdfPage lastPage = document.Pages[document.Pages.Count - 1];
+                    document.Pages.Remove(lastPage);
+            }
+            using var stream = new MemoryStream();
+            document.Save(stream);
+
+            var fileName = "Students_List" + todayDate + ".pdf";
+
+            return File(stream.ToArray(), "application/pdf", fileName);
         }
     }
 }

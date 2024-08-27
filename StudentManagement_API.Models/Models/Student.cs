@@ -15,7 +15,10 @@ namespace StudentManagement_API.Models.Models
         public string LastName { get; set; } = null!;
 
         public DateTime? BirthDate { get; set; }
-        
+
+        public DateTime? CreatedDate{ get; set; }
+
+
         public int CourseId { get; set; }
 
         public string? Dob { get; set; } = null;

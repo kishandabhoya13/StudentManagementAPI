@@ -1,0 +1,146 @@
+﻿<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    header {
+        height: 8cm;
+        padding: 0 2cm;
+        position: running(header);
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+    }
+
+
+        header .headerSection {
+            display:flex;
+            justify-content:space-between;
+            /*align-items:center;*/
+        }
+
+            header .headerSection:first-child {
+                padding-top: .5cm;
+            }
+
+
+            header .headerSection:last-child {
+                padding-bottom: .5cm;
+            }
+
+
+            header .headerSection div:last-child {
+                width: 35%;
+            }
+
+        header .logoAndName {
+            display: flex;
+            align-items: center;
+        }
+
+
+            header .logoAndName svg {
+                width: 1.5cm;
+                height: 1.5cm;
+                margin-right: .5cm;
+            }
+
+
+        header .headerSection .invoiceDetails {
+            padding-top: .5cm;
+        }
+
+        header .headerSection h3 {
+            margin: 0 .75cm 0 0;
+            color: white;
+        }
+
+        header .headerSection div:last-of-type h3:last-of-type {
+            margin-top: .5cm;
+        }
+
+        header .headerSection div p {
+            margin-top: 2px;
+        }
+
+        header h1,
+        header h2,
+        header h3,
+        header p {
+            margin: 0;
+        }
+
+        header .invoiceDetails,
+        header .invoiceDetails h2 {
+            text-align: right;
+            font-size: 1em;
+            text-transform: none;
+        }
+
+/*
+        header h2,
+        header h3 {
+            text-transform: uppercase;
+        }
+*/
+        header hr {
+            margin: 1cm 0 .5cm 0;
+        }
+    .email-link{
+        color:white !important;
+        text-decoration:none;
+    }
+
+
+    .titles {
+        color: #0a1de7;
+        font-weight:bold;
+    }
+</style>
+<header>
+    <div class="" style="margin-top:50px;">
+        <div class="logoAndName" style="gap:15px;">
+            <span class="image" style="width:35px; height:35px; border-radius:50%;">
+                <img src="school_logo.png" style="width:100%; " alt="">
+            </span>
+            <h2 style="color: #0a4fea;">Student Management System</h2>
+        </div>
+        <div class="addressDetails" style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+            <div class="addressDiv1" style="margin-top:15px;">
+                <span style="font-size:12px;">Nexdi Ltd.</span>
+                <p style="font-size: 12px;">
+                    Level 30, The Leadenhall Building <br />
+                    122 Leadenhall Street<br />
+                    London<br />
+                    EC3V 4AB<br />
+                    United Kingdom<br />
+                </p>
+            </div>
+            <div class="addressDiv2" style="display:flex; flex-direction:column; justify-content:end; align-items:end;">
+                <h1>Students List</h1>
+                <span style="font-size: 14px;">Generated on the {{todayDate}}</span>
+                <span style="font-size: 14px;">{{FromDate}} - {{ToDate}}</span>
+            </div>
+        </div>
+    </div>
+    <hr style="border: 2px solid #0a1de7 " />
+    <div class="headerSection">
+        <div class="headerSection1"style="width:100%;">
+            <span class="titles">Hod Name</span>
+            <div style="margin-top:20px;">
+                <span style="font-size:12px;">{{HodName}}</span>
+                <p style="font-size: 12px; margin-top:5px;">
+                    Level 30, The Leadenhall Building <br />
+                    122 Leadenhall Street
+                </p>
+            </div>
+        </div>
+        <div class="headerSection2" style="display:flex; flex-direction:column;">
+            <span class="titles">Hod Email</span>
+            <span style="font-size:13px;">dabhoyakishan12@gmail.com</span>
+            <span style="margin-top:10px;" class="titles">UserName</span>
+            <span style="font-size:13px;">dabhoya123</span>
+
+            <!--<span style="margin-top:10px;" class="titles">Hod Name</span>
+            <span style="font-size:13px;">dabhoyakishan12@gmail.com</span>-->
+
+        </div>
+    </div>
+</header>

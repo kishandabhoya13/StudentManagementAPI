@@ -77,6 +77,26 @@
       "PackagePath": "staticwebassets\\EmailTemplate\\EmailTemplate.html"
     },
     {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\EmailTemplate\\PdfFooter.html",
+      "PackagePath": "staticwebassets\\EmailTemplate\\PdfFooter.html"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\EmailTemplate\\PdfHeader.html",
+      "PackagePath": "staticwebassets\\EmailTemplate\\PdfHeader.html"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\EmailTemplate\\PdfTemplate.html",
+      "PackagePath": "staticwebassets\\EmailTemplate\\PdfTemplate.html"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\EmailTemplate\\school-bg.png",
+      "PackagePath": "staticwebassets\\EmailTemplate\\school-bg.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\EmailTemplate\\school_logo.png",
+      "PackagePath": "staticwebassets\\EmailTemplate\\school_logo.png"
+    },
+    {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\circle.gif",
       "PackagePath": "staticwebassets\\Images\\circle.gif"
     },

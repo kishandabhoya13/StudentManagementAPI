@@ -53,6 +53,8 @@ namespace StudentManagement_API.Services
 
         IList<T> GetDataWithPagination<T>(PaginationDto paginationDto,string sp);
 
+        IList<Student> GetFromToDateStudents<Student>(PaginationDto paginationDto, string sp);
+
         T GetScheduledEmailById<T>(string Procedure, int Id);
 
         IList<EmailLogs> GetDayWiseEmailCount(EmailLogs emailLogs);
@@ -92,5 +94,7 @@ namespace StudentManagement_API.Services
         QueriesDto GetQueryDetails(int QueryId);
 
         RecordsCountDto GetRecordsCounts(int Id);
+
+        IList<StudentListCountFromDateDto> GetStudentsCountFromDates(StudentListCountFromDateDto studentListCountFromDateDto);
     }
 }

@@ -9,6 +9,8 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using StudentManagement_API.Services.CacheService;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,12 +26,13 @@ builder.Services.AddControllersWithViews(options =>
     option.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
 }).AddXmlDataContractSerializerFormatters();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<ICacheServices,CacheServices>();
+builder.Services.AddScoped<ICacheServices, CacheServices>();
 builder.Services.AddScoped<CustomExceptionFilter>();
-builder.Services.AddSingleton<IHttpContextAccessor,HttpContextAccessor>();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IExceptionFilter, CustomExceptionFilter>();
 builder.Services.AddDataLayerServices();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
+builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(2); // Set session timeout
@@ -39,12 +42,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    app.UseExceptionHandler("/Home/Error");
 }
 else
 {
+    app.UseDeveloperExceptionPage();
     // This will handle exceptions and redirect to the specified error page.
-    app.UseExceptionHandler("/Home/Error");
 }
 app.UseMiddleware<CustomHeaderMiddleWare>();
 app.UseHttpsRedirection();

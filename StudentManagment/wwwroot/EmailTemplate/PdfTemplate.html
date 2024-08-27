@@ -1,0 +1,256 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+
+    :root {
+        --font-color: black;
+        --highlight-color: #60D0E4;
+        --header-bg-color: #B8E6F1;
+        --footer-bg-color: #BFC0C3;
+        --table-row-separator-color: #BFC0C3;
+    }
+
+    @page {
+        size: A4;
+        margin: 8cm 0 3cm 0;
+        /* @top-left {
+                content:
+            }
+    */
+        @bottom-left {
+            content: element(footer);
+        }
+    }
+
+    @page {
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages);
+        }
+    }
+
+    body {
+        margin: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+        /*
+            background-image: url('school-bg.png');
+            background-repeat: repeat-y;
+            background-size: cover;
+            background-position: center;*/
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+
+    hr {
+        margin: 1cm 0;
+        height: 0;
+        border: 0;
+        border-top: #60D0E4;
+    }
+
+    main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+        main table {
+            width: 95%;
+            border-collapse: collapse;
+        }
+
+
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        width: 100%;
+        flex: 1;
+        padding: 20px;
+        margin-bottom: 100px;
+    }
+
+        main table thead th {
+            height: 1cm;
+            color: black;
+        }
+
+
+        main table tbody td {
+            padding: 2mm 0;
+            overflow-wrap: break-word;
+        }
+
+
+        main table th {
+            text-align: left;
+        }
+
+        main table tbody td {
+            word-wrap: break-word;
+        }
+
+        main table.summary {
+            width: calc(40% + 2cm);
+            margin-left: 60%;
+            margin-top: .5cm;
+        }
+
+            main table.summary tr.total {
+                font-weight: bold;
+                background-color: #60D0E4;
+            }
+
+            main table.summary th {
+                padding: 4mm 0 4mm 1cm;
+            }
+
+            main table.summary td {
+                padding: 4mm 2cm 4mm 0;
+                border-bottom: 0;
+            }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+
+    /* Ensure tables do not break across pages */
+    /*table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }*/
+
+    /* For better control of page breaks in large tables */
+/*    @media print {
+        .page-break {
+            page-break-before: always;
+        }
+    }*/
+
+    aside {
+        -prince-float: bottom;
+        padding: 0 2cm .5cm 2cm;
+    }
+
+
+        aside > div {
+            display: flex;
+            justify-content: space-between;
+        }
+
+
+            aside > div > div {
+                width: 45%;
+            }
+
+
+                aside > div > div ul {
+                    list-style-type: none;
+                    margin: 0;
+                }
+
+
+    footer {
+        display: none;
+    }
+
+
+
+    @media print {
+        @page {
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+            }
+        }
+
+        footer {
+            height: 3cm;
+            line-height: 3cm;
+            padding: 0 2cm;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            background-color: #BFC0C3;
+            font-size: 8pt;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+        }
+
+
+            footer a:first-child {
+                font-weight: bold;
+            }
+
+        .page-number:before {
+            content: "Page " counter(page);
+        }
+    }
+
+    .vertical-line {
+        border-left: 5px solid black; /* Vertical line style */
+        padding-right: 10px; /* Space between the line and the table */
+    }
+
+    th, td {
+        border-top: 2px solid #0a1de7 !important; /* Adds a top border to each cell */
+        border-bottom: 2px solid #0a1de7 !important; /* Adds a bottom border to each cell */
+        padding: 8px; /* Optional: adds padding inside cells */
+        text-align: center;
+    }
+
+    thead tr th {
+        text-align: center;
+        border-top: 0px solid #0a1de7 !important; /* Optional: makes the top border of header cells thicker */
+    }
+
+    th:first-child, td:first-child {
+        border-left: 5px solid #0a1de7;
+        padding-left: 12px;
+    }
+
+    td:first-child {
+        padding-right: 10px; /* Adjust the space as needed */
+    }
+</style>
+<main style="margin-bottom:50px;display:flex;">
+    <table style="word-wrap : break-word;">
+        <thead>
+            <tr>
+                <th>Created Date</th>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>BirthDate</th>
+                <th>CourseName</th>
+                <th>UserName</th>
+                <th>Email</th>
+                <th>StudentId</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{tableRows}}
+        </tbody>
+    </table>
+</main>
+

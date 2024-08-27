@@ -557,5 +557,62 @@ namespace StudentManagement_API.Controllers
             _response.IsSuccess = true;
             return _response;
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("ExportStudentList")]
+        public ActionResult<APIResponse> ExportStudentList(PaginationDto paginationDto)
+        {
+            try
+            {
+                IList<Student> students = _studentServices.GetFromToDateStudents<Student>(paginationDto, "[dbo].[fromDate_toDate_Students_List]");
+
+                RoleBaseResponse<IList<Student>> roleBaseResponse = new()
+                {
+                    data = students,
+                };
+
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.result = false;
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return _response;
+            }
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("GetStudentsCountFromDates")]
+        public ActionResult<APIResponse> GetStudentsCountFromDates(StudentListCountFromDateDto studentListCountFromDateDto)
+        {
+
+            try
+            {
+                IList<StudentListCountFromDateDto> studentCountList = _studentServices.GetStudentsCountFromDates(studentListCountFromDateDto);
+                RoleBaseResponse<IList<StudentListCountFromDateDto>> roleBaseResponse = new()
+                {
+                    data = studentCountList,
+                };
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.result = false;
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return _response;
+            }
+           
+        }
     }
 }

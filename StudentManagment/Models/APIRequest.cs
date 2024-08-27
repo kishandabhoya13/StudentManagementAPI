@@ -43,6 +43,10 @@ namespace StudentManagment.Models
 
         public List<string>? RoleIds { get; set; } = null;
 
+        public DateOnly? FromDate { get; set; } = null;
+
+        public DateOnly? ToDate { get; set; } = null;
+
     }
 
     public class BaseApiRequest<T> : PaginationViewModel

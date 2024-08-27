@@ -42,6 +42,31 @@ namespace StudentManagment.Models.DataModels
 
         public int? currentUserRole { get; set; } = 0;
 
+        public DateTime CreatedDate { get; set; }
+
         public bool IsBlocked { get; set; }
+    }
+
+    public class ExportStudentList
+    {
+        [Key]
+        [Required]
+        public int StudentId { get; set; }
+
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+
+        public string? BirthDate { get; set; }
+
+        public string? CourseName { get; set; } = null;
+
+        [Required(ErrorMessage = "UserName is Required")]
+        public string UserName { get; set; } = null!;
+
+        public string Email { get; set; }
+
+        public string CreatedDate { get; set; }
+
     }
 }

@@ -282,9 +282,9 @@
               "target": "Package",
               "version": "[13.0.1, )"
             },
-            "CsvHelper": {
+            "DinkToPdf": {
               "target": "Package",
-              "version": "[31.0.4, )"
+              "version": "[1.0.8, )"
             },
             "EPPlus": {
               "target": "Package",
@@ -325,6 +325,14 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "Select.HtmlToPdf.NetCore": {
+              "target": "Package",
+              "version": "[24.1.0, )"
+            },
+            "Syncfusion.Pdf.Net.Core": {
+              "target": "Package",
+              "version": "[26.2.10, )"
             }
           },
           "imports": [

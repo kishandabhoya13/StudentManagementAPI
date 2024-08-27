@@ -5,21 +5,65 @@
 @model StudentManagement.Models.RoleBaseResponse<Student>
 <div class="container-fluid">
     <div class="search-div">
-        <div class="form-group pb-4 div1">
+        <div class="form-group div1">
             <div class="input_box">
                 <input id="inputsearch"
                        class="form-control"
-                       type="search"
+                       type="text"
                        placeholder="Search Student" />
             </div>
         </div>
-        <div class="div2">
+
+        <div class="div2 d-flex gap-3">
+            <form id="export-btn" asp-action="ExportStudentList" asp-controller="Home">
+                <input type="hidden" id="fromDate2" name="FromDate" />
+                <input type="hidden" id="toDate2" name="ToDate" />
+                <button type="submit" class="btn send-email-btn text-center d-flex align-items-center">
+                    Export StudentList
+                </button>
+            </form>
+            <form id="export-btn" asp-action="DownloadPDF" asp-controller="Home">
+                <input type="hidden" id="fromDate3" name="FromDate" />
+                <input type="hidden" id="toDate3" name="ToDate" />
+                <button type="submit" class="btn send-email-btn text-center d-flex align-items-center">
+                    Export AS PDF
+                </button>
+            </form>
             <a asp-controller="Home" asp-action="CreateUpdateStudent" class="btn send-email-btn text-center d-flex align-items-center">
                 Create Student
             </a>
         </div>
-
     </div>
+    <form id="index-form" class="index-form d-flex gap-4">
+        <div class="form-group pb-4 div1">
+            <div class="input_box">
+                <input id="fromDate"
+                       required
+                       class="form-control"
+                       type="date"
+                       placeholder="Search Student" />
+            </div>
+        </div>
+        <div class="form-group pb-4 div1">
+            <div class="input_box">
+                <input id="toDate"
+                       required
+                       class="form-control"
+                       type="date"
+                       placeholder="Search Student" />
+            </div>
+        </div>
+        <div class="div2">
+            <button type="submit" class="btn send-email-btn text-center d-flex align-items-center">
+                Search
+            </button>
+        </div>
+        <div class="div2">
+            <button id="clear-btn" type="reset" class="btn clear-btn text-center d-flex align-items-center">
+                Clear
+            </button>
+        </div>
+    </form>
     <div class="container-fluid table-responsive">
         <div class="plus-minus-div">
             <div class="plus-minus-icon-div">
@@ -63,6 +107,8 @@
 </div>
 <div id="popup"></div>
 <script>
+    var TOTAL_ITEMS = 0;
+
     function CreateCourse() {
         $.ajax({
             type: "get",
@@ -79,7 +125,6 @@
     };
 
     function loadDataTable(startIndex) {
-        var TOTAL_ITEMS = 0;
         var searchQuery = $("#inputsearch").val();
         var pageSize = $("#dt-length-0").val();
         var secondApiRequest = {
@@ -237,6 +282,18 @@
                     }
                 },
                 {
+                    "title": "CreatedDate",
+                    "data": "createdDate",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        var date = new Date(data1);
+                        var localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+                        var formattedDate = localDate.toISOString().split('T')[0];
+                        return formattedDate;
+
+                    }
+                },
+                {
                     "title": "Action",
                     "data": "-",
                     "class": "text-center",
@@ -285,7 +342,28 @@
         });
     };
 
-
+    //function ExportRecords() {
+    //    var fromDate = $("#fromDate").val();
+    //    var toDate = $("#toDate").val();
+    //    var paginationViewModel = {
+    //        FromDate: fromDate,
+    //        ToDate: toDate
+    //    };
+    //    $.ajax({
+    //        method: "POST",
+    //        url: "/Home/ExportStudentList",
+    //        data: paginationViewModel,
+    //        dataSrc: "data",
+    //        success: function (response) {
+    //            if (response == false) {
+    //                window.location.href = '/Login/Logout';
+    //            }
+    //        },
+    //        error: function (xhr, status, error) {
+    //            console.error(error);
+    //        }
+    //    });
+    //}
 
     $(document).ready(function () {
 
@@ -296,9 +374,14 @@
         $(".dt-paging-button").removeClass("disabled");
         $(document).on('change', '.form-select', function (event) {
             var pageSize = $("#dt-length-0").val();
+            var fromDate = $("#fromDate").val();
+            var toDate = $("#toDate").val();
+
             var secondApiRequest = {
                 StartIndex: 0,
                 PageSize: pageSize,
+                FromDate: fromDate,
+                ToDate: toDate
             };
             event.preventDefault();
             $.ajax({
@@ -314,6 +397,7 @@
                         window.location.href = '/Login/Logout';
                     }
                     sessionStorage.setItem("currentPageIndex", 0);
+                    TOTAL_ITEMS = response.totalItems;
                     var newRows = response.data;
                     table.clear();
 
@@ -329,10 +413,15 @@
 
         $(document).on('keyup', '#inputsearch', function (event) {
             var pageSize = $("#dt-length-0").val();
+            var fromDate = $("#fromDate").val();
+            var toDate = $("#toDate").val();
+
             var secondApiRequest = {
                 searchQuery: this.value,
                 StartIndex: 0,
                 PageSize: pageSize,
+                FromDate: fromDate,
+                ToDate: toDate
             };
             $.ajax({
                 method: "POST",
@@ -345,7 +434,7 @@
                     }
                     sessionStorage.setItem("currentPageIndex", 0);
                     var newRows = response.data;
-
+                    TOTAL_ITEMS = response.totalItems;
                     table.clear();
                     table.rows.add(newRows).draw(false);
 
@@ -362,6 +451,9 @@
         let totalPages = table.page.info().pages;
         $(document).on('click', '.page-link.next', function (event) {
             var pageSize = $("#dt-length-0").val();
+            var fromDate = $("#fromDate").val();
+            var toDate = $("#toDate").val();
+
             if (sessionStorage.getItem("currentPageIndex") != null) {
                 currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) + 1;
             }
@@ -370,6 +462,8 @@
             var secondApiRequest = {
                 StartIndex: startIndex,
                 PageSize: pageSize,
+                FromDate: fromDate,
+                ToDate: toDate
             };
             $.ajax({
                 method: "POST",
@@ -385,7 +479,7 @@
                     }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
-
+                    TOTAL_ITEMS = response.totalItems;
                     table.clear();
                     table.rows.add(newRows).draw(false);
 
@@ -401,6 +495,8 @@
         $(document).on('click', '.page-link.previous', function (event) {
             event.preventDefault();
             var pageSize = $("#dt-length-0").val();
+            var fromDate = $("#fromDate").val();
+            var toDate = $("#toDate").val();
             if (sessionStorage.getItem("currentPageIndex") != null) {
                 currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
                 if (parseInt(currentPageIndex, 10) < 0) {
@@ -412,6 +508,8 @@
             var secondApiRequest = {
                 StartIndex: startIndex1,
                 PageSize: pageSize,
+                FromDate: fromDate,
+                ToDate: toDate
             };
             $.ajax({
                 method: "POST",
@@ -427,7 +525,7 @@
                     }
                     sessionStorage.setItem("currentPageIndex", currentPageIndex);
                     var newRows = response.data;
-
+                    TOTAL_ITEMS = response.totalItems;
                     table.clear();
                     table.rows.add(newRows).draw(false);
 
@@ -445,6 +543,64 @@
                 }
             });
         });
+
+        function fromDateToDateRecords() {
+            var pageSize = $("#dt-length-0").val();
+            var searchQuery = $("#inputsearch").val();
+            var fromDate = $("#fromDate").val();
+            var toDate = $("#toDate").val();
+
+            var secondApiRequest = {
+                searchQuery: searchQuery,
+                StartIndex: 0,
+                PageSize: pageSize,
+                FromDate: fromDate,
+                ToDate: toDate
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/AdminIndexTableView",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+                    TOTAL_ITEMS = response.totalItems;
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                    incrementForChanging();
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        }
+
+        $(document).on('submit', '#index-form', function (event) {
+            event.preventDefault();
+            fromDateToDateRecords();
+        });
+
+
+        $(document).on('click', '#clear-btn', function (event) {
+            event.preventDefault();
+            var searchQuery = $("#inputsearch").val("");
+            var fromDate = $("#fromDate").val("");
+            var toDate = $("#toDate").val("");
+
+            var fromDate = $("#fromDate2").val("");
+            var toDate = $("#toDate2").val("");
+
+            
+            var fromDate = $("#fromDate3").val("");
+            var toDate = $("#toDate3").val("");
+
+            fromDateToDateRecords();
+        });
+
 
 
         //function incrementCountOneColumn(rowId) {
@@ -903,6 +1059,50 @@
             }
         });
     }
+
+
+
+</script>
+<script>
+    const inputElements = document.querySelectorAll('input#fromDate');
+    if (inputElements != null) {
+        const maxDate = new Date();
+        maxDate.setFullYear(maxDate.getFullYear());
+
+        for (const inputElement of inputElements) {
+            inputElement.setAttribute('max', maxDate.toISOString().split('T')[0]);
+        }
+    }
+
+    const inputElements2 = document.querySelectorAll('input#toDate');
+    if (inputElements2 != null) {
+        const maxDate = new Date();
+        maxDate.setFullYear(maxDate.getFullYear());
+
+        for (const inputElement of inputElements2) {
+            inputElement.setAttribute('max', maxDate.toISOString().split('T')[0]);
+        }
+    }
+
+    document.getElementById('fromDate').addEventListener('change', function () {
+        var fromDateValue = this.value;
+        $("#fromDate2").val(fromDateValue);
+        $("#fromDate3").val(fromDateValue);
+        var toDateInput = document.getElementById('toDate');
+        toDateInput.min = fromDateValue;
+
+        // If toDate is earlier than fromDate, clear the value
+        if (toDateInput.value < fromDateValue) {
+            toDateInput.value = '';
+        }
+    });
+
+    document.getElementById('toDate').addEventListener('change', function () {
+        var toDateValue = this.value;
+        $("#toDate2").val(toDateValue);       
+        $("#toDate3").val(toDateValue);
+
+    });
 
 
 

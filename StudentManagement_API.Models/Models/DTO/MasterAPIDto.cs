@@ -71,4 +71,16 @@ namespace StudentManagement_API.Models.Models.DTO
 
         public int? year { get; set; } = 0;
     }
+
+    public class StudentListCountFromDateDto
+    {
+
+        public DateTime? CreatedDate { get; set; } = null;
+
+        public int StudentsCount { get; set; }
+
+        public DateOnly? FromDate { get; set; }
+
+        public DateOnly? ToDate { get; set; }
+    }
 }
