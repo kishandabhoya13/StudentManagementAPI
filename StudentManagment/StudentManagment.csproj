@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Views\Home\ExcelFileDataPartialView.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="DinkToPdf" Version="1.0.8" />
     <PackageReference Include="EPPlus" Version="7.2.2" />
@@ -15,6 +19,7 @@
     <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.20" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.20" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="7.0.20" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
     <PackageReference Include="MimeKit" Version="4.7.1" />
     <PackageReference Include="NetCore.AutoRegisterDi" Version="2.2.1" />
@@ -27,10 +32,27 @@
     <Folder Include="wwwroot\BookPhotos\" />
     <Folder Include="wwwroot\AttachmentFiles\" />
     <Folder Include="wwwroot\Data\" />
+    <Folder Include="wwwroot\files\" />
+    <Folder Include="wwwroot\BlogImages\" />
+    <Folder Include="wwwroot\signalr\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\StudentManagement_API.Services\StudentManagement_API.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Views\Home\ExcelFileDataPartialView.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\Home\ExcelFileDataPartialView.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Views\Shared\ExcelFileDataPartialView.cshtml" />
+    <None Include="wwwroot\signalr.js" />
+    <None Include="wwwroot\signalr.min.js" />
   </ItemGroup>
 
 </Project>

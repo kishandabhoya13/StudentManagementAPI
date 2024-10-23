@@ -38,6 +38,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
+
     <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -107,19 +108,29 @@
                             </a>
                         }
                     </li>
-                    <li class="nav-link">
-                        <a aria-current="page" asp-area="" asp-controller="Home" asp-action="AdminIndex">
-                            <i class="fa-solid fa-user-graduate icon"></i>
-                            <span class="text nav-text">All Students</span>
-                        </a>
-                    </li>
+                    @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") != 3)
+                    {
+                        <li class="nav-link">
+                            <a aria-current="page" asp-area="" asp-controller="Home" asp-action="AdminIndex">
+                                <i class="fa-solid fa-user-graduate icon"></i>
+                                <span class="text nav-text">All Students</span>
+                            </a>
+                        </li>
+                    }
                     @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 3)
                     {
                         <li class="nav-link">
-
                             <a asp-action="AddRateAlert" asp-controller="Home">
                                 <i class="zmdi zmdi-money icon"></i>
                                 <span class="text nav-text">Add Rate Alert</span>
+                            </a>
+
+                        </li>
+
+                        <li class="nav-link">
+                            <a asp-action="ResetPassword" asp-controller="Login">
+                                <i class="zmdi zmdi-lock icon"></i>
+                                <span class="text nav-text">Change Password</span>
                             </a>
 
                         </li>
@@ -151,6 +162,14 @@
                             <a asp-area="" asp-controller="Home" asp-action="AllBooks">
                                 <i class='bx bx-book-alt icon'></i>
                                 <span class="text nav-text">Books</span>
+                            </a>
+                        </li>
+
+
+                        <li class="nav-link">
+                            <a asp-area="" asp-controller="Home" asp-action="BulkOperations">
+                                <i class="zmdi zmdi-collection-plus icon"></i>
+                                <span class="text nav-text">Add Bulk Students</span>
                             </a>
                         </li>
 
@@ -195,7 +214,15 @@
                                 <span class="text nav-text">All Queries</span>
                             </a>
                         </li>
-
+                    }
+                    @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 2)
+                    {
+                        <li class="nav-link">
+                            <a aria-current="page" onclick="ChangePasswordModal()">
+                                <i class="zmdi zmdi-key icon"></i>
+                                <span class="text nav-text">Request to Change Password</span>
+                            </a>
+                        </li>
                     }
 
                 </ul>
@@ -216,10 +243,35 @@
         </div>
 
     </nav>
-
     <main role="main" class="p-0 main" style="margin-left:80px;">
+        <div id="liveToast" class="toast" role="alertdialog" style="position: absolute; top: 0; right: 20px; z-index:9999; background-color:white;">
+            <div class="toast-body d-flex gap-3">
+                <div>
+                    <img style="width:50px; height:50px;" src="~/Images/information-button.png" alt="information-icon" />
+                </div>
+                <div>
+                    <h6 style="font-weig    ht:bold;">Generating</h6>
+                    <span>You will get a notification once it is complete</span>
+                </div>
+            </div>
+        </div>
+        <div id="liveToast2" class="toast" role="alertdialog" style="position: absolute; top: 0; right: 20px; z-index:9999; background-color:white;">
+            <div class="toast-body d-flex gap-3">
+                <div style="position:absolute; top:10px; right:15px;" id="close-toaster" data-bs-dismiss="toast">
+                    <i class="fa fa-times" style="font-size:16px;" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <img style="width:50px; height:50px;" src="~/Images/checked.png" alt="information-icon2" />
+                </div>
+                <div>
+                    <h6 style="font-weight:bold;">File Generated</h6>
+                    <span>You can <a id="downloadLink">Download</a> this file</span>
+                </div>
+            </div>
+        </div>
         @RenderBody()
     </main>
+
     <div id="popup"></div>
     @*<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>*@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -418,6 +470,51 @@
                     link.parentElement.classList.add('active');
                 }
             });
+        });
+
+
+        function ChangePasswordModal() {
+            $.ajax({
+                type: "get",
+                url: '@Url.Action("RequestChangePasswordModal","Home")',
+                data: {},
+                success: function (response) {
+                    $('#popup').html(response)
+                    $('#RequestChangePasswordModal').modal("show");
+                },
+                error: function (xhr, status, error) {
+                    console.error(error + "djsfhsdjkfhsdkjfh");
+                }
+            });
+        };
+
+        $(document).ready(function () {
+            console.log(localStorage.getItem('showToaster2'));
+            if (localStorage.getItem('showToaster2') == 'true') {
+                console.log("INSIDE IF:::::");
+                var downloadUrl = localStorage.getItem("downloadURL");
+                $('#downloadLink').attr('href', downloadUrl);
+                
+                 $('#downloadLink').off('click').on('click', function () {
+                    localStorage.setItem('showToaster2', false);
+                    console.log("onclick 2");
+                    var toastEl2 = document.getElementById('liveToast2');
+                    var toast2 = bootstrap.Toast.getInstance(toastEl2);
+                    toast2.hide();
+                });
+
+                $("#close-toaster").on('click', function () {
+                    console.log("on click");
+                    localStorage.setItem('showToaster2', false);
+                });
+
+                var toastEl2 = document.getElementById('liveToast2');
+                var toast2 = new bootstrap.Toast(toastEl2, {
+                    autohide: false
+                });
+                toast2.show();
+
+            }
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)

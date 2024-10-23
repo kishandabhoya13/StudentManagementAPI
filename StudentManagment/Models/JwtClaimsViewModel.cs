@@ -28,5 +28,7 @@ namespace StudentManagment.Models
         public bool IsRejected { get; set; }
 
         public bool IsBlocked { get; set; }
+
+        public bool IsPasswordUpdated { get; set; } = false;
     }
 }

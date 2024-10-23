@@ -1,0 +1,49 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+@model StudentManagment.Models.DataModels.Blog
+<div class="container-lg">
+    <div class="container-info-section">
+        <div class="row">
+            @if (Model.Blogs != null && Model.Blogs.Count > 0)
+            {
+                @foreach (var blog in Model.Blogs)
+                {
+                    <div class="content-outer-div col-12 col-md-6 col-sm-6 col-lg-6">
+                        <div class="blog clickable-div" onclick="location.href='@Url.Action("BlogInfo", "Home", new { BlogId = blog.BlogId })' + getLangParam()">
+                            <div class="blog-img" style="background-image:url('/BlogImages/@blog.ImageName')">
+                            </div>
+                            <div class="blog-info">
+                                <h5>@blog.Title</h5>
+                                <div style="margin-bottom: 70px;">
+                                    <span>
+                                        @blog.ShortDescription...
+                                    </span>
+                                </div>
+                                <div style="position:absolute;bottom:5%;" class="continue-link-div">
+                                    <a asp-action="BlogInfo" asp-controller="Home" asp-route-BlogId="@blog.BlogId" id="blog-7" class="primary-link with-arrow animate-hover continue-link">
+                                        @*<input type="hidden" asp-for="Language" name="Language" class="continue-link" />*@
+                                        Continue reading
+                                    </a>
+                                </div>
+                                <div style="position:absolute;bottom:6.6%;right:5%;">
+                                    <span style="color:#666;">@blog.UpdatedDate.ToString("d MMM yyyy")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+<script>
+    function getLangParam() {
+        const url = new URL(window.location.href);
+        const lang = url.searchParams.get('lang');
+        return lang ? '&lang=' + lang : '';
+    }
+</script>

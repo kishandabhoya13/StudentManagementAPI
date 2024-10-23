@@ -126,3 +126,9 @@ D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Syncfusion.Compression.Po
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Syncfusion.Licensing.dll
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Syncfusion.Pdf.Portable.dll
 D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Select.HtmlToPdf.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.Connections.Abstractions.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.SignalR.Client.Core.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.SignalR.Common.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.Extensions.Features.dll
+D:\StudentManagement\StudentManagment\bin\Debug\net7.0\Microsoft.Extensions.Options.dll

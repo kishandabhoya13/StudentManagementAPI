@@ -43,54 +43,58 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        @if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
+                    <ul class="navbar-nav login-nav-ul flex-grow-1">
+                        @*@if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AdminIndex">Home</a>
-                            </li>
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AdminIndex">Home</a>
+                        </li>
                         }
                         else
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                            </li>
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
                         }
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                         @if (HttpContextAccessor.HttpContext.Session.GetInt32("UserId") != null)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="LogOut">Log Out</a>
-                            </li>
-                            if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1 || HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 2)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" onclick="CreateCourse()">Create Course</a>
-                                </li>
-                            }
-                            if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="CreateUpdateStudent">Create Student</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AllBooks">Books</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AddEditBook">Add New Book</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AllEmails">All Emails</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="GetAllMailReplies">Reply Emails</a>
-                                </li>
-                            }
-
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="LogOut">Log Out</a>
+                        </li>
+                        if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1 || HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 2)
+                        {
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" onclick="CreateCourse()">Create Course</a>
+                        </li>
                         }
+                        if (HttpContextAccessor.HttpContext.Session.GetInt32("RoleId") == 1)
+                        {
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="CreateUpdateStudent">Create Student</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AllBooks">Books</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AddEditBook">Add New Book</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AllEmails">All Emails</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="GetAllMailReplies">Reply Emails</a>
+                        </li>
+                        }
+
+                        }*@
+                        <li class="nav-item blog-link">
+                            <a class="nav-link text-dark " asp-area="" asp-controller="Home" asp-action="Blogs" asp-route-lang="en">Blogs</a>
+                        </li>
+
                     </ul>
                 </div>
             </div>
@@ -105,11 +109,22 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script type="text/javascript" src="/js/picker.min.js"></script>
     <script src="~/summernote/summernote.js"></script>
+    @* <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js">
+    </script>
+    *@
+    <script src="~/signalr.js"></script>
+    <script src="~/signalr.min.js"></script>
+    <script>
+                //connection.start().then(() => {
+        //    console.log("Connected to SignalR Hub");
+        //});
+
+    </script>
+    <script src="~/js/site.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,111 @@
+﻿@using StudentManagment.Models.DataModels;
+@{
+    ViewData["Title"] = "Bulk Operations";
+    var i = 0;
+}
+@model ExportExcelStudentViewModel
+<div class="container-fluid ms-5 mt-5">
+    <div class="gap-3 bulk-operation-div pb-3">
+        <form id="export-btn" asp-action="DownloadExcelTemplete" asp-controller="Home">
+            <input type="hidden" id="fromDate2" name="FromDate" />
+            <input type="hidden" id="toDate2" name="ToDate" />
+            <button type="submit" class="btn send-email-btn text-center d-flex align-items-center">
+                Download Templete
+            </button>
+        </form>
+        <div>
+            <form id="export-file-form" asp-action="ReadExcelFileData" asp-controller="Home" enctype="multipart/form-data">
+                <input id="export-file-upload" type="file" name="formFile" accept=".xls, .xlsx">
+                <button type="submit" class="btn send-email-btn text-center d-flex align-items-center excel-upload-btn">
+                    Upload ExcelFile
+                </button>
+            </form>
+        </div>
+
+    </div>
+    <hr class="mt-3" />
+    <div id="popup">
+    </div>
+    <div id="currencyOverlay" style="display: none;"></div>
+    <div id="currencyLoader" style="display: none;">
+        <img src="~/Images/circle.gif" alt="gif" class="loader-img" />
+    </div>
+</div>
+<script>
+
+
+    function showLoader() {
+        console.log("show");
+        $('#currencyOverlay').show();
+        $('#currencyLoader').show();
+    }
+
+    function hideLoader() {
+        console.log("hide");
+        $('#currencyOverlay').hide();
+        $('#currencyLoader').hide();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.getElementById('export-file-upload');
+        const form = document.getElementById('export-file-form');
+
+        fileInput.addEventListener('change', function () {
+
+            console.log(fileInput);
+            if (fileInput.files.length > 0) {
+                showLoader();
+                //form.submit();
+                var formData = new FormData();
+                const file = fileInput.files[0];
+
+                if (file) {
+                    formData.append('formFile', file);
+
+                    $.ajax({
+                        type: "POST", // Use POST method
+                        url: '@Url.Action("ExcelFileDataPartialView", "Home")', // Ensure URL is correctly rendered
+                        data: formData,
+                        contentType: false, // Prevent jQuery from setting content-type
+                        processData: false, // Prevent jQuery from processing the data
+                        success: function (response) {
+                            if (response.redirect) {
+                                window.location.href = response.redirect;
+                            } else {
+                                $('#popup').html(response);
+                                const cardHeaders = document.querySelectorAll('.query-card-header');
+
+                                cardHeaders.forEach(header => {
+                                    header.addEventListener('click', () => {
+                                        const card = header.closest('.card');
+
+                                        const cardBody = card.querySelector('.query-card-body');
+
+                                        if (cardBody.classList.contains('open')) {
+                                            cardBody.classList.remove('open');
+                                        } else {
+                                            cardBody.classList.add('open');
+                                        }
+
+
+                                    });
+                                });
+                                $('#clear-btn').on('click', function () {
+                                    $('#export-file-upload').val('');
+                                    $("#popup").html("");
+                                });
+                            }
+                            hideLoader();
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error:', error);
+                            $('#popup').html('<p>An error occurred while uploading the file.</p>');
+                            hideLoader();
+                        }
+                    });
+                } else {
+                    alert('Please select a file.');
+                }
+            }
+        });
+    });
+</script>

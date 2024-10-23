@@ -1,0 +1,116 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>WebSocket Chat Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #messagesList {
+            list-style-type: none;
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 10px;
+            max-width: 60%;
+        }
+
+        .sent {
+            background-color: #dcf8c6;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .received {
+            background-color: #f1f1f1;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        #messageInput {
+            width: calc(100% - 80px);
+            padding: 10px;
+        }
+
+        #sendButton {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body onload="init()">
+    <h2>WebSocket Chat Application</h2>
+    <ul id="messagesList"></ul>
+    <input type="text" id="messageInput" placeholder="Write a message..." onkeypress="handleKeyPress(event)" />
+    <button id="sendButton" onclick="sendMessage()">Send</button>
+    <script>
+        let socket;
+        const username = prompt("Enter Your Name");
+        function init() {
+            socket = new WebSocket('wss://localhost:7028/ws');
+            socket.onopen = () => {
+                console.log('WebSocket connection established.');
+
+                // Send an initial message to register the username
+                const initMessage = {
+                    user: username,
+                    message: `${username} has joined the chat!`
+                };
+                socket.send(JSON.stringify(initMessage));
+            };
+
+            socket.onmessage = (event) => {
+                const messagesList = document.getElementById('messagesList');
+                const msgData = JSON.parse(event.data);
+                console.log("MEssage data : ", msgData);
+                const li = document.createElement('li');
+                li.className = 'message received';
+                li.textContent = `${msgData.User}: ${msgData.Message}`;
+                messagesList.appendChild(li);
+                messagesList.scrollTop = messagesList.scrollHeight;
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket connection closed.');
+            };
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = {
+                user: username,
+                message: messageInput.value
+            };
+
+            socket.send(JSON.stringify(message));
+            const li = document.createElement('li');
+            li.className = 'message sent';
+            li.textContent = `${username}: ${messageInput.value}`;
+            document.getElementById('messagesList').appendChild(li);
+            messageInput.value = '';
+            document.getElementById('messagesList').scrollTop = document.getElementById('messagesList').scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                console.log("presss");
+                event.preventDefault(); 
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>

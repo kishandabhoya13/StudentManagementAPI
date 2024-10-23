@@ -16,7 +16,7 @@ namespace StudentManagement_API.Models.Models
 
         public DateTime? BirthDate { get; set; }
 
-        public DateTime? CreatedDate{ get; set; }
+        public DateTime? CreatedDate { get; set; } = DateTime.Now;
 
 
         public int CourseId { get; set; }

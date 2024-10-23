@@ -44,3 +44,7 @@ Time: 21-08-2024 14:45:06, Controller: Home, Action: Dashboard, Exception: Unabl
 Time: 21-08-2024 14:45:33, Controller: Home, Action: Dashboard, Exception: Unable to resolve service for type 'DinkToPdf.Contracts.IConverter' while attempting to activate 'StudentManagment.Controllers.HomeController'.
 Time: 21-08-2024 16:11:13, Controller: Home, Action: DownloadPDF, Exception: Cannot return null from an action method with a return type of 'Microsoft.AspNetCore.Mvc.IActionResult'.
 Time: 21-08-2024 17:11:43, Controller: Home, Action: DownloadPDF, Exception: Conversion error: Could not open url.
+Time: 03-09-2024 11:27:22, Controller: Home, Action: ExcelFileDataPartialView, Exception: The key ',pll1������ʠ_� �W\���t���[F��|�.���۝�8��7��' is invalid JQuery syntax because it is missing a closing bracket. (Parameter 'key')
+Time: 03-09-2024 11:28:05, Controller: Home, Action: ExcelFileDataPartialView, Exception: The key ',pll1������ʠ_� �W\���t���[F��|�.���۝�8��7��' is invalid JQuery syntax because it is missing a closing bracket. (Parameter 'key')
+Time: 04-09-2024 14:29:14, Controller: Home, Action: ExcelFileDataPartialView, Exception: Error converting value {null} to type 'System.DateTime'. Path 'result.data[0].createdDate', line 1, position 172.
+Time: 01-10-2024 17:58:28, Controller: Home, Action: AddEditBlogModal, Exception: Object reference not set to an instance of an object.

@@ -15,8 +15,11 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlTypes;
 using System.Net.Mail;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks.Dataflow;
+using System.Web.Helpers;
 using static DemoApiWithoutEF.Utilities.Enums;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -52,12 +55,18 @@ namespace StudentManagement_API.Services
             Collection<DbParameters> parameters = new();
             parameters.Add(new DbParameters { Name = "@StudentId", Value = Id, DBType = DbType.Int64 });
             T newobj = DbClient.ExecuteOneRecordProcedure<T>(Procedure, parameters);
-            _cacheServices.SetSingleCachedResponse("Student" + Id, newobj);
             return newobj;
 
         }
 
+        public T GetOneRecordFromId<T>(string Procedure, int Id)
+        {
+            Collection<DbParameters> parameters = new();
+            parameters.Add(new DbParameters { Name = "@Id", Value = Id, DBType = DbType.Int64 });
+            T newobj = DbClient.ExecuteOneRecordProcedure<T>(Procedure, parameters);
+            return newobj;
 
+        }
         public IList<T> GetRecordsWithoutPagination<T>(string ProcedureName)
         {
             IList<T> list = DbClient.ExecuteProcedure<T>(ProcedureName, null);
@@ -73,10 +82,10 @@ namespace StudentManagement_API.Services
                 parameters.Add(new DbParameters { Name = "@Sort_Column_Name", Value = paginationDto.OrderBy ?? "", DBType = DbType.String });
                 parameters.Add(new DbParameters { Name = "@Start_index", Value = paginationDto.StartIndex, DBType = DbType.Int64 });
                 parameters.Add(new DbParameters { Name = "@Page_Size", Value = paginationDto.PageSize, DBType = DbType.Int64 });
-                if(paginationDto.FromDate != null && paginationDto.ToDate != null)
+                if (paginationDto.FromDate != null && paginationDto.ToDate != null)
                 {
                     parameters.Add(new DbParameters { Name = "@FromDate", Value = paginationDto.FromDate, DBType = DbType.Date });
-                    parameters.Add(new DbParameters { Name = "@ToDate", Value = paginationDto.ToDate , DBType = DbType.Date });
+                    parameters.Add(new DbParameters { Name = "@ToDate", Value = paginationDto.ToDate, DBType = DbType.Date });
 
                 }
                 //IList<Book> books = DbClient.ExecuteProcedure<Book>("[dbo].[Get_Books_List]", parameters);
@@ -127,6 +136,7 @@ namespace StudentManagement_API.Services
                 table.Columns.Add("Email");
                 table.Columns.Add("IsConfirmed");
                 table.Columns.Add("IsRejected");
+                table.Columns.Add("IsPasswordUpdated");
 
                 var row = table.NewRow();
                 row["FirstName"] = studentUpdateDto.FirstName;
@@ -138,6 +148,7 @@ namespace StudentManagement_API.Services
                 row["Email"] = studentUpdateDto.Email;
                 row["IsConfirmed"] = studentUpdateDto.IsConfirmed;
                 row["IsRejected"] = studentUpdateDto.IsRejected;
+                row["IsPasswordUpdated"] = true;
                 table.Rows.Add(row);
 
                 Collection<DbParameters> parameters = new Collection<DbParameters>();
@@ -157,6 +168,7 @@ namespace StudentManagement_API.Services
                 table.Columns.Add("Email");
                 table.Columns.Add("IsConfirmed");
                 table.Columns.Add("IsRejected");
+                table.Columns.Add("IsPasswordUpdated");
 
                 var row = table.NewRow();
                 row["FirstName"] = studentCreateDto.FirstName;
@@ -168,12 +180,53 @@ namespace StudentManagement_API.Services
                 row["Email"] = studentCreateDto.Email;
                 row["IsConfirmed"] = studentCreateDto.IsConfirmed;
                 row["IsRejected"] = studentCreateDto.IsRejected;
-
+                row["IsPasswordUpdated"] = studentCreateDto.IsPasswordUpdated;
                 table.Rows.Add(row);
 
                 Collection<DbParameters> parameters = new Collection<DbParameters>();
                 parameters.Add(new DbParameters() { Name = "@Student_Details", Value = table, DBType = DbType.Object, TypeName = "Student_Details" });
                 DbClient.ExecuteProcedure("Add_Student_Details", parameters, ExecuteType.ExecuteNonQuery);
+                EmailLogs emailLogs = new();
+                emailLogs.Body = $@"<html><body>
+                 <h1>Student Management System</h1>
+                 <p>Username: {studentCreateDto.UserName}</p>
+                 <p>Password: {studentCreateDto.Password}</p>
+                 </body></html>";
+                MailMessage message = new MailMessage(_configuration["EmailCredential:From"], studentCreateDto.Email);
+                SmtpClient client = new SmtpClient(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]));
+                System.Net.NetworkCredential basicCredential1 = new
+                System.Net.NetworkCredential(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = basicCredential1;
+                string mailbody = emailLogs.Body;
+                message.Subject = "Username And Password";
+                message.Body = mailbody;
+                message.BodyEncoding = Encoding.UTF8;
+                message.IsBodyHtml = true;
+                message.ReplyToList.Add(new MailAddress(_configuration["EmailCredential:From"]));
+                try
+                {
+                    //string id = "123456789"; //Save the id in your database 
+                    //message.Headers.Add("Message-Id", String.Format("<{0}@{1}>", id.ToString(), "mail.example.com"));
+                    client.Send(message);
+                    //string messageId = message.Headers["Message-ID"] ?? "";
+                }
+                catch (Exception)
+                {
+                    string EmailLogSql = "[dbo].[Add_EmailLog_Details]";
+                    emailLogs.Email = studentCreateDto.Email;
+                    emailLogs.IsSent = false;
+                    emailLogs.Subject = message.Subject;
+                    emailLogs.SentBy = 1;
+                    AddEmailLogs(emailLogs, EmailLogSql);
+                }
+                string sql = "[dbo].[Add_EmailLog_Details]";
+                emailLogs.Email = studentCreateDto.Email;
+                emailLogs.IsSent = true;
+                emailLogs.Subject = message.Subject;
+                emailLogs.SentBy = 1;
+                AddEmailLogs(emailLogs, sql);
 
             }
         }
@@ -342,7 +395,7 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<UpdateJwtDTo>(dataObj);
             }
-            else if (controllerName == "ProfessorHod" && methodName == "SendEmail")
+            else if ((controllerName == "ProfessorHod" && methodName == "SendEmail") || (controllerName == "Student" && methodName == "SendForgotPasswordEmail"))
             {
                 return GetDataModel<EmailLogs>(dataObj);
             }
@@ -354,7 +407,7 @@ namespace StudentManagement_API.Services
             {
                 return Convert.ToInt32(dataObj);
             }
-            else if (controllerName == "Course" && methodName == "GetCourse")
+            else if ((controllerName == "Course" && methodName == "GetCourse") || (controllerName == "ProfessorHod" && methodName == "GetBlog"))
             {
                 return Convert.ToInt32(dataObj);
             }
@@ -365,7 +418,10 @@ namespace StudentManagement_API.Services
                 || (controllerName == "ProfessorHod" && methodName == "GetAllProfessors")
                 || (controllerName == "ProfessorHod" && methodName == "GetAllBlockedProfessors")
                 || (controllerName == "ProfessorHod" && methodName == "GetAllQueries")
-                || (controllerName == "Student" && methodName == "ExportStudentList"))
+                || (controllerName == "Student" && methodName == "ExportStudentList")
+                || (controllerName == "ProfessorHod" && methodName == "GetAllBlogs")
+                || (controllerName == "Student" && methodName == "GetAllHosts")
+                )
             {
                 return GetDataModel<PaginationDto>(dataObj);
             }
@@ -378,7 +434,7 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<Book>(dataObj);
             }
-            else if ((controllerName == "Book" && methodName == "GetBook") 
+            else if ((controllerName == "Book" && methodName == "GetBook")
                     || (controllerName == "Currency" && methodName == "GetRateAlerts")
                     || (controllerName == "Currency" && methodName == "GetRateAlertById")
                     || (controllerName == "Currency" && methodName == "RemoveRateAlert")
@@ -397,7 +453,10 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<CountStudentProfessorDto>(dataObj);
             }
-            else if ((controllerName == "Student" && methodName == "GetStudentByEmail") || (controllerName == "Student" && methodName == "GetStudentByUserName"))
+            else if ((controllerName == "Student" && methodName == "GetStudentByEmail") 
+                || (controllerName == "Student" && methodName == "GetStudentByUserName") 
+                || (controllerName == "Student" && methodName == "CheckExistingUserNamePassword")
+                || (controllerName == "Student" && methodName == "ValidateToken"))
             {
                 return Convert.ToString(dataObj);
             }
@@ -417,13 +476,28 @@ namespace StudentManagement_API.Services
             {
                 return GetDataModel<CurrencyPairDto>(dataObj);
             }
-            else if((controllerName == "ProfessorHod" && methodName == "AddQueries") || (controllerName == "ProfessorHod" && methodName == "SendReplyEmail"))
+            else if ((controllerName == "ProfessorHod" && methodName == "AddQueries") || (controllerName == "ProfessorHod" && methodName == "SendReplyEmail"))
             {
                 return GetDataModel<QueriesDto>(dataObj);
             }
-            else if(controllerName == "Student" && methodName == "GetStudentsCountFromDates")
+            else if (controllerName == "Student" && methodName == "GetStudentsCountFromDates")
             {
                 return GetDataModel<StudentListCountFromDateDto>(dataObj);
+            }
+            else if ((controllerName == "Student" && methodName == "CreateBulkStudents") || (controllerName == "Student" && methodName == "CheckUsernameList"))
+            {
+                return GetDataModel<ExportExcelStudentDTO>(dataObj);
+            }
+            else if((controllerName == "Student" && methodName == "ChangePassword") 
+                 || (controllerName == "Student" && methodName == "CheckPassword") 
+                 || (controllerName == "Student" && methodName == "ChangePasswordById")
+                 || (controllerName == "Student" && methodName == "CheckPreviousPasswords"))
+            {
+                return GetDataModel<ForgotPasswordDTO>(dataObj);
+            }
+            else if((controllerName == "ProfessorHod" && methodName == "UpsertBlogs") || (controllerName == "ProfessorHod" && methodName == "DeleteBlog"))
+            {
+                return GetDataModel<Blog>(dataObj);
             }
             else
             {
@@ -693,7 +767,7 @@ namespace StudentManagement_API.Services
         public void RemoveRateAlert(int RateAlertId)
         {
             string query = "UPDATE RateAlerts SET IsCompleted = 1 where RateAlertId =" + RateAlertId;
-            DbClient.ExecuteProcedureWithQuery(query, null,ExecuteType.ExecuteNonQuery);
+            DbClient.ExecuteProcedureWithQuery(query, null, ExecuteType.ExecuteNonQuery);
         }
 
         public void AddQueries(QueriesDto queriesDto)
@@ -750,6 +824,215 @@ namespace StudentManagement_API.Services
                 };
             IList<StudentListCountFromDateDto> studentsCount = DbClient.ExecuteProcedure<StudentListCountFromDateDto>("[dbo].[Get_StudentList_Count]", parameters);
             return studentsCount;
+        }
+
+        public void AddBulkStudents(ExportExcelStudentDTO exportExcelStudentDTO)
+        {
+            var table = new DataTable();
+            table.Columns.Add("FirstName");
+            table.Columns.Add("LastName");
+            table.Columns.Add("BirthDate");
+            table.Columns.Add("CourseId");
+            table.Columns.Add("UserName");
+            table.Columns.Add("Password");
+            table.Columns.Add("Email");
+            table.Columns.Add("IsConfirmed");
+            table.Columns.Add("IsRejected");
+            table.Columns.Add("IsPasswordUpdated");
+
+
+
+            foreach (var student in exportExcelStudentDTO.students)
+            {
+                var row = table.NewRow();
+                row["FirstName"] = student.FirstName;
+                row["LastName"] = student.LastName;
+                row["BirthDate"] = student.BirthDate;
+                row["CourseId"] = student.CourseId;
+                row["UserName"] = student.UserName;
+                row["Password"] = student.Password;
+                row["Email"] = student.Email;
+                row["IsConfirmed"] = true;
+                row["IsRejected"] = false;
+                row["IsPasswordUpdated"] = false;
+                table.Rows.Add(row);
+            }
+
+            Collection<DbParameters> parameters = new()
+            {
+                new DbParameters() { Name = "@Student_Details", Value = table, DBType = DbType.Object, TypeName = "Student_Details" }
+            };
+            DbClient.ExecuteProcedure("[dbo].[Add_Student_Details]", parameters, ExecuteType.ExecuteNonQuery);
+
+            foreach(var student in exportExcelStudentDTO.students)
+            {
+                EmailLogs emailLogs = new();
+                emailLogs.Body = $@"<html><body>
+                 <h1>Student Management System</h1>
+                 <p>Username: {student.UserName}</p>
+                 <p>Password: {student.Password}</p>
+                 </body></html>";
+                MailMessage message = new MailMessage(_configuration["EmailCredential:From"], student.Email);
+                SmtpClient client = new SmtpClient(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]));
+                System.Net.NetworkCredential basicCredential1 = new
+                System.Net.NetworkCredential(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = basicCredential1;
+                string mailbody = emailLogs.Body;
+                message.Subject = "Username And Password";
+                message.Body = mailbody;
+                message.BodyEncoding = Encoding.UTF8;
+                message.IsBodyHtml = true;
+                message.ReplyToList.Add(new MailAddress(_configuration["EmailCredential:From"]));
+                try
+                {
+                    //string id = "123456789"; //Save the id in your database 
+                    //message.Headers.Add("Message-Id", String.Format("<{0}@{1}>", id.ToString(), "mail.example.com"));
+                    client.Send(message);
+                    //string messageId = message.Headers["Message-ID"] ?? "";
+                }
+                catch (Exception)
+                {
+                    string EmailLogSql = "[dbo].[Add_EmailLog_Details]";
+                    emailLogs.Email = student.Email;
+                    emailLogs.IsSent = false;
+                    emailLogs.Subject = message.Subject;
+                    emailLogs.SentBy = 1;
+                    AddEmailLogs(emailLogs, EmailLogSql);
+                }
+                string sql = "[dbo].[Add_EmailLog_Details]";
+                emailLogs.Email = student.Email;
+                emailLogs.IsSent = true;
+                emailLogs.Subject = message.Subject;
+                emailLogs.SentBy = 1;
+                AddEmailLogs(emailLogs, sql);
+            }
+        }
+
+
+        public IList<Student> CheckUsenameList(ExportExcelStudentDTO exportExcelStudentDTO)
+        {
+            var table = new DataTable();
+            table.Columns.Add("UserName");
+
+
+
+            foreach (var student in exportExcelStudentDTO.students)
+            {
+                var row = table.NewRow();
+                row["UserName"] = student.UserName;
+                table.Rows.Add(row);
+            }
+
+            Collection<DbParameters> parameters = new()
+            {
+                new DbParameters() { Name = "@usernames", Value = table, DBType = DbType.Object, TypeName = "UserNameList" }
+            };
+            IList<Student> students =  DbClient.ExecuteProcedure<Student>("[dbo].[check_username_list]", parameters);
+            return students;
+        }
+
+        public ForgotPasswordDTO CheckExistingUserNamePassword(string uEmail)
+        {
+            Collection<DbParameters> parameters = new()
+            {
+                new DbParameters() { Name = "@UEmail", Value = uEmail, DBType = DbType.String}
+            };
+            ForgotPasswordDTO forgotPasswordDTO = DbClient.ExecuteOneRecordProcedure<ForgotPasswordDTO>("[dbo].[Check_Existing_UserName_Email]", parameters);
+            return forgotPasswordDTO;
+        }
+
+        public void ChangePasswordByEmail(ForgotPasswordDTO forgotPasswordDTO)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@UEmail", Value = forgotPasswordDTO.UserName , DBType = DbType.String },
+                    new DbParameters() { Name = "@Password", Value = forgotPasswordDTO.Password , DBType = DbType.String },
+                };
+            DbClient.ExecuteProcedure("[dbo].[change_student_password]", parameters, ExecuteType.ExecuteNonQuery);
+        }
+
+        public void ChangePasswordById(ForgotPasswordDTO forgotPasswordDTO)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@studentId", Value = forgotPasswordDTO.StudentId , DBType = DbType.Int32 },
+                    new DbParameters() { Name = "@password", Value = forgotPasswordDTO.Password , DBType = DbType.String },
+                };
+            DbClient.ExecuteProcedure("[dbo].[Change_Password_by_StudentId]", parameters, ExecuteType.ExecuteNonQuery);
+        }
+
+
+
+        public Student CheckPasswordByStudentId(ForgotPasswordDTO forgotPasswordDTO)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@studentId", Value = forgotPasswordDTO.StudentId , DBType = DbType.Int32 },
+                    new DbParameters() { Name = "@password", Value = forgotPasswordDTO.OldPassword , DBType = DbType.String },
+                };
+            Student student = DbClient.ExecuteOneRecordProcedure<Student>("[dbo].[Check_Password]", parameters);
+            return student;
+        }
+
+        public IList<ForgotPasswordDTO> CheckPreviousPasswords(ForgotPasswordDTO forgotPasswordDTO)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@studentId", Value = forgotPasswordDTO.StudentId , DBType = DbType.Int32 },
+                    new DbParameters() { Name = "@password", Value = forgotPasswordDTO.Password , DBType = DbType.String },
+                };
+            IList<ForgotPasswordDTO> students = DbClient.ExecuteProcedure<ForgotPasswordDTO>("[dbo].[Check_PreviousPasswords_by_StudentId]", parameters);
+            return students;
+        }
+
+        public Student GetStudentIdByEmail(ForgotPasswordDTO forgotPasswordDTO)
+        {
+            Collection<DbParameters> parameters = new()
+                {
+                    new DbParameters() { Name = "@email", Value = forgotPasswordDTO.UserName , DBType = DbType.String },
+                };
+            Student student = DbClient.ExecuteOneRecordProcedure<Student>("[dbo].[Get_StudentId_by_Email]", parameters);
+            return student;
+        }
+
+        public void UpsertBlogs(Blog blog)
+        {
+            var table = new DataTable();
+            table.Columns.Add("ShortDescription");
+            table.Columns.Add("LongDescription");
+            table.Columns.Add("UpdatedDate");
+            table.Columns.Add("Title");
+            table.Columns.Add("ImageName");
+
+            var row = table.NewRow();
+
+
+            row["ShortDescription"] = blog.ShortDescription;
+            row["LongDescription"] = blog.LongDescription;
+            row["UpdatedDate"] = DateTime.Now;
+            row["Title"] = blog.Title;
+            row["ImageName"] = blog.ImageName;
+
+            table.Rows.Add(row);
+
+            Collection<DbParameters> parameters = new()
+            {
+                new DbParameters() { Name = "@BlogId", Value = blog.BlogId, DBType = DbType.Int64 },
+                new DbParameters() { Name = "@CreatedDate", Value = blog.CreatedDate, DBType = DbType.DateTime },
+                new DbParameters() { Name = "@Blog_Details", Value = table, DBType = DbType.Object, TypeName = "Blog_Details" }
+            };
+            DbClient.ExecuteProcedure("Upsert_Blogs_Details", parameters, ExecuteType.ExecuteNonQuery);
+        }
+
+        public void DeleteBlog(int blogId)
+        {
+            Collection<DbParameters> parameters = new()
+            {
+                new DbParameters() { Name = "@BlogId", Value = blogId, DBType = DbType.Int64 },
+            };
+            DbClient.ExecuteProcedure("Delete_Blogs", parameters, ExecuteType.ExecuteNonQuery);
         }
     }
 }

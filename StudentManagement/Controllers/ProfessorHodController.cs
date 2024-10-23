@@ -559,5 +559,146 @@ namespace StudentManagement_API.Controllers
             }
             return _response;
         }
+
+        [HttpGet("GetAllBlogs")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public ActionResult<APIResponse> GetAllBlogs(PaginationDto paginationDto)
+        {
+            IList<Blog> blogs = _studentServices.GetDataWithPagination<Blog>(paginationDto, "[dbo].[Get_All_Blogs]");
+            int totalItems = blogs.Count > 0 ? blogs.FirstOrDefault(x => x.BlogId != 0)?.TotalRecords?? 0 : 0;
+            int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
+            RoleBaseResponse<IList<Blog>> roleBaseResponse = new()
+            {
+                data = blogs,
+                StartIndex = paginationDto.StartIndex,
+                PageSize = paginationDto.PageSize,
+                TotalItems = totalItems,
+                TotalPages = TotalPages,
+                CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize),
+                searchQuery = paginationDto.searchQuery,
+            };
+
+            _response.result = roleBaseResponse;
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.OK;
+            return _response;
+        }
+
+
+        [HttpGet("GetAllBlogsWithoutPagination")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public ActionResult<APIResponse> GetAllBlogsWithoutPagination()
+        {
+            IList<Blog> blogs = _studentServices.GetRecordsWithoutPagination<Blog>("[dbo].[Get_All_BlogsInfo]");
+            RoleBaseResponse<IList<Blog>> roleBaseResponse = new()
+            {
+                data = blogs,
+            };
+            _response.result = roleBaseResponse;
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.OK;
+            return _response;
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("{blogId:int}", Name = "GetBlog")]
+        [RoleBasedAuthorizeAttribute("1", "2")]
+        public ActionResult<APIResponse> GetBlog(int blogId)
+        {
+            try
+            {
+                if (blogId == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErroMessages = new List<string> { "Invalid StudentId" };
+                    _response.IsSuccess = false;
+                    return _response;
+                }
+
+                Blog blog = _studentServices.GetOneRecordFromId<Blog>("[dbo].[Get_Blog_Details]", blogId);
+                RoleBaseResponse<Blog> roleBaseResponse = new()
+                {
+                    data = blog
+                };
+                if (blog.BlogId > 0)
+                {
+                    _response.result = roleBaseResponse;
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                }
+                else
+                {
+                    _response.ErroMessages = new List<string> { "Student Not Fount" };
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.Unauthorized;
+                    return _response;
+                }
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return _response;
+            }
+
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPost("UpsertBlogs")]
+        public ActionResult<APIResponse> UpsertBlogs(Blog blog)
+        {
+            try
+            {
+                _studentServices.UpsertBlogs(blog);
+                _response.result = new RoleBaseResponse<bool>() { data = true};
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool>() { data = false };
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+            }
+            return _response;
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpDelete("DeleteBlog")]
+        public ActionResult<APIResponse> DeleteBlog(Blog blog)
+        {
+            try
+            {
+                _studentServices.DeleteBlog(blog.BlogId);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool>() { data = false };
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+            }
+            return _response;
+        }
     }
 }

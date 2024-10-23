@@ -17,6 +17,58 @@
       "PackagePath": "staticwebassets\\AttachmentFiles\\dabhoyakishan12@gmail.com Attachment..png"
     },
     {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\checked.png",
+      "PackagePath": "staticwebassets\\BlogImages\\checked.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\download (3).jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\download (3).jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\download (4).png",
+      "PackagePath": "staticwebassets\\BlogImages\\download (4).png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\financial-forecasting.jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\financial-forecasting.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\iStock-1349355855 (1).jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\iStock-1349355855 (1).jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\iStock-1349355855.jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\iStock-1349355855.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\image.jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\image.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\image3.jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\image3.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\image4.jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\image4.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\image5.jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\image5.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\image6.jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\image6.jpg"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\information-button.png",
+      "PackagePath": "staticwebassets\\BlogImages\\information-button.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BlogImages\\stock-market-prediction-using-ai (1).jpg",
+      "PackagePath": "staticwebassets\\BlogImages\\stock-market-prediction-using-ai (1).jpg"
+    },
+    {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\BookPhotos\\0d0b64f4-b05e-477d-80b2-4040189437e9Fig11. View Notes.jpg",
       "PackagePath": "staticwebassets\\BookPhotos\\0d0b64f4-b05e-477d-80b2-4040189437e9Fig11. View Notes.jpg"
     },
@@ -97,12 +149,20 @@
       "PackagePath": "staticwebassets\\EmailTemplate\\school_logo.png"
     },
     {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\checked.png",
+      "PackagePath": "staticwebassets\\Images\\checked.png"
+    },
+    {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\circle.gif",
       "PackagePath": "staticwebassets\\Images\\circle.gif"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\classroom-png-33243.png",
       "PackagePath": "staticwebassets\\Images\\classroom-png-33243.png"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\information-button.png",
+      "PackagePath": "staticwebassets\\Images\\information-button.png"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\Images\\load.gif",
@@ -139,6 +199,18 @@
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\favicon.ico",
       "PackagePath": "staticwebassets\\favicon.ico"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\files\\Kishan Dabhoya Students_List2024-09-20.xlsx",
+      "PackagePath": "staticwebassets\\files\\Kishan Dabhoya Students_List2024-09-20.xlsx"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\files\\Kishan DabhoyaStudents_List18 Sep 2024.pdf",
+      "PackagePath": "staticwebassets\\files\\Kishan DabhoyaStudents_List18 Sep 2024.pdf"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\files\\Kishan DabhoyaStudents_List20 Sep 2024.pdf",
+      "PackagePath": "staticwebassets\\files\\Kishan DabhoyaStudents_List20 Sep 2024.pdf"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\js\\picker.min.js",
@@ -379,6 +451,14 @@
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\natural.jfif",
       "PackagePath": "staticwebassets\\natural.jfif"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\signalr.js",
+      "PackagePath": "staticwebassets\\signalr.js"
+    },
+    {
+      "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\signalr.min.js",
+      "PackagePath": "staticwebassets\\signalr.min.js"
     },
     {
       "Id": "D:\\StudentManagement\\StudentManagment\\wwwroot\\summernote\\font\\summernote.eot",

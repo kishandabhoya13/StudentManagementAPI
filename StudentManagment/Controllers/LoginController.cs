@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using StudentManagement.Models.DTO;
 using System.Net.Http;
 using System.Web.Helpers;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 
 namespace StudentManagment.Controllers
 {
@@ -60,12 +61,12 @@ namespace StudentManagment.Controllers
         //    }
         //}
 
-        public IActionResult Logout()
+        public IActionResult Logout(bool? isComeFromError)
         {
             string JwtToken = HttpContext.Session.GetString("Jwt") ?? "";
             int Id = HttpContext.Session.GetInt32("UserId") ?? 0;
             int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
-            if (Id != 0)
+            if (Id != 0 && isComeFromError == null || isComeFromError != true)
             {
                 UpdateJwtViewModel updateJwtViewModel = new()
                 {
@@ -133,6 +134,13 @@ namespace StudentManagment.Controllers
                 JwtClaimsViewModel jwtClaimsViewModel = roleBaseResponse.data;
                 if (jwtClaimsViewModel != null && !string.IsNullOrEmpty(jwtClaimsViewModel.UserName))
                 {
+                    if (jwtClaimsViewModel.IsPasswordUpdated == false && jwtClaimsViewModel.Id == 0)
+                    {
+                        string email = jwtClaimsViewModel.Email;
+                        DateTime expireTime = DateTime.Now.AddHours(3);
+                        string passwordToken = Crypto.HashPassword(email);
+                        return RedirectToAction("EmailForgotPassword", new { token = passwordToken, ExpireTime = expireTime.ToString("dd/MM/yyyy HH:mm:ss"), username = email, IsFirstTime = true });
+                    }
                     if (jwtClaimsViewModel.IsBlocked == true)
                     {
                         TempData["error"] = "You are blocked by Hod";
@@ -148,6 +156,7 @@ namespace StudentManagment.Controllers
                         HttpContext.Session.SetInt32("RoleId", jwtClaimsViewModel.RoleId);
                     }
                     HttpContext.Session.SetString("Jwt", jwtClaimsViewModel.JwtToken);
+                    HttpContext.Session.SetString("UserName", jwtClaimsViewModel.UserName);
                     if (jwtClaimsViewModel.RoleId == 3)
                     {
                         HttpContext.Session.SetString("Email", jwtClaimsViewModel.Email);
@@ -228,13 +237,14 @@ namespace StudentManagment.Controllers
                 DataObject = JsonConvert.SerializeObject(signUpViewModel.UserName),
             };
             RoleBaseResponse<StudentViewModel> roleBaseResponse2 = CallApiWithoutToken<StudentViewModel>(newSecondApiRequest2);
-            var ExistingUsername = roleBaseResponse.data.UserName;
+            var ExistingUsername = roleBaseResponse2.data.UserName;
             if (ExistingEmail != null || ExistingUsername != null)
             {
                 return RedirectToAction("SignUp");
             }
             signUpViewModel.IsConfirmed = false;
             signUpViewModel.IsRejected = false;
+            signUpViewModel.IsPasswordUpdated = true;
             SecondApiRequest secondApiRequest = new()
             {
                 ControllerName = "Student",
@@ -243,6 +253,206 @@ namespace StudentManagment.Controllers
             };
             _ = CallApiWithoutToken<bool>(secondApiRequest);
             return RedirectToAction("Login");
+        }
+
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CheckUserName(ForgotPasswordViewModel forgotPasswordViewModel)
+        {
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "CheckExistingUserNamePassword",
+                DataObject = JsonConvert.SerializeObject(forgotPasswordViewModel.UserName),
+            };
+            RoleBaseResponse<ForgotPasswordViewModel> roleBaseResponse = CallApiWithoutToken<ForgotPasswordViewModel>(newSecondApiRequest);
+            if (roleBaseResponse.data.Email == null)
+            {
+                TempData["error"] = "Username or Email not exist";
+            }
+            else
+            {
+                EmailViewModel emailViewModel = new();
+                emailViewModel.Email = roleBaseResponse.data.Email;
+                emailViewModel.Subject = "Forgot Password Link";
+                string mailbody = "Please <a href=" + Url.Action("EmailForgotPassword", "Login", new { token = roleBaseResponse.data.ResetToken, ExpireTime = roleBaseResponse.data.ExpirationTime?.ToString("dd/MM/yyyy HH:mm:ss"), username = roleBaseResponse.data.Email }, "https") + ">Forgot Password</a>";
+                emailViewModel.Body = mailbody;
+                emailViewModel.SentBy = 1;
+                SecondApiRequest SecondApiRequest = new()
+                {
+                    ControllerName = "Student",
+                    MethodName = "SendForgotPasswordEmail",
+                    DataObject = JsonConvert.SerializeObject(emailViewModel),
+                };
+                RoleBaseResponse<bool> roleBaseResponse1 = CallApiWithoutToken<bool>(SecondApiRequest);
+                if (roleBaseResponse1.data == true)
+                {
+                    TempData["Success"] = "ForgotPassword link sent to your Email";
+                }
+                else
+                {
+                    TempData["error"] = "Something went wrong try after sometimes";
+
+                }
+            }
+            return View("ForgotPassword");
+        }
+
+        public IActionResult EmailForgotPassword(string token, string ExpireTime, string username, bool? IsFirstTime)
+        {
+            if (token != null && username != null)
+            {
+                if (Crypto.VerifyHashedPassword(token, username) == true)
+                {
+                    if (DateTime.Parse(ExpireTime) < DateTime.Now)
+                    {
+                        TempData["error"] = "Token Expired Generate new Link";
+                        return View("ForgotPassword");
+                    }
+                    ForgotPasswordViewModel forgotPasswordViewModel = new()
+                    {
+                        UserName = username,
+                        ExpirationTime = DateTime.Parse(ExpireTime),
+                        IsFirstTime = IsFirstTime ?? false,
+                    };
+                    return View(forgotPasswordViewModel);
+                }
+                else
+                {
+                    TempData["error"] = "Something went wrong try again after sometimes";
+                    return View("ForgotPassword");
+                }
+            }
+            else
+            {
+                TempData["error"] = "Something went wrong try again after sometimes";
+                return View("ForgotPassword");
+            }
+
+        }
+
+        [HttpPost]
+        public IActionResult ChangePassword(ForgotPasswordViewModel forgotPasswordViewModel)
+        {
+            if (forgotPasswordViewModel.ExpirationTime < DateTime.Now)
+            {
+                TempData["error"] = "Token Expired Generate new Link";
+                return View("ForgotPassword");
+            }
+
+            if(forgotPasswordViewModel.IsFirstTime != true)
+            {
+                SecondApiRequest secondApiRequest1 = new()
+                {
+                    ControllerName = "Student",
+                    MethodName = "CheckPreviousPasswords",
+                    DataObject = JsonConvert.SerializeObject(forgotPasswordViewModel),
+                };
+
+                RoleBaseResponse<bool> roleBaseResponse = CallApiWithoutToken<bool>(secondApiRequest1);
+                if (roleBaseResponse.data == false)
+                {
+                    TempData["error"] = "Password is not same as Previous 3 passwords";
+                    return View("ForgotPassword");
+                }
+
+            }
+
+            SecondApiRequest SecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "ChangePassword",
+                DataObject = JsonConvert.SerializeObject(forgotPasswordViewModel),
+            };
+            RoleBaseResponse<bool> roleBaseResponse1 = CallApiWithoutToken<bool>(SecondApiRequest);
+            if (roleBaseResponse1.data == true)
+            {
+                TempData["Success"] = "Password Successfully Changed";
+            }
+            else
+            {
+                TempData["error"] = "Something went wrong try after sometimes";
+
+            }
+            return View("Login");
+        }
+
+        public IActionResult ResetPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ResetPassword(ForgotPasswordViewModel forgotPasswordViewModel)
+        {
+            forgotPasswordViewModel.StudentId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "CheckPassword",
+                DataObject = JsonConvert.SerializeObject(forgotPasswordViewModel),
+                MethodType = "IsViewed",
+                PageName = "EditStudent",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(secondApiRequest);
+            if (roleBaseResponse.data == false)
+            {
+                TempData["error"] = "Old Password is Incorrect";
+                return View();
+            }
+
+            SecondApiRequest secondApiRequest1 = new()
+            {
+                ControllerName = "Student",
+                MethodName = "CheckPreviousPasswords",
+                DataObject = JsonConvert.SerializeObject(forgotPasswordViewModel),
+                MethodType = "IsViewed",
+                PageName = "EditStudent",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+
+            RoleBaseResponse<bool> roleBaseResponse1 = GetApiResponse<bool>(secondApiRequest1);
+            if (roleBaseResponse1.data == false)
+            {
+                TempData["error"] = "Password is not same as Previous 3 passwords";
+                return View();
+            }
+
+            SecondApiRequest secondApiRequest2 = new()
+            {
+                ControllerName = "Student",
+                MethodName = "ChangePasswordById",
+                DataObject = JsonConvert.SerializeObject(forgotPasswordViewModel),
+                MethodType = "IsViewed",
+                PageName = "EditStudent",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "3" },
+                token = token,
+            };
+
+            RoleBaseResponse<bool> roleBaseResponse2 = GetApiResponse<bool>(secondApiRequest2);
+            if (roleBaseResponse2.data == true)
+            {
+                TempData["Success"] = "Password Successfully Changed";
+            }
+            else
+            {
+                TempData["error"] = "Something went wrong try after sometimes";
+
+            }
+            return View("ResetPassword");
         }
     }
 }

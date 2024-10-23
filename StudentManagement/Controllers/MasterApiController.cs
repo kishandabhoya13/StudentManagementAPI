@@ -68,7 +68,7 @@ namespace StudentManagement_API.Controllers
         public ActionResult<APIResponse> CallExternalGetMethod(ApiRequest apiRequest)
         {
             try
-            {
+                {
                 var header = this.Request.Headers;
                 Console.WriteLine(header);
                 if (!_jwtService.ValidateToken(header["token"], out JwtSecurityToken jwtSecurityToken))

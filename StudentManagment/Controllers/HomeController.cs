@@ -9,20 +9,25 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
+using Microsoft.SqlServer.Server;
 using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
+using OfficeOpenXml.DataValidation;
 using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Drawing.Chart;
 using OfficeOpenXml.Drawing.Chart.Style;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 using OfficeOpenXml.Style;
+using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Utilities;
 using SelectPdf;
 using StudentManagement.Models;
 using StudentManagement.Models.DTO;
-using StudentManagement_API.Models.Models.DTO;
 using StudentManagement_API.Services.CacheService;
+using StudentManagment.CallHubs;
 using StudentManagment.Models;
 using StudentManagment.Models.DataModels;
 using StudentManagment.Services;
@@ -34,6 +39,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -41,6 +47,7 @@ using System.Net.Mail;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web.Helpers;
 using System.Web.Razor.Tokenizer;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -57,7 +64,11 @@ namespace StudentManagment.Controllers
         private readonly IConfiguration _configuration;
         private readonly ICacheServices _cacheServices;
         private static readonly Random _random = new Random();
+        private static readonly Regex PasswordRegex = new Regex(
+    @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,50}$",
+    RegexOptions.Compiled);
 
+        private const string GoogleTranslateUrl = "https://translation.googleapis.com/language/translate/v2?key=YOUR_GOOGLE_API_KEY";
 
         private readonly Microsoft.AspNetCore.Hosting.IHostingEnvironment _hostingEnvironment;
 
@@ -86,7 +97,7 @@ namespace StudentManagment.Controllers
             {
                 return View("NotAuthorized");
             }
-            string token = HttpContext.Session.GetString("Jwt");
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
             SecondApiRequest secondApiRequest = new()
             {
                 ControllerName = "Student",
@@ -179,8 +190,6 @@ namespace StudentManagment.Controllers
                 RoleId = secondApiRequest.RoleId,
                 RoleIds = new List<string> { "1", "2" },
                 token = secondApiRequest.token,
-
-
             };
             int? role = HttpContext.Session.GetInt32("RoleId");
             RoleBaseResponse<IList<Student>> roleBaseResponse = GetApiResponse<IList<Student>>(newSecondApiRequest);
@@ -651,7 +660,7 @@ namespace StudentManagment.Controllers
                 BookViewModel bookViewModel = new()
                 {
                     BookId = BookId,
-                    RoleId = HttpContext.Session.GetInt32("RoleId"),
+                    RoleId = RoleId,
                 };
                 SecondApiRequest secondApiRequest = new()
                 {
@@ -660,7 +669,7 @@ namespace StudentManagment.Controllers
                     DataObject = JsonConvert.SerializeObject(bookViewModel),
                     MethodType = "IsViewed",
                     PageName = "GetAllBooks",
-                    RoleId = bookViewModel.RoleId,
+                    RoleId = RoleId,
                     RoleIds = new List<string> { "1", "2" },
                     token = HttpContext.Session.GetString("Jwt") ?? ""
                 };
@@ -721,28 +730,6 @@ namespace StudentManagment.Controllers
                     return Json(false);
                 }
                 emailViewModel = roleBaseResponse.data;
-                //if (emailViewModel.AttachmentsByte != null && emailViewModel.AttachmentsByte.Count > 0)
-                //{
-                //    emailViewModel.AttachmentFiles = new();
-                //    var tasks = emailViewModel.AttachmentsByte.Select(async attachment =>
-                //    {
-                //        using (var memoryStream = new MemoryStream(attachment))
-                //        {
-                //            try
-                //            {
-                //                IFormFile file = new FormFile(memoryStream, 0, attachment.Length, "name", "fileName");
-                //                emailViewModel.AttachmentFiles.Add(file);
-                //            }
-                //            catch (Exception ex)
-                //            {
-                //                Console.WriteLine($"Error copying attachment: {ex.Message}");
-                //            }
-                //        }
-
-
-                //    });
-                //    await Task.WhenAll(tasks);
-                //}
             }
             else
             {
@@ -803,7 +790,6 @@ namespace StudentManagment.Controllers
                             }
                             catch (Exception ex)
                             {
-                                // Handle or log the exception as needed
                                 Console.WriteLine($"Error copying attachment: {ex.Message}");
                             }
                         }
@@ -824,7 +810,6 @@ namespace StudentManagment.Controllers
                     token = token,
                 };
                 RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(secondApiRequest);
-                //_baseServices.UpdateScheduledEmailLog(emailViewModel);
             }
             else
             {
@@ -873,13 +858,6 @@ namespace StudentManagment.Controllers
                     emailViewModel.Email = roleBaseResponse.data.Email;
                     emailViewModel.Emails.Add(emailViewModel.Email);
                 }
-                //string filePath = Path.Combine("wwwroot", "EmailTemplate", "EmailTemplate.html");
-                //string Body = System.IO.File.ReadAllText(filePath);
-                //Body = Body.Replace("{{ Body }}", emailViewModel.Body);
-                //Body = Body.Replace("{{ Subject }}", emailViewModel.Subject);
-                //Body = Body.Replace("{{ date }}", DateTime.Now.ToString());
-                //emailViewModel.Body = Body;
-
 
                 if (emailViewModel.AttachmentFiles != null && emailViewModel.AttachmentFiles.Count > 0)
                 {
@@ -917,7 +895,6 @@ namespace StudentManagment.Controllers
                     token = token,
                 };
                 RoleBaseResponse<bool> roleBaseResponse1 = GetApiResponse<bool>(secondApiRequest1);
-                //_baseServices.SendEmail(emailViewModel);
             }
 
             return RedirectToAction("AllEmails");
@@ -941,7 +918,6 @@ namespace StudentManagment.Controllers
             {
                 HttpContext.Session.SetString("Role", "Hod");
             }
-            //roleBaseResponse = _baseServices.GetAllStudentsWithPagination(secondApiRequest);
             return View();
         }
 
@@ -1063,9 +1039,6 @@ namespace StudentManagment.Controllers
                 var inbox = client.Inbox;
                 inbox.Open(MailKit.FolderAccess.ReadOnly);
 
-                //var query = SearchQuery.HeaderContains("In-Reply-To", "<123456789@mail.example.com>");
-
-                //var combineQuery = SearchQuery.Or(query,query1);
                 var query1 = SearchQuery.SubjectContains("Re: Reply testing mail");
 
 
@@ -2023,7 +1996,7 @@ namespace StudentManagment.Controllers
         }
 
 
-        public IActionResult ExportStudentList(DateOnly? FromDate, DateOnly? ToDate)
+        public string ExportStudentList(DateOnly? FromDate, DateOnly? ToDate)
         {
             int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
             int UserId = HttpContext.Session.GetInt32("UserId") ?? 1;
@@ -2225,18 +2198,45 @@ namespace StudentManagment.Controllers
                         }
                     }
                 }
-
+                var fullName = HttpContext.Session.GetString("FullName") ?? "";
                 var result = package.GetAsByteArray();
-                var fileName = "Students_List" + todayDate + ".xlsx";
+                var fileName = fullName + " Students_List" + todayDate + ".xlsx";
 
-                return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");
 
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                var filePath = Path.Combine(folderPath, fileName);
+
+                System.IO.File.WriteAllBytesAsync(filePath, result);
+
+                //return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                return fileName;
             }
-
 
         }
 
-        public IActionResult DownloadPDF(DateOnly? FromDate, DateOnly? ToDate)
+        public async Task<IActionResult> DownloadExcelFile(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files", fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+            var result = File(fileBytes, contentType, fileName);
+            System.IO.File.Delete(filePath);
+            return result;
+        }
+
+        public string GeneratePDF(DateOnly? FromDate, DateOnly? ToDate)
         {
             int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
             PaginationViewModel paginationViewModel = new()
@@ -2281,17 +2281,7 @@ namespace StudentManagment.Controllers
                 <td>{d.UserName}</td>
                 <td>{d.Email}</td>
                 <td>{d.StudentId}</td>
-            </tr>
-<tr>
-                <td>{d.CreatedDate}</td>
-                <td>{d.FirstName}</td>
-                <td>{d.LastName}</td>
-                <td>{d.BirthDate}</td>
-                <td>{d.CourseName}</td>
-                <td>{d.UserName}</td>
-                <td>{d.Email}</td>
-                <td>{d.StudentId}</td>
-            </tr>"));
+            </tr>   "));
 
             string htmlContent = template.Replace("{{tableRows}}", tableRows);
             //if (FromDate != null)
@@ -2316,25 +2306,28 @@ namespace StudentManagment.Controllers
             converter.Header.DisplayOnOddPages = true;
             converter.Header.DisplayOnEvenPages = true;
             converter.Header.Height = 230;
-            converter.Footer.Height = 100;  
+            converter.Footer.Height = 100;
 
             string headerHtmlPath = Path.Combine("wwwroot", "EmailTemplate", "PdfHeader.html");
             string headerHtmlContent = System.IO.File.ReadAllText(headerHtmlPath);
-
+            string hodEmail = HttpContext.Session.GetString("Email") ?? "dabhoyakishan12@gmail.com";
+            string hodUsername = HttpContext.Session.GetString("UserName") ?? "";
+            string hodName = HttpContext.Session.GetString("FullName") ?? "";
             string updatedHeaderHtmlContent = headerHtmlContent
                 .Replace("{{FromDate}}", FromDate != null ? FromDate.Value.ToString("dd MMM") : "")
                 .Replace("{{ToDate}}", FromDate != null ? ToDate?.ToString("dd MMM yyyy") : todayDate)
-                 .Replace("{{HodName}}", "Kishan Dabhoya")
-                .Replace("{{Email}}", "dabhoyakishan12@gmail.com")
-                .Replace("{{todayDate}}", DateTime.Now.ToString("dd MMM, yyyy"));
+                 .Replace("{{HodName}}", hodName)
+                .Replace("{{todayDate}}", DateTime.Now.ToString("dd MMM, yyyy"))
+                .Replace("{{HodEmail}}", hodEmail)
+                .Replace("{{HodUsername}}", hodUsername);
 
-            PdfHtmlSection headerHtmlSection = new PdfHtmlSection(updatedHeaderHtmlContent,string.Empty)
+            PdfHtmlSection headerHtmlSection = new PdfHtmlSection(updatedHeaderHtmlContent, string.Empty)
             {
                 AutoFitHeight = HtmlToPdfPageFitMode.AutoFit
             };
 
             converter.Header.Add(headerHtmlSection);
-            PdfImageSection imageSection = new PdfImageSection(30, 23, 35,"wwwroot/EmailTemplate/school_logo.png");
+            PdfImageSection imageSection = new PdfImageSection(30, 23, 35, "wwwroot/EmailTemplate/school_logo.png");
             imageSection.Width = 35;
             imageSection.Height = 35;
 
@@ -2351,21 +2344,601 @@ namespace StudentManagment.Controllers
             PdfTextSection text = new PdfTextSection(-35, 20, "Page: {page_number} ", new System.Drawing.Font("Arial", 12));
             text.HorizontalAlign = PdfTextHorizontalAlign.Right;
             converter.Footer.Add(text);
-            converter.Footer.Add(footerHtmlSection); 
+            converter.Footer.Add(footerHtmlSection);
 
             var document = converter.ConvertHtmlString(htmlContent);
             if (document.Pages.Count > 1)
             {
                 // Remove the last page if it is blank
                 PdfPage lastPage = document.Pages[document.Pages.Count - 1];
-                    document.Pages.Remove(lastPage);
+                document.Pages.Remove(lastPage);
             }
             using var stream = new MemoryStream();
             document.Save(stream);
 
-            var fileName = "Students_List" + todayDate + ".pdf";
 
-            return File(stream.ToArray(), "application/pdf", fileName);
+            var fullName = HttpContext.Session.GetString("FullName") ?? "";
+            var result = stream.ToArray();
+
+            var fileName = fullName + "Students_List" + todayDate + ".pdf";
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            var filePath2 = Path.Combine(folderPath, fileName);
+
+            System.IO.File.WriteAllBytesAsync(filePath2, result);
+
+
+            return fileName;
+        }
+
+        public async Task<IActionResult> DownloadPDF(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files", fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var contentType = "application/pdf";
+            var result = File(fileBytes, contentType, fileName);
+            System.IO.File.Delete(filePath);
+
+            return result;
+        }
+
+        public IActionResult BulkOperations(ExportExcelStudentViewModel exportExcelStudentViewModel)
+        {
+            return View(exportExcelStudentViewModel);
+        }
+
+        public IActionResult DownloadExcelTemplete()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            List<AddBulkStudentViewModel> students = new();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("School Management System");
+
+                worksheet.Cells[1, 1, 1, 8].Merge = true;
+                // Set title cell value and styles
+                var titleCell = worksheet.Cells[1, 1];
+                titleCell.Value = "School Management System";
+                titleCell.Style.Font.Size = 16;
+                titleCell.Style.Font.Color.SetColor(Color.White);
+                titleCell.Style.Font.Bold = true;
+                titleCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                titleCell.Style.Fill.BackgroundColor.SetColor(Color.Blue);
+                titleCell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                titleCell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                // Adjust row height to fit title
+                worksheet.Row(1).Height = 30; // Set to an appropriate value
+                worksheet.Cells["A2"].LoadFromCollection(students, true);
+
+
+
+                var firstNameCol = worksheet.Cells[3, 1, worksheet.Dimension.End.Row, 1];
+                var lastNameCol = worksheet.Cells[3, 2, worksheet.Dimension.End.Row, 2];
+                var birthDateCol = worksheet.Cells[3, 3, worksheet.Dimension.End.Row, 3];
+                var courseNameCol = worksheet.Cells[3, 4, worksheet.Dimension.End.Row, 4];
+                var userNameCol = worksheet.Cells[3, 5, worksheet.Dimension.End.Row, 5];
+                var passwordCol = worksheet.Cells[3, 6, worksheet.Dimension.End.Row, 6];
+                var emailCol = worksheet.Cells[3, 7, worksheet.Dimension.End.Row, 7];
+                // String length validation for FirstName and LastName
+                var passwordFormula = "=AND(\r\n    LEN(F9) >= 8,\r\n    SUMPRODUCT(--ISNUMBER(FIND(MID(F9, ROW(INDIRECT(\"1:\" & LEN(F9))), 1), \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\"))) > 0,\r\n    SUMPRODUCT(--ISNUMBER(FIND(MID(F9, ROW(INDIRECT(\"1:\" & LEN(F9))), 1), \"abcdefghijklmnopqrstuvwxyz\"))) > 0,\r\n    SUMPRODUCT(--ISNUMBER(FIND(MID(F9, ROW(INDIRECT(\"1:\" & LEN(F9))), 1), \"0123456789\"))) > 0,\r\n    SUMPRODUCT(--ISNUMBER(FIND(MID(F9, ROW(INDIRECT(\"1:\" & LEN(F9))), 1), \"!@#$%^&*()_+[]{}|;:,.<>?/`~\"))) > 0\r\n)";
+
+                var length = 50;
+
+                var headerRow = worksheet.Cells[2, 1, 2, worksheet.Dimension.End.Column];
+
+                headerRow.Style.Font.Bold = true;
+                worksheet.Cells.AutoFitColumns();
+
+                var worksheet2 = package.Workbook.Worksheets.Add("Sheet2");
+                //worksheet2.Hidden = OfficeOpenXml.eWorkSheetHidden.Hidden;
+                int row = 1;
+                worksheet2.Cells[row, 2].Value = "CourseId";
+                worksheet2.Cells[row, 3].Value = "CourseName";
+                RoleBaseResponse<IList<Course>> roleBaseResponse = new();
+                SecondApiRequest CourseecondApiRequest = new()
+                {
+                    ControllerName = "Course",
+                    MethodName = "GetAllCourses",
+                    DataObject = JsonConvert.SerializeObject(null),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllCourses",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "1", "2", "3" },
+                    token = token,
+                };
+
+                roleBaseResponse = GetApiResponse<IList<Course>>(CourseecondApiRequest);
+                List<Course> countList = roleBaseResponse.data.ToList();
+                int endRow = row + countList.Count - 1;
+                foreach (var item in countList)
+                {
+                    worksheet2.Cells[row, 2].Value = item.CourseId;
+                    worksheet2.Cells[row, 3].Value = item.CourseName;
+                    row++;
+                }
+
+                var dropdownRange = worksheet2.Cells[1, 3, endRow, 3]; // CourseName column
+                var valuesRange = worksheet2.Cells[1, 2, endRow, 2]; // CourseId column
+
+                // Set the named range for the dropdown list
+                var namedRange = worksheet.Workbook.Names.Add("CourseNames", dropdownRange);
+                var namedValuesRange = worksheet.Workbook.Names.Add("CourseValues", valuesRange);
+
+                // Add data validation to column D of Sheet1
+                var Coursevalidation = worksheet.DataValidations.AddListValidation($"D3:D121");
+                Coursevalidation.Formula.ExcelFormula = $"CourseNames";
+                Coursevalidation.ShowErrorMessage = true;
+                Coursevalidation.AllowBlank = false;
+                Coursevalidation.ErrorTitle = "Invalid selection";
+
+                worksheet.Cells["H3:H121"].Formula = $"INDEX(CourseValues, MATCH(D3, CourseNames, 0))";
+
+                worksheet.Column(8).Hidden = true;
+                var result = package.GetAsByteArray();
+                var fileName = "Add_Students_Template.xlsx";
+
+                return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ExcelFileDataPartialView(IFormFile formFile)
+        {
+            ExportExcelStudentViewModel exportExcelStudentViewModel = new();
+            exportExcelStudentViewModel.ValidationErrors = new();
+            using (var stream = formFile.OpenReadStream())
+            {
+                var models = new List<Student>();
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(stream))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+                    var rowCount = worksheet.Dimension.Rows;
+
+
+                    for (int row = 3; row <= rowCount; row++)
+                    {
+                        bool isRowEmpty = true;
+
+                        for (int col = 1; col <= 7; col++)
+                        {
+                            var cellValue = worksheet.Cells[row, col].Text.Trim();
+                            if (!string.IsNullOrEmpty(cellValue))
+                            {
+                                isRowEmpty = false;
+                                break;
+                            }
+                        }
+
+                        if (isRowEmpty)
+                        {
+                            continue;
+                        }
+                        var firstName = worksheet.Cells[row, 1].Text;
+                        var lastName = worksheet.Cells[row, 2].Text;
+                        var birthDateText = worksheet.Cells[row, 3].Text;
+                        var userName = worksheet.Cells[row, 5].Text;
+                        var password = worksheet.Cells[row, 6].Text;
+                        var email = worksheet.Cells[row, 7].Text;
+                        var courseIdText = worksheet.Cells[row, 8].Text;
+
+                        if (string.IsNullOrWhiteSpace(firstName) || firstName.Length > 50)
+                        {
+                            exportExcelStudentViewModel.ValidationErrors.Add($"Row {row}: First Name is required.");
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(lastName) || lastName.Length > 50)
+                        {
+                            exportExcelStudentViewModel.ValidationErrors.Add($"Row {row}: Last Name is required.");
+                            continue;
+                        }
+
+                        if (!DateTime.TryParse(birthDateText, out DateTime birthDate) || birthDate > DateTime.Now)
+                        {
+                            exportExcelStudentViewModel.ValidationErrors.Add($"Row {row}: Invalid Birth Date.");
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(userName) || userName.Length < 3 || userName.Length > 50)
+                        {
+                            exportExcelStudentViewModel.ValidationErrors.Add($"Row {row}: User Name is required and should be at least 3 characters long.");
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(password) || !PasswordRegex.IsMatch(password))
+                        {
+                            exportExcelStudentViewModel.ValidationErrors.Add($"Row {row}: Password must be between 8 and 50 characters long, and include at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+                            continue;
+                        }
+
+                        try
+                        {
+                            var mailAddress = new MailAddress(email);
+                        }
+                        catch (FormatException)
+                        {
+                            exportExcelStudentViewModel.ValidationErrors.Add($"Row {row}: Invalid Email address.");
+                            continue;
+                        }
+
+                        if (!int.TryParse(courseIdText, out int courseId))
+                        {
+                            exportExcelStudentViewModel.ValidationErrors.Add($"Row {row}: Invalid Course Id.");
+                            continue;
+                        }
+
+
+                        var model = new Student
+                        {
+                            FirstName = firstName,
+                            LastName = lastName,
+                            BirthDate = birthDate,
+                            UserName = userName,
+                            Password = password,
+                            Email = email,
+                            CourseId = courseId,
+                            Row = row,
+                        };
+
+                        models.Add(model);
+                    }
+                }
+                exportExcelStudentViewModel.students = models;
+                int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+                string token = HttpContext.Session.GetString("Jwt") ?? "";
+                SecondApiRequest secondApiRequest = new()
+                {
+                    ControllerName = "Student",
+                    MethodName = "CheckUsernameList",
+                    DataObject = JsonConvert.SerializeObject(exportExcelStudentViewModel),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllCourses",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "1" },
+                    token = token,
+                };
+                RoleBaseResponse<IList<Student>> roleBaseResponse = GetApiResponse<IList<Student>>(secondApiRequest);
+                if (roleBaseResponse.data != null && roleBaseResponse.data.Count > 0)
+                {
+                    foreach (var student in roleBaseResponse.data)
+                    {
+                        exportExcelStudentViewModel.ValidationErrors.Add($"Username {student.UserName} already exist in database.");
+                        continue;
+                    }
+                }
+
+            }
+            return PartialView(exportExcelStudentViewModel);
+        }
+
+        public IActionResult AddBlukStudents(ExportExcelStudentViewModel exportExcelStudentViewModel)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            SecondApiRequest secondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "CreateBulkStudents",
+                DataObject = JsonConvert.SerializeObject(exportExcelStudentViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllCourses",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1" },
+                token = token,
+            };
+
+            RoleBaseResponse<bool> roleBaseResponse = GetApiResponse<bool>(secondApiRequest);
+            return RedirectToAction("BulkOperations");
+        }
+
+        public IActionResult RequestChangePasswordModal()
+        {
+            return View();
+        }
+
+        public IActionResult Blogs()
+        {
+            return View();
+        }
+
+        public IActionResult AllBlogsDetails()
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetAllBlogsWithoutPagination",
+                DataObject = JsonConvert.SerializeObject(null),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2", "3" },
+                token = token,
+            };
+            RoleBaseResponse<IList<Blog>> roleBaseResponse = CallApiWithoutToken<IList<Blog>>(newSecondApiRequest);
+            Blog blog = new()
+            {
+                Blogs = roleBaseResponse.data
+            };
+
+            return PartialView("_BlogsPartialView", blog);
+        }
+
+       
+        public IActionResult BlogInfo(int BlogId)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+
+            Blog blog = new()
+            {
+                BlogId = BlogId,
+            };
+            if (BlogId != 0)
+            {
+                SecondApiRequest newSecondApiRequest = new()
+                {
+                    ControllerName = "ProfessorHod",
+                    MethodName = "GetBlog",
+                    DataObject = JsonConvert.SerializeObject(BlogId),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllStudents",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "1", "2", },
+                    token = token,
+                };
+                RoleBaseResponse<Blog> roleBaseResponse = CallApiWithoutToken<Blog>(newSecondApiRequest);
+                blog = roleBaseResponse.data;
+
+                string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "BlogImages", blog.ImageName);
+
+                if (System.IO.File.Exists(imagePath))
+                {
+                    var imageFileStream = System.IO.File.ReadAllBytes(imagePath);
+                    using var stream = new MemoryStream(imageFileStream);
+
+                    IFormFile file = new FormFile(stream, 0, imageFileStream.Length, "name", blog.ImageName);
+
+                    blog.Image = file;
+                }
+            }
+            return View(blog);
+        }
+
+        public IActionResult AllBlogs()
+        {
+            return View();
+        }
+
+        public IActionResult GetAllBlogsInformation(SecondApiRequest secondApiRequest)
+        {
+            secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApiRequest.PageSize,
+                StartIndex = secondApiRequest.StartIndex,
+                OrderBy = secondApiRequest.OrderBy,
+                OrderDirection = secondApiRequest.OrderDirection,
+                searchQuery = secondApiRequest.searchQuery,
+                JwtToken = secondApiRequest.token,
+                FromDate = secondApiRequest.FromDate,
+                ToDate = secondApiRequest.ToDate
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "GetAllBlogs",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = secondApiRequest.RoleId,
+                RoleIds = new List<string> { "1", "2", "3" },
+                token = secondApiRequest.token,
+            };
+            RoleBaseResponse<IList<Blog>> roleBaseResponse = CallApiWithoutToken<IList<Blog>>(newSecondApiRequest);
+            //if (HttpContext.Session.GetInt32("UserId") == null || roleBaseResponse.IsAuthorize == false)
+            //{
+            //    return Json(false);
+            //}
+            return Json(roleBaseResponse);
+        }
+        public IActionResult AddEditBlogModal(int BlogId)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+
+            Blog blog = new()
+            {
+                BlogId = BlogId,
+            };
+            if (BlogId != 0)
+            {
+                SecondApiRequest newSecondApiRequest = new()
+                {
+                    ControllerName = "ProfessorHod",
+                    MethodName = "GetBlog",
+                    DataObject = JsonConvert.SerializeObject(BlogId),
+                    MethodType = "IsViewed",
+                    PageName = "GetAllStudents",
+                    RoleId = RoleId,
+                    RoleIds = new List<string> { "1", "2", },
+                    token = token,
+                };
+                RoleBaseResponse<Blog> roleBaseResponse = CallApiWithoutToken<Blog>(newSecondApiRequest);
+                blog = roleBaseResponse.data;
+
+                string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "BlogImages", blog.ImageName);
+
+                if (System.IO.File.Exists(imagePath))
+                {
+                    var imageFileStream = System.IO.File.ReadAllBytes(imagePath);
+                    using var stream = new MemoryStream(imageFileStream);
+
+                    IFormFile file = new FormFile(stream, 0, imageFileStream.Length, "name", blog.ImageName);
+
+                    blog.Image = file;
+                }
+            }
+            return View(blog);
+        }
+
+        [HttpPost]
+        public IActionResult UpsertBlog(Blog blog)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            if (blog.Image != null)
+            {
+                blog.ImageName = blog.Image.FileName;
+            }
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "UpsertBlogs",
+                DataObject = JsonConvert.SerializeObject(blog),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = token,
+            };
+
+            RoleBaseResponse<bool> roleBaseResponse = CallApiWithoutToken<bool>(newSecondApiRequest);
+
+            if (roleBaseResponse.data == true && blog.Image != null)
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "BlogImages");
+
+                var fileName = Path.GetFileName(blog.ImageName);
+                var filePath = Path.Combine(folderPath, fileName);
+
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    blog.Image.CopyToAsync(stream);
+                }
+            }
+            return RedirectToAction("AllBlogs");
+        }
+
+
+        public IActionResult DeleteBlogModal(int BlogId)
+        {
+            Blog blog = new()
+            {
+                BlogId = BlogId,
+            };
+            return View(blog);
+        }
+
+
+        public IActionResult DeleteBlog(int BlogId)
+        {
+            int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            string token = HttpContext.Session.GetString("Jwt") ?? "";
+            Blog blog = new()
+            {
+                BlogId = BlogId
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "ProfessorHod",
+                MethodName = "DeleteBlog",
+                DataObject = JsonConvert.SerializeObject(blog),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = token,
+            };
+            RoleBaseResponse<bool> roleBaseResponse = CallApiWithoutToken<bool>(newSecondApiRequest);
+            return RedirectToAction("AllBlogs");
+        }
+
+        public IActionResult ChatPage()
+        {
+            return View();
+        }
+
+        public IActionResult Participant()
+        {
+            //string hostId = HttpContext.Session.GetInt32("UserId").ToString() ?? "1";
+            string hostId = "1";
+            HttpContext.Session.SetString("UserId", "2");
+            HostParticipateViewModal hostParticipateViewModal = new()
+            {
+                HostId = 1,
+                ParticipateId = 2,
+            };
+            return View(hostParticipateViewModal);
+        }
+
+        public IActionResult GetAllHostsData(SecondApiRequest secondApiRequest)
+        {
+
+            secondApiRequest.RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
+            secondApiRequest.token = HttpContext.Session.GetString("Jwt") ?? "";
+            PaginationViewModel paginationViewModel = new()
+            {
+                PageSize = secondApiRequest.PageSize,
+                StartIndex = secondApiRequest.StartIndex,
+                searchQuery = secondApiRequest.searchQuery,
+                JwtToken = secondApiRequest.token,
+            };
+
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "GetAllHosts",
+                DataObject = JsonConvert.SerializeObject(paginationViewModel),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleId = secondApiRequest.RoleId,
+                RoleIds = new List<string> { "1", "2" },
+                token = secondApiRequest.token,
+            };
+            int? role = HttpContext.Session.GetInt32("RoleId");
+            RoleBaseResponse<IList<Hosts>> roleBaseResponse = CallApiWithoutToken<IList<Hosts>>(newSecondApiRequest);
+            return Json(roleBaseResponse);
+        }
+
+        public IActionResult Host()
+        {
+            //string hostId = HttpContext.Session.GetInt32("UserId").ToString() ?? "1";
+            HttpContext.Session.SetString("UserId", "1");
+            string hostId = "1";
+
+            HostParticipateViewModal hostParticipateViewModal = new()
+            {
+                HostId = 1,
+            };
+            return View(hostParticipateViewModal);
         }
     }
 }

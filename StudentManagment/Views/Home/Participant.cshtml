@@ -1,0 +1,498 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "~/Views/Shared/_BlogLayout.cshtml";
+}
+
+@*@model StudentManagment.Models.HostParticipateViewModal
+<h1>Participant Dashboard</h1>
+<button id="joinCall" style="display:none;">Join Call</button>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        if (localStorage.getItem("callActive") === "true") {
+            document.getElementById("joinCall").style.display = "block";
+        } else {
+            document.getElementById("joinCall").style.display = "none";
+        }
+    });
+
+    document.getElementById("joinCall").onclick = function () {
+        connection.invoke("JoinCall", "2");
+        document.getElementById("joinCall").style.display = "none";
+    };
+
+</script>*@
+
+@using StudentManagment.Models.DataModels;
+@{
+    ViewData["Title"] = "Participant Page";
+}
+@model StudentManagement.Models.RoleBaseResponse<Book>
+<h3 class="text-danger">@TempData["Error"]</h3>
+<div class="container-fluid">
+    <div class="search-div">
+        <div class="form-group pb-4 div1">
+            <div class="input_box">
+                <input id="inputsearch"
+                       class="form-control"
+                       type="search"
+                       placeholder="Search Books" />
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid table-responsive">
+        <table id="HostTable" class="table table-borderless">
+        </table>
+    </div>
+</div>
+<div id="popup"></div>
+<script>
+    function loadDataTable(startIndex) {
+        var TOTAL_ITEMS = 0;
+        var searchQuery = $("#inputsearch").val();
+        var pageSize = $("#dt-length-0").val();
+        var secondApiRequest = {
+            searchQuery: searchQuery,
+            StartIndex: startIndex,
+            PageSize: pageSize,
+        }
+        sessionStorage.setItem("currentPageIndex", startIndex);
+        var table = new DataTable('#HostTable', {
+            "responsive": true,
+            searching: false,
+            "infoCallback": function (settings, start, end, max, total, pre) {
+
+                var pageInfo = this.api().page.info(); // Get the current page info
+                var pageSize1 = $("#dt-length-0").val();
+
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10);
+                var startIndex = (currentPageIndex * pageSize1) + 1;
+
+                var endIndex = Math.min(parseInt(startIndex, 10) + parseInt(pageSize1, 10) - 1, parseInt(TOTAL_ITEMS, 10));
+
+                if (parseInt(endIndex, 10) === parseInt(TOTAL_ITEMS, 10)) {
+                    $(".page-link.next").addClass("disabled");
+                }
+                else {
+                    $(".page-link.next").removeClass("disabled");
+                }
+
+                if (startIndex == 1) {
+                    $(".page-link.previous").addClass("disabled");
+                }
+                else {
+                    $(".page-link.previous").removeClass("disabled");
+
+                }
+                return "Showing " + startIndex + " to " + endIndex + " of " + TOTAL_ITEMS + " entries";
+            },
+            drawCallback: function () {
+
+                $(".dt-paging-button").removeClass("disabled");
+            },
+            "initComplete": function (settings, json) {
+                $(".dt-paging-button").removeClass("disabled");
+                var pageSize1 = $("#dt-length-0").val();
+
+                if (TOTAL_ITEMS <= pageSize1) {
+                    console.log("total items", TOTAL_ITEMS);
+                    console.log("page size", pageSize1);
+                    $(".page-link.next").addClass("disabled");
+                }
+                else {
+                    console.log("total items else", TOTAL_ITEMS);
+                    console.log("page size else", pageSize1);
+                    $(".page-link.next").removeClass("disabled");
+                }
+            },
+            "lengthMenu": [[5, 10, 15], [5, 10, 15]],
+            "pageLength": pageSize,
+            "language": {
+                oPaginate: {
+                    sNext: '<i class="bi bi-caret-right-fill text-info"></i>',
+                    sPrevious: '<i class="bi bi-caret-left-fill text-info"></i>'
+
+                }
+            },
+            "stateSave": true,
+            "pagingType": "simple",
+
+            ajax: {
+                method: "POST",
+                url: "/Home/GetFilteredBooks",
+                data: secondApiRequest,
+                dataType: "JSON",
+                dataSrc: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
+                    TOTAL_ITEMS = response.totalItems;
+                    return response.data;
+                },
+                error: function () {
+                    console.log("Function Fail")
+                }
+            },
+            columns: [
+                {
+                    "title": "BookId",
+                    "data": "bookId",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return data1;
+                    }
+                },
+                {
+                    "title": "BookNumber",
+                    "data": "bookNumber",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<a href='/Home/AddEditBook?BookId=" + row.bookId + "'>" + data1 + "</a>";
+                    }
+                },
+                {
+                    "title": "BookTitle",
+                    "data": "bookTitle",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<input id='booktitle-input-" + row.bookId + "' class='table-inputs form-control-disables-" + row.bookId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
+                    }
+                },
+                {
+                    "title": "CourseName",
+                    "data": "courseName",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<select id='courseDropdown-" + row.bookId + "' style='display:none;'></select> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
+
+                    }
+                },
+                {
+                    "title": "Subject",
+                    "data": "subject",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        return "<input id='subject-input-" + row.bookId + "' class='table-inputs form-control-disables-" + row.bookId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
+
+                    }
+                },
+                {
+                    "title": "Photo",
+                    "data": "-",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        //if (row.photos != null && row.photos != '') {
+                        //    return "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><img class='book-photo' src='" + row.photos + "' title='" + row.photoName + "' /></a>";
+                        //}
+                        //return "";
+
+                        if (row.photoName != null && row.photoName != '') {
+                            return "<a onclick='ViewUpload(" + row.bookId + ")' target='_blank'>View</a>"
+                        }
+                        return "";
+
+
+                    }
+                },
+                {
+                    "title": "Action",
+                    "data": "-",
+                    "class": "text-center",
+                    "render": function (data1, type, row) {
+                        var photoLink = "";
+                        if (row.photoName != null && row.photoName != '') {
+                            photoLink = "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><i class='fa fa-eye' aria-hidden='true'></i></a>"
+                        }
+                        return "<div class='inline-flex d-flex align-items-center justify-content-center'>"
+                            + " <i onclick='displayInput(" + row.bookId + "," + row.courseId + ")' id='edit-btn-" + row.bookId + "' style='color:green;' class='fas fa-edit'></i>"
+                            + " <i onclick='deleteBookModal(" + row.bookId + ")' id='delete-btn-" + row.bookId + "' style='color:darkred;' class='fas fa-trash'></i>"
+                            + "<div id='right-div-" + row.bookId + "' class='right-wrong-div right-div' style='display:none'>"
+                            + "<i style='color:green;' onclick='updateBook(" + row.bookId + ")' class='fa fa-check' aria-hidden='true'></i></div>"
+                            + "<div id='wrong-div-" + row.bookId + "' onclick='hideInput(" + row.bookId + ")' class='right-wrong-div wrong-div' style='display:none'>"
+                            + "<i style='color:red;' class='fa fa-times' aria-hidden='true'></i>"
+                            + "</div></div>";
+                    }
+                },
+            ]
+        });
+        return table;
+
+    }
+
+
+
+
+    $(document).ready(function () {
+        sessionStorage.setItem("currentPageIndex", 0);
+        var table = loadDataTable(0);
+        $("#dt-length-0").val(5);
+        $(".dt-paging-button").removeClass("disabled");
+        $(document).on('change', '.form-select', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            event.preventDefault();
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetFilteredBooks",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('keyup', '#inputsearch', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            var secondApiRequest = {
+                searchQuery: this.value,
+                StartIndex: 0,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetFilteredBooks",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
+                    sessionStorage.setItem("currentPageIndex", 0);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        let currentPageIndex = 0;
+        let totalPages = table.page.info().pages;
+        $(document).on('click', '.page-link.next', function (event) {
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) + 1;
+            }
+            let startIndex = currentPageIndex * pageSize;
+            event.preventDefault();
+            var secondApiRequest = {
+                StartIndex: startIndex,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetFilteredBooks",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        $(document).on('click', '.page-link.previous', function (event) {
+            event.preventDefault();
+            var pageSize = $("#dt-length-0").val();
+            if (sessionStorage.getItem("currentPageIndex") != null) {
+                currentPageIndex = parseInt(sessionStorage.getItem("currentPageIndex"), 10) - 1;
+                if (parseInt(currentPageIndex, 10) < 0) {
+
+                    currentPageIndex = 0;
+                }
+            }
+            let startIndex1 = currentPageIndex * pageSize;
+            var secondApiRequest = {
+                StartIndex: startIndex1,
+                PageSize: pageSize,
+            };
+            $.ajax({
+                method: "POST",
+                url: "/Home/GetFilteredBooks",
+                data: secondApiRequest,
+                dataSrc: "data",
+                success: function (response) {
+                    if (response == false) {
+                        window.location.href = '/Login/Logout';
+                    }
+                    sessionStorage.setItem("currentPageIndex", currentPageIndex);
+                    var newRows = response.data;
+
+                    table.clear();
+                    table.rows.add(newRows).draw(false);
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+    });
+
+
+</script>
+<script>
+
+    function deleteBookModal(BookId) {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("BookDeleteModal","Home")',
+            data: {
+                BookId: BookId,
+            },
+            success: function (response) {
+                $('#popup').html(response)
+                $('#DeleteBookModal').modal("show");
+            },
+            error: function (xhr, status, error) {
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    }
+
+    function displayInput(BookId, CourseId) {
+        let deletebtn = document.getElementById(`delete-btn-${BookId}`);
+        let editbtn = document.getElementById(`edit-btn-${BookId}`);
+        let submitdiv = document.getElementById(`right-div-${BookId}`);
+        let canceldiv = document.getElementById(`wrong-div-${BookId}`);
+        let inputFields = document.getElementsByClassName(`form-control-disables-${BookId}`);
+        let inputFieldValues = document.getElementsByClassName(`input-values-${BookId}`);
+        let CourseDropdown = $(`#courseDropdown-${BookId}`);
+        //console.log(courseDropdown);
+        var items = @Html.Raw(Json.Serialize(Model.Courses));
+        if (CourseDropdown.children().length === 0) {
+            $.each(items, function (index, value) {
+                let isSelected = value.courseId === CourseId ? "selected" : "";
+                CourseDropdown.append(`<option value='${value.courseId}' ${isSelected}>${value.courseName}</option>`);
+            });
+        }
+        $(`#courseDropdown-${BookId}`).picker();
+        editbtn.style.display = 'none';
+        deletebtn.style.display = 'none';
+        submitdiv.style.display = 'flex';
+        canceldiv.style.display = 'flex';
+
+        for (let i = 0; i < inputFields.length; i++) {
+            inputFields[i].style.display = 'inline-block';
+        }
+
+        for (let i = 0; i < inputFieldValues.length; i++) {
+            //courseDropdown.style.display = 'inline-block';
+            inputFieldValues[i].style.display = 'none';
+        }
+    }
+
+
+    function hideInput(BookId) {
+        let deletebtn = document.getElementById(`delete-btn-${BookId}`);
+        let editbtn = document.getElementById(`edit-btn-${BookId}`);
+        let submitdiv = document.getElementById(`right-div-${BookId}`);
+        let canceldiv = document.getElementById(`wrong-div-${BookId}`);
+
+        let inputFields = document.getElementsByClassName(`form-control-disables-${BookId}`);
+        let inputFieldValues = document.getElementsByClassName(`input-values-${BookId}`);
+        let courseDropdown = document.getElementById(`courseDropdown-${BookId}`);
+
+        editbtn.style.display = 'block';
+        deletebtn.style.display = 'block';
+        submitdiv.style.display = 'none';
+        canceldiv.style.display = 'none';
+        $(`#courseDropdown-${BookId}`).picker('destroy');
+        courseDropdown.style.display = 'none';
+        for (let i = 0; i < inputFields.length; i++) {
+            inputFields[i].style.display = 'none';
+        }
+
+        for (let i = 0; i < inputFieldValues.length; i++) {
+            inputFieldValues[i].style.display = 'inline-block';
+        }
+
+    }
+
+    function updateBook(BookId) {
+        var booktitle = $(`#booktitle-input-${BookId}`).val();
+
+        var subject = $(`#subject-input-${BookId}`).val();
+
+        var courseDropdown = $(`#courseDropdown-${BookId}`).val();
+
+        var bookViewModel =
+        {
+            BookId: BookId,
+            BookTitle: booktitle,
+            Subject: subject,
+            CourseId: courseDropdown,
+        };
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("UpsertBook","Home")',
+            data: bookViewModel,
+            success: function (response) {
+                if (response == false) {
+                    window.location.href = '/Login/Logout';
+                }
+                window.location.reload();
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+
+    function ViewUpload(BookId) {
+        // $.ajax({
+        //    type: "GET",
+        //    url: '@Url.Action("ViewBookPhoto","Home")',
+        //    data: {
+        //        BookId:BookId,
+        //    },
+        //    success: function (response) {
+        //        var tempLink = document.createElement('a');
+        //        // Set the href attribute to the URL of the file
+        //        tempLink.href = window.URL.createObjectURL(new Blob([response]));
+        //        // Set the download attribute to specify the filename
+        //        tempLink.download = 'book_photo.jpg'; // Change 'book_photo.jpg' to your desired filename
+        //        // Append the anchor element to the body temporarily
+        //        document.body.appendChild(tempLink);
+        //        // Programmatically click the link to start downloading
+        //        tempLink.click();
+        //        // Remove the anchor element from the body after triggering the download
+        //        document.body.removeChild(tempLink);
+        //    },
+        //    error: function (xhr, status, error) {
+        //        console.error(error);
+        //    }
+        //});
+        var url = '@Url.Action("ViewBookPhoto", "Home")' + '?BookId=' + encodeURIComponent(BookId);
+        window.open(url, '_blank');
+    }
+</script>

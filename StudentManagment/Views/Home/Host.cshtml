@@ -1,0 +1,50 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "~/Views/Shared/_BlogLayout.cshtml";
+}
+@model StudentManagment.Models.HostParticipateViewModal
+<h1>Host Dashboard</h1>
+<button id="startCall">Start Call</button>
+
+
+<div class="modal fade" id="requestModal" tabindex="-1" role="dialog" aria-labelledby="requestModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestModalLabel">Join Requests</h5>
+                <button type="button"
+                        class="btn-close btn-close-custom"
+                        data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul id="requestList" class="list-group"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="closeCall" class="btn btn-secondary" data-bs-dismiss="modal">Close Call</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        localStorage.setItem("callActive", "false");
+
+    });
+
+    document.getElementById("startCall").onclick = function () {
+        connection.invoke("StartCall", "1");
+        localStorage.setItem("callActive", "true");
+    };
+
+    document.getElementById("closeCall").onclick = function () {
+        connection.invoke("CloseCall", "1");
+        localStorage.setItem("callActive", "false");
+
+        const requestList = document.getElementById("requestList");
+        requestList.innerHTML = '';
+    };
+</script>

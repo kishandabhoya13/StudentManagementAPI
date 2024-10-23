@@ -1,0 +1,29 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "~/Views/Shared/_BlogLayout.cshtml";
+}
+@model StudentManagment.Models.DataModels.Blog
+<div class="blog-info-main container-lg">
+    <div class="title-div page-title-block">
+        <div class="col p-0">
+            <div class="d-flex">
+                <a asp-action="Blogs" id="backLink" asp-controller="Home" class="mt-2 me-4 d-flex align-items-center">
+                    <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                </a>
+                <h1 class="blog-title" id="title">
+                    @Model.Title
+                </h1>
+            </div>
+            <label style="color:#666;" class="ml-5 mt-3">@Model.UpdatedDate.ToString("d MMM yyyy")</label>
+        </div>
+    </div>
+    <div class="blog-img-div" style="background-image:url('/BlogImages/@Model.ImageName')">
+    </div>
+    <div class="content-div" id="description">
+        <p id="description1">@Model.ShortDescription</p><br />
+        @Html.Raw(Model.LongDescription)
+    </div>
+</div>
+

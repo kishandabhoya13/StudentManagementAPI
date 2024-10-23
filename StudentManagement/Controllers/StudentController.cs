@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
@@ -612,7 +613,296 @@ namespace StudentManagement_API.Controllers
                 _response.StatusCode = HttpStatusCode.Unauthorized;
                 return _response;
             }
-           
+
         }
+
+        [HttpPost("CreateBulkStudents")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> CreateBulkStudents([FromBody] ExportExcelStudentDTO exportExcelStudentDTO)
+        {
+            try
+            {
+                //string sql = "INSERT INTO Students (FirstName,LastName,BirthDate,CourseId,UserName,PassWord)" +
+                //     " VALUES (@FirstName, @LastName, @BirthDate, @CourseId,@UserName,@Password)";
+                _studentServices.AddBulkStudents(exportExcelStudentDTO);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("CheckUsernameList")]
+        public ActionResult<APIResponse> CheckUsernameList(ExportExcelStudentDTO exportExcelStudentDTO)
+        {
+
+            try
+            {
+                IList<Student> students = _studentServices.CheckUsenameList(exportExcelStudentDTO);
+                RoleBaseResponse<IList<Student>> roleBaseResponse = new()
+                {
+                    data = students,
+                };
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.result = false;
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return _response;
+            }
+
+        }
+
+        [HttpGet("CheckExistingUserNamePassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> CheckExistingUserNamePassword(string UserName)
+        {
+            try
+            {
+                RoleBaseResponse<ForgotPasswordDTO> roleBaseResponse = new();
+                ForgotPasswordDTO forgotPasswordDTO = _studentServices.CheckExistingUserNamePassword(UserName);
+                if (forgotPasswordDTO.Email != null)
+                {
+                    forgotPasswordDTO.ResetToken = Crypto.HashPassword(forgotPasswordDTO.Email);
+                    forgotPasswordDTO.ExpirationTime = DateTime.Now.AddHours(3);
+                }
+                roleBaseResponse.data = forgotPasswordDTO;
+                _response.result = roleBaseResponse;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.result = false;
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [Route("/SendForgotPasswordEmail")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet]
+        public ActionResult<APIResponse> SendForgotPasswordEmail([FromBody] EmailLogs emailLogs)
+        {
+            try
+            {
+
+                MailMessage message = new MailMessage(_configuration["EmailCredential:From"], emailLogs.Email);
+                SmtpClient client = new SmtpClient(_configuration["EmailCredential:Host"], int.Parse(_configuration["EmailCredential:Port"]));
+                System.Net.NetworkCredential basicCredential1 = new
+                System.Net.NetworkCredential(_configuration["EmailCredential:UserName"], _configuration["EmailCredential:PassWord"]);
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = basicCredential1;
+                string mailbody = emailLogs.Body;
+                message.Subject = emailLogs.Subject;
+                message.Body = mailbody;
+                message.BodyEncoding = Encoding.UTF8;
+                message.IsBodyHtml = true;
+                try
+                {
+                    client.Send(message);
+                }
+                catch (Exception)
+                {
+                    string EmailLogSql = "[dbo].[Add_EmailLog_Details]";
+                    emailLogs.Email = emailLogs.Email;
+                    emailLogs.IsSent = false;
+                    _studentServices.AddEmailLogs(emailLogs, EmailLogSql);
+                }
+                string sql = "[dbo].[Add_EmailLog_Details]";
+                emailLogs.Email = emailLogs.Email;
+                emailLogs.IsSent = true;
+                _studentServices.AddEmailLogs(emailLogs, sql);
+                _response.result = new RoleBaseResponse<bool> { data = true };
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+            }
+
+            catch (Exception ex)
+            {
+                _response.result = new RoleBaseResponse<bool> { data = false };
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+            }
+            return _response;
+        }
+
+        [HttpPost("ChangePassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> ChangePassword([FromBody] ForgotPasswordDTO forgotPasswordDTO)
+        {
+            try
+            {
+                _studentServices.ChangePasswordByEmail(forgotPasswordDTO);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [HttpGet("CheckPassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> CheckPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO)
+        {
+            try
+            {
+                Student student = _studentServices.CheckPasswordByStudentId(forgotPasswordDTO);
+                RoleBaseResponse<bool> result = new();
+                if (student.StudentId != 0 && !string.IsNullOrEmpty(student.Password))
+                {
+                    result.data = true;
+                }
+                else
+                {
+                    result.data = false;
+                }
+                _response.result = result;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [HttpPost("ChangePasswordById")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> ChangePasswordById([FromBody] ForgotPasswordDTO forgotPasswordDTO)
+        {
+            try
+            {
+                _studentServices.ChangePasswordById(forgotPasswordDTO);
+                _response.result = new RoleBaseResponse<bool>() { data = true };
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [HttpGet("CheckPreviousPasswords")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<APIResponse> CheckPreviousPasswords([FromBody] ForgotPasswordDTO forgotPasswordDTO)
+        {
+            try
+            {
+
+                if(forgotPasswordDTO.StudentId == 0)
+                {
+                    Student student = _studentServices.GetStudentIdByEmail(forgotPasswordDTO);
+                    forgotPasswordDTO.StudentId = student.StudentId;
+                }
+                IList<ForgotPasswordDTO> students = _studentServices.CheckPreviousPasswords(forgotPasswordDTO);
+                RoleBaseResponse<bool> result = new();
+                result.data = true;
+                if (students.Count > 0)
+                {
+                    foreach (var student in students)
+                    {
+                        if (student.NewPassword == forgotPasswordDTO.Password)
+                        {
+                            result.data = false;
+                            break;
+                        }
+                    }
+                }
+                _response.result = result;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
+
+        [ServiceFilter(typeof(LogActionFilter))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("GetAllHosts")]
+        public ActionResult<APIResponse> GetAllHosts(PaginationDto paginationDto)
+        {
+            if (paginationDto.StartIndex < 0 || paginationDto.PageSize < 0)
+            {
+                return _response;
+            }
+            IList<HostDto> hosts = _studentServices.GetDataWithPagination<HostDto>(paginationDto, "[dbo].[Get_All_Hosts]");
+            int totalItems = hosts.Count > 0 ? hosts.FirstOrDefault(x => x.HostId != 0)?.TotalRecords ?? 0 : 0;
+            int TotalPages = (int)Math.Ceiling((decimal)totalItems / paginationDto.PageSize);
+            RoleBaseResponse<IList<HostDto>> roleBaseResponse = new()
+            {
+                data = hosts,
+                StartIndex = paginationDto.StartIndex,
+                PageSize = paginationDto.PageSize,
+                TotalItems = totalItems,
+                TotalPages = TotalPages,
+                CurrentPage = (int)Math.Ceiling((double)paginationDto.StartIndex / paginationDto.PageSize),
+                searchQuery = paginationDto.searchQuery,
+            };
+
+            _response.result = roleBaseResponse;
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.OK;
+
+
+
+            return _response;
+        }
+
     }
 }

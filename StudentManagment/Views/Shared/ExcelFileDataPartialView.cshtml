@@ -1,0 +1,103 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@using StudentManagment.Models.DataModels;
+@{
+    var j = 0;
+}
+@model ExportExcelStudentViewModel
+<div class="container">
+    @if (Model.ValidationErrors != null && Model.ValidationErrors.Count > 0)
+    {
+        <div class="mb-3 d-flex align-items-center gap-2 excel-file-clear-div" >
+            <button type="button" id="clear-btn" class="d-flex gap-2">
+                <i class="fa fa-times pt-1" style="color:grey;" aria-hidden="true"></i>
+                <span style="color:grey;">Clear</span>
+            </button>
+            
+        </div>
+        @foreach (var error in Model.ValidationErrors)
+        {
+            <div class="col-12 col-md-12 col-lg-12 col-sm-12 column mb-3">
+                <div class="card rate-alert-card query-card">
+                    <div class="query-card-header" id="cardHeader">
+                        <div class="mt-1 d-flex card-text-div">
+                            <span class="card-text" style="color:red;">&nbsp;&nbsp; @error</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else if (Model.students != null && Model.students.Count > 0)
+    {
+        <form class="" asp-controller="Home" asp-action="AddBlukStudents" method="post">
+            @for (int i = 0; i < Model.students.Count; i++)
+            {
+                j = j + 1;
+                <div class="col-12 col-md-12 col-lg-12 col-sm-12 column mb-3">
+                    <div class="card rate-alert-card query-card">
+                        <div class="query-card-header" id="cardHeader">
+                            <div class="query-down-arrow">
+                                <i class="fa fa-angle-down"></i>
+                            </div>
+                            <div class="mt-1 d-flex card-text-div">
+                                <p>Row : </p><span class="card-text">&nbsp;&nbsp; @Model.students[i].Row</span>
+                            </div>
+                        </div>
+                        <div class="query-card-body mt-3" id="cardBody">
+                            <div id="query-body" class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>FirstName</th>
+                                            <th>LastName</th>
+                                            <th>BirthDate</th>
+                                            <th>UserName</th>
+                                            <th>Password</th>
+                                            <th>Email</th>
+                                            <th style="display:none;">CourseId</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <input readonly type="text" name="Students[@i].FirstName" value="@Model.students[i].FirstName" />
+                                            </td>
+                                            <td>
+                                                <input readonly type="text" name="Students[@i].LastName" value="@Model.students[i].LastName" />
+                                            </td>
+                                            <td>
+                                                <input readonly type="date" name="Students[@i].BirthDate" value="@Model.students[i].BirthDate?.ToString("yyyy-MM-dd")" />
+                                            </td>
+                                            <td>
+                                                <input readonly type="text" name="Students[@i].UserName" value="@Model.students[i].UserName" />
+                                            </td>
+                                            <td>
+                                                <input readonly type="text" name="Students[@i].Password" value="@Model.students[i].Password" />
+                                            </td>
+                                            <td>
+                                                <input readonly type="email" name="Students[@i].Email" value="@Model.students[i].Email" />
+                                            </td>
+                                            <td style="display:none;">
+                                                <input readonly type="hidden" name="Students[@i].CourseId" value="@Model.students[i].CourseId" />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            <button type="submit" class="btn send-email-btn text-center d-flex align-items-center">
+                Add Records
+            </button>
+        </form>
+    }
+
+</div>
+
+<script>
+
+</script>

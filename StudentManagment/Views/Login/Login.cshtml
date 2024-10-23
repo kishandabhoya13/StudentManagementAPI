@@ -10,6 +10,7 @@
 <section class="sign-in">
     <div class="container">
         <h5 class="text-danger ms-3">@TempData["error"]</h5>
+        <h5 class="text-success ms-3">@TempData["Success"]</h5>
         <div class="signin-content">
             <div class="signin-image">
                 <figure><img src="~/Images/signin-image.jpg" alt="sing up image"></figure>
@@ -36,6 +37,7 @@
                         </div>
                     </div>
                 </form>
+                <a asp-action="ForgotPassword" asp-controller="Login" class="signup-image-link mb-3">Forgot Password?</a> OR <br />
                 <a asp-action="SignUp" asp-controller="Login" class="signup-image-link">Create an account</a>
             </div>
         </div>

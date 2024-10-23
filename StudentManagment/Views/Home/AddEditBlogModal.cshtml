@@ -1,0 +1,238 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+@model StudentManagment.Models.DataModels.Blog
+
+<div id="AddEditBlogModal" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (Model.BlogId != 0)
+                {
+                    <h5 class="modal-title">Edit Blog</h5>
+                }
+                else
+                {
+                    <h5 class="modal-title">Add Blog</h5>
+                }
+                <button type="button"
+                        class="btn-close btn-close-custom"
+                        data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form style="border:none !important;" method="post" asp-action="UpsertBlog" asp-controller="Home" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="BlogId" />
+                    <div class="row">
+                        <h5>Title</h5>
+                        <div class="col-md-12 col-sm-12 col-12">
+                            <div class="form-group form-floating mb-3">
+                                <input type="text"
+                                       class="form-control"
+                                       id="title"
+                                       asp-for="Title"
+                                       placeholder="Title" />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+
+                            </div>
+                        </div>
+                        <h5>Short Description</h5>
+                        <div class="col-md-12 col-sm-12 col-12 mb-4">
+                            <div class="form-group form-floating">
+                                <textarea class="form-control"
+                                          asp-for="ShortDescription"
+                                          style="padding-top:0px !important;"
+                                          id="sortDescription"
+                                          placeholder="Multiple Line"></textarea>
+                                <span asp-validation-for="ShortDescription" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <h5>Long Description</h5>
+                        <div class="col-md-12 col-sm-12 col-12 ">
+                            <div class="form-group form-floating mb-3">
+                                <textarea class="form-control"
+                                          style="padding-top:0px !important;"
+                                          id="summernote"
+                                          asp-for="LongDescription"
+                                          placeholder="Multiple Line"></textarea>
+                                <span asp-validation-for="LongDescription" class="text-danger"></span>
+
+                            </div>
+                        </div>
+                        @*<div class="col-md-12 col-sm-12 col-12 col-lg-12">
+                        <div class="mt-3 sendemailbtn-div">
+                        <button class="sendemailbtn d-flex gap-2">
+                        <span class="d-sm-block d-md-block d-lg-block">Upload</span>
+                        </button>
+                        <input id="attachementFile" asp-for="Image" type="file" multiple accept=".jpg,.png,.jpeg">
+                        <img src=""/>
+                        </div>
+                        </div>*@
+
+                        <h5 class="pt-4">(Optional) Upload Photo</h5>
+                        <div class="mt-3 upload-div blogs-upload-div">
+                            <button type="button" class="upload-btn d-flex gap-2">
+                                Upload
+                            </button>
+                            @if (Model.ImageName != null)
+                            {
+                                <label for="edit-provider-fileInput"
+                                   id="upload-label">
+                                    @Model.ImageName
+                                </label>
+                            }
+                            else
+                            {
+                                <label for="edit-provider-fileInput"
+                                   id="upload-label">
+                                    Select Photo
+                                </label>
+                            }
+                            <div id="selectedFileName" class="pt-2 ps-2"></div>
+                            <input id="myinputfile" style="opacity:0 !important" type="file" asp-for="Image" accept="image/*">
+
+                        </div>
+                        <div class="image-preview" id="image-preview-div" style="">
+                            @if (Model.ImageName != null)
+                            {
+                                <img id="image" src="@Url.Content("~/BlogImages/" + Model.ImageName)" alt="Current Image" width="200" height="200" />
+                            }
+                            else
+                            {
+                                <img id="image" src="" alt="Current Image" width="200" height="200" />
+
+                            }
+                        </div>
+                    </div>
+                    <div class="gap-2 d-md-flex justify-content-center pt-4 submit-cancel-btn">
+                        <button class="me-md-2 submit-btn" type="submit">
+                            Submit
+                        </button>
+                        <button class="cancel-btn blog-cancel-btn" data-bs-dismiss="modal" type="button">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<link href="~/summernote/summernote.css" rel="stylesheet" />
+<script src="~/summernote/summernote.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#summernote').summernote({
+            tabsize: 2,
+            height: 300,
+            minHeight: null,
+            maxHeight: null,
+            focus: true,
+            callbacks: {
+                onInit: function () {
+                    // Disable editing for header and footer
+                    $('#header, #footer').attr('contenteditable', false);
+                }
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        var imageDiv = document.getElementById("preview-image-div");
+        if (imageDiv != null) {
+            imageDiv.style.display = "flex";
+        }
+    });
+
+    var fileTag = document.getElementById("myinputfile");
+
+    fileTag.addEventListener("change", function () {
+
+        if (this.files.length > 0) {
+            changeImage(this);
+        }
+    });
+
+    function changeImage(input) {
+
+        if (input.files && input.files[0]) {
+            console.log("inbside");
+            console.log(imageDiv);
+
+            imageDiv.style.display = "none";
+        }
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        $('#myinputfile').on('change', function () {
+            var fileName = $(this).val();
+            var allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i;
+
+            if (!fileName.match(allowedExtensions)) {
+                Swal.fire({
+                    title: "File Not Selected!",
+                    text: "Only.jpg,.jpeg, and.png files are allowed.",
+                    icon: "warning"
+                });
+                $(this).val('');
+
+                var previewDiv = document.getElementById("image-preview-div");
+                previewDiv.style.display = "none";
+                var image = document.getElementById("image");
+                image.setAttribute('src', '');
+                const selectedFileName = document.getElementById("selectedFileName");
+                selectedFileName.textContent = 'Select Photo';
+            }
+        });
+    });
+</script>
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function () {
+            var output = document.getElementById('imagePreview');
+            output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    var fileTag = document.getElementById("myinputfile");
+
+    fileTag.addEventListener("change", function () {
+        const label = document.getElementById("upload-label");
+        const selectedFileName = document.getElementById("selectedFileName");
+        changeImage(this);
+        if (this.files.length > 0) {
+            selectedFileName.textContent = this.files[0].name;
+            label.style.display = "none";
+        } else {
+            selectedFileName.textContent = "";
+            label.style.display = "block";
+        }
+    });
+
+
+
+    function changeImage(input) {
+        var image = document.getElementById("image");
+        var reader;
+        var previewDiv = document.getElementById("image-preview-div");
+        if (input.files && input.files[0]) {
+            reader = new FileReader();
+            previewDiv.style.display = "flex";
+            reader.onload = function (e) {
+                image.setAttribute('src', e.target.result);
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>

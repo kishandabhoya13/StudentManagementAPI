@@ -18,7 +18,7 @@ namespace StudentManagment.Services
                 }
                 else
                 {
-                    context.Result = new RedirectResult("/Login/Logout");
+                    context.Result = new RedirectResult("/Login/Logout?isComeFromError=true");
                     context.ExceptionHandled = true;
                 }
 

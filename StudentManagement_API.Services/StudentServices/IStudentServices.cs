@@ -13,6 +13,8 @@ namespace StudentManagement_API.Services
 
         T GetStudent<T>(string Procedure, int Id);
 
+        T GetOneRecordFromId<T>(string Procedure, int Id);
+
         //IList<Student> GetDataWithPegination(PaginationDto paginationDto);
 
         //IList<Book> GetBooksWithPegination(PaginationDto paginationDto);
@@ -96,5 +98,25 @@ namespace StudentManagement_API.Services
         RecordsCountDto GetRecordsCounts(int Id);
 
         IList<StudentListCountFromDateDto> GetStudentsCountFromDates(StudentListCountFromDateDto studentListCountFromDateDto);
+
+        void AddBulkStudents(ExportExcelStudentDTO exportExcelStudentDTO);
+
+        IList<Student> CheckUsenameList(ExportExcelStudentDTO exportExcelStudentDTO);
+
+        ForgotPasswordDTO CheckExistingUserNamePassword(string uEmail);
+
+        void ChangePasswordByEmail(ForgotPasswordDTO forgotPasswordDTO);
+
+        Student CheckPasswordByStudentId(ForgotPasswordDTO forgotPasswordDTO);
+
+        void ChangePasswordById(ForgotPasswordDTO forgotPasswordDTO);
+
+        IList<ForgotPasswordDTO> CheckPreviousPasswords(ForgotPasswordDTO forgotPasswordDTO);
+
+        Student GetStudentIdByEmail(ForgotPasswordDTO forgotPasswordDTO);
+
+        void UpsertBlogs(Blog blog);
+
+        void DeleteBlog(int blogId);
     }
 }

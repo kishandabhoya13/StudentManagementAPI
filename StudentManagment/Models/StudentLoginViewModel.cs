@@ -62,6 +62,8 @@ namespace StudentManagement.Models.DTO
         public bool ApproveReject { get; set; }
 
         public string? Body { get; set; } = null;
+
+        public bool? IsPasswordUpdated { get; set; } = false;
     }
 
 }

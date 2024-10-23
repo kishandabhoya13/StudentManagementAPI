@@ -31,5 +31,15 @@ namespace StudentManagement_API.Models.Models.DTO
 
         public bool? IsRejected { get; set; } = null;
 
+        public bool IsPasswordUpdated { get; set; } = false;
+
+    }
+
+    public class ExportExcelStudentDTO
+    {
+        public List<Student> students { get; set; }
+
+        public List<string> ValidationErrors { get; set; }
+
     }
 }

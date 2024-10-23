@@ -15,17 +15,17 @@
         </div>
 
         <div class="div2 d-flex gap-3">
-            <form id="export-btn" asp-action="ExportStudentList" asp-controller="Home">
+            <form id="export-btn">
                 <input type="hidden" id="fromDate2" name="FromDate" />
                 <input type="hidden" id="toDate2" name="ToDate" />
-                <button type="submit" class="btn send-email-btn text-center d-flex align-items-center">
+                <button type="button" onclick="ExportStudentsSheet()" class="btn send-email-btn text-center d-flex align-items-center">
                     Export StudentList
                 </button>
             </form>
-            <form id="export-btn" asp-action="DownloadPDF" asp-controller="Home">
+            <form id="export-btn">
                 <input type="hidden" id="fromDate3" name="FromDate" />
                 <input type="hidden" id="toDate3" name="ToDate" />
-                <button type="submit" class="btn send-email-btn text-center d-flex align-items-center">
+                <button type="button" onclick="ExportStudentsPDF()" class="btn send-email-btn text-center d-flex align-items-center">
                     Export AS PDF
                 </button>
             </form>
@@ -594,7 +594,7 @@
             var fromDate = $("#fromDate2").val("");
             var toDate = $("#toDate2").val("");
 
-            
+
             var fromDate = $("#fromDate3").val("");
             var toDate = $("#toDate3").val("");
 
@@ -1099,11 +1099,109 @@
 
     document.getElementById('toDate').addEventListener('change', function () {
         var toDateValue = this.value;
-        $("#toDate2").val(toDateValue);       
+        $("#toDate2").val(toDateValue);
         $("#toDate3").val(toDateValue);
 
     });
 
+    function ExportStudentsSheet() {
+        var toastEl = document.getElementById('liveToast');
+        toastEl.classList.add('show');
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+        var fromDate = $("#fromDate2").val();
+        var toDate = $("#toDate2").val();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ExportStudentList","Home")',
+            data: {
+                FromDate: fromDate,
+                ToDate: toDate
+            },
+            success: function (response) {
+                console.log(response);
 
+                toastEl.classList.remove('show');
+                var downloadUrl = '/Home/DownloadExcelFile?fileName=' + response;
+                $('#downloadLink').attr('href', downloadUrl); // Set the download link
+                localStorage.setItem('downloadURL', downloadUrl);
 
+                $('#downloadLink').off('click').on('click', function () {
+                    localStorage.setItem('showToaster2', false);
+                    console.log("onclick 2");
+                    var toastEl2 = document.getElementById('liveToast2');
+                    var toast2 = bootstrap.Toast.getInstance(toastEl2);
+                    toast2.hide(); // Dismiss the toast
+                });
+
+                $("#close-toaster").on('click', function () {
+                    console.log("on click");
+                    localStorage.setItem('showToaster2', false);
+                })
+
+                localStorage.setItem('showToaster2', true);
+                var toastEl2 = document.getElementById('liveToast2');
+                toastEl2.classList.add('show');
+                var toast2 = new bootstrap.Toast(toastEl2, {
+                    autohide: false 
+                });
+                toast2.show();
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            },
+        });
+    }
+
+    function ExportStudentsPDF()
+    {
+        var toastEl = document.getElementById('liveToast');
+        toastEl.classList.add('show');
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        var fromDate = $("#fromDate3").val();
+        var toDate = $("#toDate3").val();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GeneratePDF","Home")',
+            data: {
+                FromDate: fromDate,
+                ToDate: toDate
+            },
+            success: function (response) {
+                console.log(response);
+
+                toastEl.classList.remove('show');
+                var downloadUrl = '/Home/DownloadPDF?fileName=' + response;
+                $('#downloadLink').attr('href', downloadUrl); // Set the download link
+                localStorage.setItem('downloadURL', downloadUrl);
+
+                 $('#downloadLink').off('click').on('click', function () {
+                    localStorage.setItem('showToaster2', false);
+                    console.log("onclick 2");
+                    var toastEl2 = document.getElementById('liveToast2');
+                    var toast2 = bootstrap.Toast.getInstance(toastEl2);
+                    toast2.hide(); // Dismiss the toast
+                });
+
+                $("#close-toaster").on('click', function (){
+                    console.log("on click");
+                    localStorage.setItem('showToaster2', false);
+                })
+
+                localStorage.setItem('showToaster2', true);
+                var toastEl2 = document.getElementById('liveToast2');
+                toastEl2.classList.add('show');
+                var toast2 = new bootstrap.Toast(toastEl2, {
+                    autohide: false
+                });
+                toast2.show();
+               
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            },
+        });
+    }
 </script>

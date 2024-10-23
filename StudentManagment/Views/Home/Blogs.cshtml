@@ -1,0 +1,46 @@
+﻿@{
+    Layout = "~/Views/Shared/_BlogLayout.cshtml";
+}
+<div class="container mt-5 blog-title-container">
+    <h1>Student Mangement Blogs</h1>
+</div>
+<div id="popup">
+</div>
+<div id="currencyOverlay" style="display: none;"></div>
+<div id="currencyLoader" style="display: none;">
+    <img src="~/Images/circle.gif" alt="gif" class="loader-img" />
+</div>
+
+
+<script>
+    function showLoader() {
+        $('#currencyOverlay').show();
+        $('#currencyLoader').show();
+    }
+
+    function hideLoader() {
+        $('#currencyOverlay').hide();
+        $('#currencyLoader').hide();
+    }
+
+    $(document).ready(function () {
+
+        showLoader();
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("AllBlogsDetails","Home")',
+            success: function (response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
+                $('#popup').html(response);
+                hideLoader();
+
+            },
+            error: function (xhr, status, error) {
+                hideLoader();
+                console.error(error + "djsfhsdjkfhsdkjfh");
+            }
+        });
+    })
+</script>
