@@ -2889,16 +2889,15 @@ namespace StudentManagment.Controllers
         public IActionResult Participant()
         {
             //string hostId = HttpContext.Session.GetInt32("UserId").ToString() ?? "1";
-            string hostId = "1";
-            HttpContext.Session.SetString("UserId", "2");
-            HostParticipateViewModal hostParticipateViewModal = new()
+            HttpContext.Session.SetString("UserId", "0b0f3c21-7107-4892-bd7f-0086e53f0f8d");
+            Participants participant = new()
             {
-                HostId = 1,
-                ParticipateId = 2,
+                AspNetUserId = HttpContext.Session.GetString("UserId")
             };
-            return View(hostParticipateViewModal);
+            return View(participant);
         }
 
+        [HttpPost]
         public IActionResult GetAllHostsData(SecondApiRequest secondApiRequest)
         {
 
@@ -2931,14 +2930,36 @@ namespace StudentManagment.Controllers
         public IActionResult Host()
         {
             //string hostId = HttpContext.Session.GetInt32("UserId").ToString() ?? "1";
-            HttpContext.Session.SetString("UserId", "1");
+            HttpContext.Session.SetString("UserId", "8d17d950-ba6c-4bb6-96e0-c5b90ca5a814");
             string hostId = "1";
 
-            HostParticipateViewModal hostParticipateViewModal = new()
+            Hosts host = new()
             {
                 HostId = 1,
+                AspNetUserId = HttpContext.Session.GetString("UserId"),
             };
-            return View(hostParticipateViewModal);
+            return View(host);
+        }
+
+        [HttpPut]
+        public IActionResult UpdateHostCallStatus(string aspNetUserId,bool status)
+        {
+            Hosts host = new()
+            {
+                AspNetUserId = aspNetUserId,
+                IsStarted = status,
+            };
+            SecondApiRequest newSecondApiRequest = new()
+            {
+                ControllerName = "Student",
+                MethodName = "UpdateHostCallStatus",
+                DataObject = JsonConvert.SerializeObject(host),
+                MethodType = "IsViewed",
+                PageName = "GetAllStudents",
+                RoleIds = new List<string> { "1", "2" },
+            };
+            RoleBaseResponse<bool> roleBaseResponse = CallApiWithoutToken<bool>(newSecondApiRequest);
+            return Json(true);
         }
     }
 }

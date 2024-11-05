@@ -904,5 +904,37 @@ namespace StudentManagement_API.Controllers
             return _response;
         }
 
+        [HttpPut("UpdateHostCallStatus")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<APIResponse> UpdateHostCallStatus(HostDto hostDto)
+        {
+            try
+            {
+                HostDto host= _studentServices.GetOneRecordFromAspNetUserId<HostDto>("[dbo].[Get_Host_Details_ById]", hostDto.AspNetUserId);
+                if (host.HostId <= 0)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.ErroMessages = new List<string> { "Student Not Found" };
+                    return _response;
+                }
+                _studentServices.UpdateHostCallStatus(hostDto);
+                
+                _response.result = new RoleBaseResponse<bool>() { data = true };
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return _response;
+
+            }
+            catch (Exception ex)
+            {
+                _response.ErroMessages = new List<string> { ex.ToString() };
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return _response;
+            }
+        }
     }
 }

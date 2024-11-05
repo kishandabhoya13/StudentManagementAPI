@@ -125,14 +125,14 @@ namespace StudentManagment.CallHubs
             await base.OnConnectedAsync();
         }
 
-        public async Task Connect(string userId)
+        public async Task Connect(string aspNetUserId)
         {
             // Add the userId with the connectionId
-            _connectedClients[userId] = Context.ConnectionId;
+            _connectedClients[aspNetUserId] = Context.ConnectionId;
             LogConnectedClients();
 
             // Optionally, send a welcome message to the user
-            await Clients.Caller.SendAsync("Welcome", $"Connected as {userId}");
+            await Clients.Caller.SendAsync("Welcome", $"Connected as {aspNetUserId}");
         }
 
         private void LogConnectedClients()
@@ -144,23 +144,21 @@ namespace StudentManagment.CallHubs
             }
         }
 
-        public async Task StartCall(string hostId)
+        public async Task StartCall(string aspNetUserId)
         {
-            // Optionally, create a new call or join an existing one.
-            var call = new Call { HostId = hostId };
+            var call = new Call { AspNetUserId = aspNetUserId};
             activeCalls.Add(call);
 
-            await Clients.All.SendAsync("ReceiveCall", hostId);
+            await Clients.All.SendAsync("ReceiveCall", aspNetUserId);
         }
+            
 
-
-        public async Task JoinCall(string participantId)
+        public async Task JoinCall(string participantId,string hostAspNetUserId)
         {
-            // Notify the host that a participant wants to join
-            var call = activeCalls.FirstOrDefault(c => c.HostId == "1"); // Replace with actual host identification logic
+            var call = activeCalls.FirstOrDefault(c => c.AspNetUserId == hostAspNetUserId);
             if (call != null)
             {
-                string connectionId = _connectedClients["1"];
+                string connectionId = _connectedClients[hostAspNetUserId];
                 call.Participants.Add(participantId);
                 await Clients.Client(connectionId).SendAsync("JoinRequest", participantId);
             }

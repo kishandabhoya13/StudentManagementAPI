@@ -4,7 +4,7 @@
 @{
     Layout = "~/Views/Shared/_BlogLayout.cshtml";
 }
-@model StudentManagment.Models.HostParticipateViewModal
+@model StudentManagment.Models.Hosts
 <h1>Host Dashboard</h1>
 <button id="startCall">Start Call</button>
 
@@ -30,21 +30,37 @@
 
 <script>
 
-    document.addEventListener("DOMContentLoaded", function () {
-        localStorage.setItem("callActive", "false");
-
-    });
-
     document.getElementById("startCall").onclick = function () {
-        connection.invoke("StartCall", "1");
-        localStorage.setItem("callActive", "true");
+        const aspNetUserId = "@Model.AspNetUserId";
+        connection.invoke("StartCall", aspNetUserId);
     };
 
     document.getElementById("closeCall").onclick = function () {
-        connection.invoke("CloseCall", "1");
-        localStorage.setItem("callActive", "false");
+
+        const aspNetUserId = "@Model.AspNetUserId";
+        connection.invoke("CloseCall", aspNetUserId);
 
         const requestList = document.getElementById("requestList");
         requestList.innerHTML = '';
     };
+
+    window.addEventListener('beforeunload', function (event) {
+        $.ajax({
+            method: "PUT",
+            url: "/Home/UpdateHostCallStatus",
+            data: {
+                AspNetUserId: '@Model.AspNetUserId',
+                status: false,
+            },
+            success: function (response) {
+
+            },
+            error: function () {
+                console.log("Function Fail")
+            }
+        });
+
+        event.preventDefault(); 
+        event.returnValue = ''; 
+    });
 </script>

@@ -15,6 +15,8 @@ namespace StudentManagement_API.Services
 
         T GetOneRecordFromId<T>(string Procedure, int Id);
 
+        T GetOneRecordFromAspNetUserId<T>(string Procedure, string Id);
+
         //IList<Student> GetDataWithPegination(PaginationDto paginationDto);
 
         //IList<Book> GetBooksWithPegination(PaginationDto paginationDto);
@@ -118,5 +120,6 @@ namespace StudentManagement_API.Services
         void UpsertBlogs(Blog blog);
 
         void DeleteBlog(int blogId);
+        void UpdateHostCallStatus(HostDto hostDto);
     }
 }

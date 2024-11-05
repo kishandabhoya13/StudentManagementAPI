@@ -26,11 +26,10 @@
 
 </script>*@
 
-@using StudentManagment.Models.DataModels;
 @{
     ViewData["Title"] = "Participant Page";
 }
-@model StudentManagement.Models.RoleBaseResponse<Book>
+@model Participants
 <h3 class="text-danger">@TempData["Error"]</h3>
 <div class="container-fluid">
     <div class="search-div">
@@ -122,7 +121,7 @@
 
             ajax: {
                 method: "POST",
-                url: "/Home/GetFilteredBooks",
+                url: "/Home/GetAllHostsData",
                 data: secondApiRequest,
                 dataType: "JSON",
                 dataSrc: function (response) {
@@ -138,63 +137,19 @@
             },
             columns: [
                 {
-                    "title": "BookId",
-                    "data": "bookId",
+                    "title": "HostId",
+                    "data": "hostId",
                     "class": "text-center",
                     "render": function (data1, type, row) {
                         return data1;
                     }
                 },
                 {
-                    "title": "BookNumber",
-                    "data": "bookNumber",
+                    "title": "HostName",
+                    "data": "hostName",
                     "class": "text-center",
                     "render": function (data1, type, row) {
-                        return "<a href='/Home/AddEditBook?BookId=" + row.bookId + "'>" + data1 + "</a>";
-                    }
-                },
-                {
-                    "title": "BookTitle",
-                    "data": "bookTitle",
-                    "class": "text-center",
-                    "render": function (data1, type, row) {
-                        return "<input id='booktitle-input-" + row.bookId + "' class='table-inputs form-control-disables-" + row.bookId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
-                    }
-                },
-                {
-                    "title": "CourseName",
-                    "data": "courseName",
-                    "class": "text-center",
-                    "render": function (data1, type, row) {
-                        return "<select id='courseDropdown-" + row.bookId + "' style='display:none;'></select> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
-
-                    }
-                },
-                {
-                    "title": "Subject",
-                    "data": "subject",
-                    "class": "text-center",
-                    "render": function (data1, type, row) {
-                        return "<input id='subject-input-" + row.bookId + "' class='table-inputs form-control-disables-" + row.bookId + "' style='display:none;' type='text' asp-for='" + data1 + "' value='" + data1 + "'/> <span class='input-values-" + row.bookId + "'>" + data1 + "</span>";
-
-                    }
-                },
-                {
-                    "title": "Photo",
-                    "data": "-",
-                    "class": "text-center",
-                    "render": function (data1, type, row) {
-                        //if (row.photos != null && row.photos != '') {
-                        //    return "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><img class='book-photo' src='" + row.photos + "' title='" + row.photoName + "' /></a>";
-                        //}
-                        //return "";
-
-                        if (row.photoName != null && row.photoName != '') {
-                            return "<a onclick='ViewUpload(" + row.bookId + ")' target='_blank'>View</a>"
-                        }
-                        return "";
-
-
+                        return data1;
                     }
                 },
                 {
@@ -202,18 +157,15 @@
                     "data": "-",
                     "class": "text-center",
                     "render": function (data1, type, row) {
-                        var photoLink = "";
-                        if (row.photoName != null && row.photoName != '') {
-                            photoLink = "<a href='/BookPhotos/" + row.photoName + "' target='_blank'><i class='fa fa-eye' aria-hidden='true'></i></a>"
+                        var button = "";
+                        if (row.isStarted != true) {
+                            button = "<button class='joincall-btn' id='joinCall" + row.aspNetUserId + "' onclick='joinCall(\"" + row.aspNetUserId + "\")' style='display:none;'>Join Call</button>";
+                        } else {
+                            button = "<button class='joincall-btn' id='joinCall" + row.aspNetUserId + "' onclick='joinCall(\"" + row.aspNetUserId + "\")'>Join Call</button>";
                         }
                         return "<div class='inline-flex d-flex align-items-center justify-content-center'>"
-                            + " <i onclick='displayInput(" + row.bookId + "," + row.courseId + ")' id='edit-btn-" + row.bookId + "' style='color:green;' class='fas fa-edit'></i>"
-                            + " <i onclick='deleteBookModal(" + row.bookId + ")' id='delete-btn-" + row.bookId + "' style='color:darkred;' class='fas fa-trash'></i>"
-                            + "<div id='right-div-" + row.bookId + "' class='right-wrong-div right-div' style='display:none'>"
-                            + "<i style='color:green;' onclick='updateBook(" + row.bookId + ")' class='fa fa-check' aria-hidden='true'></i></div>"
-                            + "<div id='wrong-div-" + row.bookId + "' onclick='hideInput(" + row.bookId + ")' class='right-wrong-div wrong-div' style='display:none'>"
-                            + "<i style='color:red;' class='fa fa-times' aria-hidden='true'></i>"
-                            + "</div></div>";
+                            + button
+                            + "</div>";
                     }
                 },
             ]
@@ -223,11 +175,11 @@
     }
 
 
-
-
     $(document).ready(function () {
         sessionStorage.setItem("currentPageIndex", 0);
         var table = loadDataTable(0);
+
+
         $("#dt-length-0").val(5);
         $(".dt-paging-button").removeClass("disabled");
         $(document).on('change', '.form-select', function (event) {
@@ -239,7 +191,7 @@
             event.preventDefault();
             $.ajax({
                 method: "POST",
-                url: "/Home/GetFilteredBooks",
+                url: "/Home/GetAllHostsData",
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
@@ -267,7 +219,7 @@
             };
             $.ajax({
                 method: "POST",
-                url: "/Home/GetFilteredBooks",
+                url: "/Home/GetAllHostsData",
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
@@ -301,7 +253,7 @@
             };
             $.ajax({
                 method: "POST",
-                url: "/Home/GetFilteredBooks",
+                url: "/Home/GetAllHostsData",
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
@@ -337,7 +289,7 @@
             };
             $.ajax({
                 method: "POST",
-                url: "/Home/GetFilteredBooks",
+                url: "/Home/GetAllHostsData",
                 data: secondApiRequest,
                 dataSrc: "data",
                 success: function (response) {
@@ -356,143 +308,29 @@
                 }
             });
         });
+
+
+
+
     });
 
+    //function joinCall(aspNetUserId) {
+    //    connection.invoke("JoinCall", "2", aspNetUserId);
+    //    var id = "joinCall" + aspNetUserId;
+    //    console.log(id);
+    //    document.getElementById(id).style.display = "none";
+    //}
 
-</script>
-<script>
-
-    function deleteBookModal(BookId) {
-        $.ajax({
-            type: "get",
-            url: '@Url.Action("BookDeleteModal","Home")',
-            data: {
-                BookId: BookId,
-            },
-            success: function (response) {
-                $('#popup').html(response)
-                $('#DeleteBookModal').modal("show");
-            },
-            error: function (xhr, status, error) {
-                console.error(error + "djsfhsdjkfhsdkjfh");
-            }
-        });
-    }
-
-    function displayInput(BookId, CourseId) {
-        let deletebtn = document.getElementById(`delete-btn-${BookId}`);
-        let editbtn = document.getElementById(`edit-btn-${BookId}`);
-        let submitdiv = document.getElementById(`right-div-${BookId}`);
-        let canceldiv = document.getElementById(`wrong-div-${BookId}`);
-        let inputFields = document.getElementsByClassName(`form-control-disables-${BookId}`);
-        let inputFieldValues = document.getElementsByClassName(`input-values-${BookId}`);
-        let CourseDropdown = $(`#courseDropdown-${BookId}`);
-        //console.log(courseDropdown);
-        var items = @Html.Raw(Json.Serialize(Model.Courses));
-        if (CourseDropdown.children().length === 0) {
-            $.each(items, function (index, value) {
-                let isSelected = value.courseId === CourseId ? "selected" : "";
-                CourseDropdown.append(`<option value='${value.courseId}' ${isSelected}>${value.courseName}</option>`);
+    function joinCall(aspNetUserId) {
+        console.log("Joining call with ID:", aspNetUserId);
+        connection.invoke("JoinCall", "@Model.AspNetUserId", aspNetUserId)
+            .then(() => {
+                var id = "joinCall" + aspNetUserId;
+                document.getElementById(id).style.display = "none";
+            })
+            .catch(function (err) {
+                console.error(err.toString());
             });
-        }
-        $(`#courseDropdown-${BookId}`).picker();
-        editbtn.style.display = 'none';
-        deletebtn.style.display = 'none';
-        submitdiv.style.display = 'flex';
-        canceldiv.style.display = 'flex';
-
-        for (let i = 0; i < inputFields.length; i++) {
-            inputFields[i].style.display = 'inline-block';
-        }
-
-        for (let i = 0; i < inputFieldValues.length; i++) {
-            //courseDropdown.style.display = 'inline-block';
-            inputFieldValues[i].style.display = 'none';
-        }
     }
 
-
-    function hideInput(BookId) {
-        let deletebtn = document.getElementById(`delete-btn-${BookId}`);
-        let editbtn = document.getElementById(`edit-btn-${BookId}`);
-        let submitdiv = document.getElementById(`right-div-${BookId}`);
-        let canceldiv = document.getElementById(`wrong-div-${BookId}`);
-
-        let inputFields = document.getElementsByClassName(`form-control-disables-${BookId}`);
-        let inputFieldValues = document.getElementsByClassName(`input-values-${BookId}`);
-        let courseDropdown = document.getElementById(`courseDropdown-${BookId}`);
-
-        editbtn.style.display = 'block';
-        deletebtn.style.display = 'block';
-        submitdiv.style.display = 'none';
-        canceldiv.style.display = 'none';
-        $(`#courseDropdown-${BookId}`).picker('destroy');
-        courseDropdown.style.display = 'none';
-        for (let i = 0; i < inputFields.length; i++) {
-            inputFields[i].style.display = 'none';
-        }
-
-        for (let i = 0; i < inputFieldValues.length; i++) {
-            inputFieldValues[i].style.display = 'inline-block';
-        }
-
-    }
-
-    function updateBook(BookId) {
-        var booktitle = $(`#booktitle-input-${BookId}`).val();
-
-        var subject = $(`#subject-input-${BookId}`).val();
-
-        var courseDropdown = $(`#courseDropdown-${BookId}`).val();
-
-        var bookViewModel =
-        {
-            BookId: BookId,
-            BookTitle: booktitle,
-            Subject: subject,
-            CourseId: courseDropdown,
-        };
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("UpsertBook","Home")',
-            data: bookViewModel,
-            success: function (response) {
-                if (response == false) {
-                    window.location.href = '/Login/Logout';
-                }
-                window.location.reload();
-            },
-            error: function (xhr, status, error) {
-                console.error(error);
-            }
-        });
-    }
-
-    function ViewUpload(BookId) {
-        // $.ajax({
-        //    type: "GET",
-        //    url: '@Url.Action("ViewBookPhoto","Home")',
-        //    data: {
-        //        BookId:BookId,
-        //    },
-        //    success: function (response) {
-        //        var tempLink = document.createElement('a');
-        //        // Set the href attribute to the URL of the file
-        //        tempLink.href = window.URL.createObjectURL(new Blob([response]));
-        //        // Set the download attribute to specify the filename
-        //        tempLink.download = 'book_photo.jpg'; // Change 'book_photo.jpg' to your desired filename
-        //        // Append the anchor element to the body temporarily
-        //        document.body.appendChild(tempLink);
-        //        // Programmatically click the link to start downloading
-        //        tempLink.click();
-        //        // Remove the anchor element from the body after triggering the download
-        //        document.body.removeChild(tempLink);
-        //    },
-        //    error: function (xhr, status, error) {
-        //        console.error(error);
-        //    }
-        //});
-        var url = '@Url.Action("ViewBookPhoto", "Home")' + '?BookId=' + encodeURIComponent(BookId);
-        window.open(url, '_blank');
-    }
 </script>

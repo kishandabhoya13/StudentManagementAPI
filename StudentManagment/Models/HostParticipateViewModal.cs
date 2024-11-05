@@ -10,7 +10,7 @@
         public bool IsStarted { get; set; }
     }
 
-    public class Partipants
+    public class Participants
     {
         public int ParticipantId { get; set; }
 
@@ -19,6 +19,8 @@
         public string AspNetUserId { get; set; }
 
         public int HostId { get; set; }
+
+        public string ParticipantIdString { get; set; }
     }
 
     public class HostParticipateViewModal
@@ -32,6 +34,8 @@
     public class Call
     {
         public string HostId { get; set; }
+
+        public string AspNetUserId { set; get; }
         public List<string> Participants { get; set; } = new List<string>();
     }
 }

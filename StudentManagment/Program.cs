@@ -76,7 +76,7 @@ app.UseWebSockets();
 //        }
 //    }
 //});
-//app.UseMiddleware<WebSocketMiddleware>();
+app.UseMiddleware<WebSocketMiddleware>();
 app.UseMiddleware<CustomHeaderMiddleWare>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();

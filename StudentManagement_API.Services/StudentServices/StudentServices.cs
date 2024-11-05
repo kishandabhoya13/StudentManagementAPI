@@ -67,6 +67,15 @@ namespace StudentManagement_API.Services
             return newobj;
 
         }
+
+        public T GetOneRecordFromAspNetUserId<T>(string Procedure, string Id)
+        {
+            Collection<DbParameters> parameters = new();
+            parameters.Add(new DbParameters { Name = "@Id", Value = Id, DBType = DbType.String });
+            T newobj = DbClient.ExecuteOneRecordProcedure<T>(Procedure, parameters);
+            return newobj;
+
+        }
         public IList<T> GetRecordsWithoutPagination<T>(string ProcedureName)
         {
             IList<T> list = DbClient.ExecuteProcedure<T>(ProcedureName, null);
@@ -498,6 +507,9 @@ namespace StudentManagement_API.Services
             else if((controllerName == "ProfessorHod" && methodName == "UpsertBlogs") || (controllerName == "ProfessorHod" && methodName == "DeleteBlog"))
             {
                 return GetDataModel<Blog>(dataObj);
+            }else if((controllerName == "Student" && methodName == "UpdateHostCallStatus"))
+            {
+                return GetDataModel<HostDto>(dataObj);
             }
             else
             {
@@ -1033,6 +1045,16 @@ namespace StudentManagement_API.Services
                 new DbParameters() { Name = "@BlogId", Value = blogId, DBType = DbType.Int64 },
             };
             DbClient.ExecuteProcedure("Delete_Blogs", parameters, ExecuteType.ExecuteNonQuery);
+        }
+
+        public void UpdateHostCallStatus(HostDto hostDto)
+        {
+            Collection<DbParameters> parameters = new()
+            {
+                new DbParameters() { Name = "@AspNetUserId", Value = hostDto.AspNetUserId, DBType = DbType.String},
+                new DbParameters() { Name = "@IsStarted", Value = hostDto.IsStarted, DBType = DbType.Boolean},
+            };
+            DbClient.ExecuteProcedure("[dbo].[UpdateHostCallStatus]", parameters, ExecuteType.ExecuteNonQuery);
         }
     }
 }
