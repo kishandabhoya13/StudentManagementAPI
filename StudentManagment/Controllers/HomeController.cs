@@ -7,6 +7,7 @@ using MailKit.Security;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
 using Microsoft.SqlServer.Server;
@@ -2683,7 +2684,7 @@ namespace StudentManagment.Controllers
             return PartialView("_BlogsPartialView", blog);
         }
 
-       
+
         public IActionResult BlogInfo(int BlogId)
         {
             int RoleId = HttpContext.Session.GetInt32("RoleId") ?? 0;
@@ -2942,7 +2943,7 @@ namespace StudentManagment.Controllers
         }
 
         [HttpPut]
-        public IActionResult UpdateHostCallStatus(string aspNetUserId,bool status)
+        public IActionResult UpdateHostCallStatus(string aspNetUserId, bool status)
         {
             Hosts host = new()
             {
@@ -2960,6 +2961,18 @@ namespace StudentManagment.Controllers
             };
             RoleBaseResponse<bool> roleBaseResponse = CallApiWithoutToken<bool>(newSecondApiRequest);
             return Json(true);
+        }
+
+        [HttpPost]
+        public IActionResult ChangeLanguage(string culture,string returnUrl)
+        {
+            Response.Cookies.
+                Append(CookieRequestCultureProvider.DefaultCookieName, 
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)), 
+                new CookieOptions { Expires = DateTimeOffset.Now.AddDays(30) });
+
+            return LocalRedirect(returnUrl);
+        
         }
     }
 }

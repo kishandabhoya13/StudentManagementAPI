@@ -9,7 +9,7 @@ namespace StudentManagment.Models.DataModels
 
         public string? BookNumber { get; set; } = null;
 
-        [Required,StringLength(50)]
+        [Required, StringLength(50)]
         public string BookTitle { get; set; }
 
         [Required(ErrorMessage = "Please Select Course")]
@@ -17,7 +17,7 @@ namespace StudentManagment.Models.DataModels
 
         public string? CourseName { get; set; } = null;
 
-        [Required,StringLength(100)]
+        [Required, StringLength(100)]
         public string Subject { get; set; }
 
         public byte[] Photo { get; set; }

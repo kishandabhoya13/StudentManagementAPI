@@ -14,7 +14,7 @@ namespace StudentManagment.Models.DataModels
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        public DateTime UpdatedDate { get; set;} = DateTime.Now;
+        public DateTime UpdatedDate { get; set; } = DateTime.Now;
 
         [Required(ErrorMessage = "Title is required")]
         [StringLength(200)]

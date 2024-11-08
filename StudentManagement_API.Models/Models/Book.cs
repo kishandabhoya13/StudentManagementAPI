@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace StudentManagement_API.Models.Models
 {
@@ -10,7 +9,7 @@ namespace StudentManagement_API.Models.Models
 
         public string? BookNumber { get; set; } = null;
 
-        [Required,StringLength(50)]
+        [Required, StringLength(50)]
         public string BookTitle { get; set; }
 
         [Required(ErrorMessage = "Please Select Course")]
@@ -18,7 +17,7 @@ namespace StudentManagement_API.Models.Models
 
         public string? CourseName { get; set; } = null;
 
-        [Required,StringLength(100)]
+        [Required, StringLength(100)]
         public string Subject { get; set; }
 
         public byte[]? Photo { get; set; } = null;

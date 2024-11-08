@@ -1,8 +1,9 @@
 ﻿@{
     Layout = "~/Views/Shared/_BlogLayout.cshtml";
 }
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer localizer
 <div class="container mt-5 blog-title-container">
-    <h1>Student Mangement Blogs</h1>
+    <h1>@localizer["Student Mangement Blogs"]</h1>
 </div>
 <div id="popup">
 </div>

@@ -1,11 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using NLog;
-using StudentManagement_API.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity;
 using WindowServices.Services;
 
@@ -43,7 +37,7 @@ namespace WindowServices
 
                 var configuration = configurationBuilder.Build();
                 container.RegisterInstance<IConfiguration>(configuration);
-                container.RegisterSingleton<IDbServices,DbServices>();
+                container.RegisterSingleton<IDbServices, DbServices>();
 
                 return container;
             }

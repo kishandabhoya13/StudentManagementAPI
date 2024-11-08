@@ -1,10 +1,7 @@
 ﻿using NLog;
 using NLog.Config;
-using StudentManagement_API.Services;
-using System.Configuration;
 using Topshelf;
 using Topshelf.HostConfigurators;
-using WindowServices;
 
 namespace WindowServices
 {

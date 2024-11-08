@@ -1,8 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.Extensions.Localization;
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer localizer
 @{
     int? test = HttpContextAccessor.HttpContext.Session.GetInt32("UserId");
     int test2 = 2;
+
+    string lang = HttpContextAccessor.HttpContext.Request.Cookies["lang"];
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -47,38 +51,67 @@
                             data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="change-language-form">
-                        <div class="row">
-                            <div class="col-md-12 col-6 col-sm-6 mb-4" id="dropdown-div">
-                                <div class="change-language-modal-div">
-                                    <select id="language-dropdown"
-                                            class="form-control change2" translate="no">
-                                        <option value="">Select Language</option>
-                                        <option value="en">English</option>
-                                        <option value="fr">France</option>
-                                        <option value="ace">Acehnese</option>
-                                        <option value="de">German</option>
-                                        <option value="hi">Hindi</option>
-                                        <option value="gu">Gujarati</option>
-                                        <option value="zh-TW">Chinese (Traditional)</option>
-                                        <option value="mr">Marathi</option>
-                                    </select>
-                                    <i class="fa fa-angle-down"
-                                       id="send-order-dropdownarrow"></i>
-                                </div>
-                                <div class="error-message" id="error-message" style="color: red; display: none;"></div>
+                    @*<form id="change-language-form">
+                    <div class="row">
+                    <div class="col-md-12 col-6 col-sm-6 mb-4" id="dropdown-div">
+                    <div class="change-language-modal-div">
+                    <select id="language-dropdown"
+                    class="form-control change2" translate="no">
+                    <option value="">Select Language</option>
+                    <option value="en">English</option>
+                    <option value="fr">France</option>
+                    <option value="ace">Acehnese</option>
+                    <option value="de">German</option>
+                    <option value="hi">Hindi</option>
+                    <option value="gu">Gujarati</option>
+                    <option value="zh-TW">Chinese (Traditional)</option>
+                    <option value="mr">Marathi</option>
+                    </select>
+                    <i class="fa fa-angle-down"
+                    id="send-order-dropdownarrow"></i>
+                    </div>
+                    <div class="error-message" id="error-message" style="color: red; display: none;"></div>
 
-                            </div>
-                            <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
-                                <button class="btn btn-primary me-md-2 submit-btn" type="submit">
-                                    Submit
-                                </button>
-                                <button class="btn btn-primary cancel-btn" data-bs-dismiss="modal" type="button">
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
+                    <button class="btn btn-primary me-md-2 submit-btn" type="submit">
+                    Submit
+                    </button>
+                    <button class="btn btn-primary cancel-btn" data-bs-dismiss="modal" type="button">
+                    Cancel
+                    </button>
+                    </div>
+                    </div>
                     </form>
+                    *@
+                    @*  <form method="get" asp-controller="Home" asp-action="ChangeLanguage" id="change-language">
+                    <div class="row">
+                    <div class="col-md-12 col-6 col-sm-6 mb-4" id="dropdown-div">
+                    <div class="change-language-modal-div">
+                    <select id="resource-language-dropdown"
+                    name="culture"
+                    class="form-control change2" translate="no" onchange="this.form.submit()">
+                    <option value="en-US"  >English</option>
+                    <option value="es-ES">Español</option>
+                    <option value="fr-FR">Français</option>
+
+                    </select>
+                    <i class="fa fa-angle-down"
+                    id="send-order-dropdownarrow"></i>
+                    </div>
+                    <div class="error-message" id="error-message" style="color: red; display: none;"></div>
+
+                    </div>
+                    <div class="gap-2 d-md-flex justify-content-center justify-content-md-end pt-4 submit-cancel-btn">
+                    <button class="btn btn-primary me-md-2 submit-btn" type="submit">
+                    Submit
+                    </button>
+                    <button class="btn btn-primary cancel-btn" data-bs-dismiss="modal" type="button">
+                    Cancel
+                    </button>
+                    </div>
+                    </div>
+                    </form>*@
                 </div>
             </div>
         </div>
@@ -86,18 +119,21 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">StudentManagment</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">@localizer["StudentManagment"]</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav login-nav-ul flex-grow-1">
-                        <li class="nav-item me-3">
+                      @*  <li class="nav-item me-3">
                             <div id="google_translate_element" class="d-none"></div>
                             <div>
-                                <button type="button" id="change-language-btn" translate="no"></button>
+                                <button type="button" id="change-language-btn" translate="no">Lang</button>
                             </div>
+                        </li>*@
+                        <li class="nav-item me-3">
+                            <partial name="_ChangeLangDropdown" />
                         </li>
                         <li class="nav-item blog-link">
                             <a class="nav-link text-dark " asp-area="" asp-controller="Login" asp-action="Login">Login</a>
@@ -112,7 +148,33 @@
         @RenderBody()
     </main>
     <div id="popup"></div>
-
+    <footer class="d-flex justify-content-between gap-5" style="background-color:#172b4c;">
+        <div class="footer-first-div">
+            <h1 style="color:white; font-weight:bold">@localizer["Let's Talk"]</h1>
+            <span class="mt-2 footer-detail-span" style="color:white;">
+                @localizer["Footer-Detail"]
+            </span>
+            <div class="mt-3">
+                <button onclick="location.href='@Url.Action("Login","Login")'" class="btn" style="background-color:#14ad66; color:white; width:auto;">@localizer["Click to Login"] </button>
+            </div>
+        </div>
+        <div class="footer-second-div gap-3">
+            <div class="d-flex gap-5 justify-content-start">
+                <span>@localizer["Email"] :</span>
+                <span style="color:#0e70c5;">dabhoyakishan12#gmial,com</span>
+            </div>
+            <div class="d-flex gap-5 justify-content-start">
+                <span>@localizer["Phone"] :</span>
+                <span style="color:#0e70c5;">(+91) 7845123690</span>
+            </div>
+            <div class="d-flex gap-5 justify-content-start">
+                <span>@localizer["Address"] :</span>
+                <span style="color:#0e70c5;">
+                    @localizer["AddressProof"]
+                </span>
+            </div>
+        </div>
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

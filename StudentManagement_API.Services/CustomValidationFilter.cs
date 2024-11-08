@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using StudentManagement_API.Models;
 using StudentManagement_API.Models.Models;
 
 namespace StudentManagment_API.Services

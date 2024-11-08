@@ -1926,3 +1926,47 @@ h5 {
     border-radius:15px;
 
 }
+
+
+footer{
+    color:white;
+    padding:35px;
+}
+
+.footer-second-div div span{
+    font-weight:bold;
+}
+.footer-second-div {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+}
+
+.footer-first-div{
+    width:40%;
+}
+
+.footer-detail-span {
+    word-wrap: break-word;
+}
+
+@media (max-width: 767px) {
+    .footer-second-div {
+        align-items: start;
+        justify-content: center;
+    }
+
+
+    footer {
+        flex-direction:column;
+    }
+}
+
+
+.change-language-dropdown{
+    width:auto;
+    padding:5px;
+    border-radius:10px;
+    height:35px;
+}

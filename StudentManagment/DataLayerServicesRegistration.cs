@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection.Extensions;
-using NetCore.AutoRegisterDi;
+﻿using NetCore.AutoRegisterDi;
 using System.Reflection;
 
 namespace StudentManagment

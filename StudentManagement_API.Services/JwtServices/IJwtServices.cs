@@ -1,5 +1,4 @@
-﻿using StudentManagement_API.Models;
-using StudentManagement_API.Models.Models.DTO;
+﻿using StudentManagement_API.Models.Models.DTO;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace StudentManagement_API.Services

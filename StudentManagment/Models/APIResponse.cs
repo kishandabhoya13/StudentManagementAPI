@@ -1,6 +1,4 @@
-﻿using StudentManagment.Models;
-using StudentManagment.Models.DataModels;
-using System.Net;
+﻿using System.Net;
 
 namespace StudentManagement.Models
 {
@@ -25,7 +23,7 @@ namespace StudentManagement.Models
 
         //public IList<EmailViewModel> AllEmails { get; set; }
 
-        public T record{ get; set; }
+        public T record { get; set; }
 
         public string Role { get; set; }
 
@@ -51,7 +49,7 @@ namespace StudentManagement.Models
 
     public class OrderByViewModel
     {
-        public string OrderByValues{ get; set; }
+        public string OrderByValues { get; set; }
 
         public string OrderByName { get; set; }
     }
@@ -59,7 +57,7 @@ namespace StudentManagement.Models
     public class ApiVersionViewModel
     {
         public int ApiVersionId { get; set; }
-        public string ApiVersionName { get; set;}
+        public string ApiVersionName { get; set; }
     }
 
     public class SettingdViewModel

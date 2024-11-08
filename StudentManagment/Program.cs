@@ -15,10 +15,32 @@ using Microsoft.AspNetCore.Builder;
 using System.Net.WebSockets;
 using System.Net;
 using StudentManagment.CallHubs;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
+builder.Services.AddLocalization(option => { option.ResourcesPath = "Resources"; });
+builder.Services.AddMvc().
+    AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix).AddDataAnnotationsLocalization();
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCulture = new List<CultureInfo>
+    {
+        new CultureInfo("en"),
+        new CultureInfo("es"),
+        new CultureInfo("fr"),
+
+    };
+    options.DefaultRequestCulture = new RequestCulture("en");
+    options.SupportedCultures = supportedCulture;
+    options.SupportedUICultures = supportedCulture;
+});
+
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<CustomExceptionFilter>();
@@ -28,7 +50,9 @@ builder.Services.AddControllersWithViews(options =>
 {
     option.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
     option.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-}).AddXmlDataContractSerializerFormatters();
+}).AddXmlDataContractSerializerFormatters().AddDataAnnotationsLocalization();
+
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ICacheServices, CacheServices>();
 builder.Services.AddScoped<CustomExceptionFilter>();
@@ -47,6 +71,7 @@ builder.Services.AddSession(options =>
 });
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -57,25 +82,17 @@ else
     app.UseDeveloperExceptionPage();
     // This will handle exceptions and redirect to the specified error page.
 }
+
+//var supportedCultures = new[] { "en", "fr", "es" };
+//var localizationOptions = new RequestLocalizationOptions().
+//    SetDefaultCulture(supportedCultures[0]).
+//    AddSupportedCultures(supportedCultures).
+//    AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);    
+
 app.UseWebSockets();
 
-//app.Map("/", async httpContext =>
-//{
-//    if (httpContext.WebSockets.IsWebSocketRequest is false)
-//        httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-
-//    else
-//    {
-//        using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
-
-//        while (true)
-//        {
-//            var data = Encoding.ASCII.GetBytes($"Data {DateTime.Now}");
-//            await webSocket.SendAsync(data, WebSocketMessageType.Text, false, CancellationToken.None);
-//            await Task.Delay(5000);
-//        }
-//    }
-//});
 app.UseMiddleware<WebSocketMiddleware>();
 app.UseMiddleware<CustomHeaderMiddleWare>();
 app.UseHttpsRedirection();

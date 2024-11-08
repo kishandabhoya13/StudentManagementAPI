@@ -1,9 +1,4 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StudentManagement_API.Services.CacheService
 {
@@ -16,7 +11,7 @@ namespace StudentManagement_API.Services.CacheService
         {
             _memoryCache = memoryCache;
         }
-       
+
         public IList<T> GetListCachedResponse<T>(string cacheKey)
         {
             bool isAvaiable = _memoryCache.TryGetValue(cacheKey, out List<T> list);
@@ -25,7 +20,7 @@ namespace StudentManagement_API.Services.CacheService
             {
                 semaphore.Wait();
                 isAvaiable = _memoryCache.TryGetValue(cacheKey, out list);
-              
+
             }
             catch
             {
@@ -74,7 +69,7 @@ namespace StudentManagement_API.Services.CacheService
                 };
                 _memoryCache.Set(cacheKey, cachelist, cacheEntryOptions);
             }
-         
+
         }
 
         public void SetSingleCachedResponse<T>(string cacheKey, T data)
